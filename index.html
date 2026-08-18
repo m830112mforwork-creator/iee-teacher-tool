@@ -1995,28 +1995,28 @@ const FRAG = {
 
 // 開場後說明這次要分享什麼
 const INTRO_LINE = [
-  "想跟${p}分享一下${N}最近上課的狀況",
-  "跟${p}說說${N}這幾堂課的學習情形",
-  "想讓${p}知道${N}在課堂上的樣子",
-  "跟${p}分享一下${N}的學習狀況",
+  "想跟${p}分享一下${N}這週的學習狀況",
+  "跟${p}分享${N}這週在課堂上的學習情形",
+  "想讓${p}了解${N}這週在課堂上的表現",
+  "跟${p}分享一下${N}這週的學習狀況",
 ];
 
 // 課堂做了什麼（搭配當課內容，補在單字句型之後）
 const CLASS_ACTIVITY = [
-  "課堂上我們用問答的方式一句一句帶過，讓孩子先聽熟再開口",
-  "這次是先聽音檔、再一起唸，最後讓孩子自己造一句看看",
-  "我們搭配圖卡練習，讓孩子把單字跟畫面連在一起記",
-  "課堂中安排了小組互相問答，孩子彼此練習會比較敢開口",
-  "我們先從孩子熟悉的內容切入，再慢慢帶到這次的新句型",
+  "課堂上採用問答的方式逐句帶讀，讓孩子先聽熟再開口",
+  "這週的流程是先聽音檔、再帶讀，最後讓孩子自行造句練習",
+    "課堂中安排小組問答，透過同儕互動提高孩子開口的意願",
+  "教學上先從孩子已熟悉的內容切入，再逐步帶入這週的新句型",
+  "課堂中反覆帶讀並即時修正，讓孩子當下就建立正確的語感",
 ];
 
 // 老師的教學說明（語料中很常見：解釋「我們是怎麼教的」）
 const TEACHING_NOTE = [
-  "這個階段主要是讓孩子先建立語感，不會急著要求完全正確",
-  "我們不會讓孩子死背，而是從理解句子的意思開始",
-  "這部分會隨著課程一直複習到，${p}不用擔心一次沒記熟",
-  "英文的累積是慢慢來的，孩子有接觸就會一點一點進步",
-  "課程設計上會反覆帶到之前學過的內容，孩子會愈來愈熟悉",
+  "這個階段的重點是讓孩子先建立語感，正確度會隨著練習量提升",
+  "我們的做法不是讓孩子死背，而是從理解句子的意思開始建立",
+  "這部分在後續課程會反覆複習到，${p}不需要擔心一次沒記熟",
+  "語言的累積需要時間，只要持續接觸，進步是看得到的",
+  "課程設計上會不斷回扣先前學過的內容，熟悉度會逐步累積",
 ];
 
 // 對孩子整體的評價（語料：「真的是一個很活潑、很可愛的孩子！」）
@@ -2115,22 +2115,79 @@ function v2Opening(rawName){
   return pick([
     `${N}${p}好～`,
     `${N}${p}好`,
-    `Hi ${N}${p}～`,
+    `${N}${p}您好`,
     `${p}好～`,
     "",                       // 有時直接進入正題
   ]);
 }
+// 各科在評語裡怎麼描述「這週上了什麼」
+const COURSE_LESSON = {
+  grammar: {
+    field: "文法教學點",
+    lead: ["這週的文法帶到", "這週文法的重點是", "文法的部分，這週上到"],
+  },
+  phonics: {
+    field: "發音教學重點",
+    lead: ["這週發音練的是", "發音的部分，這週帶到", "這週的發音重點在"],
+  },
+  reading: {
+    field: "閱讀教學重點",
+    lead: ["這週的閱讀讀到", "閱讀的部分，這週上的是", "這週我們讀的是"],
+  },
+  speaking: {
+    field: "口說活動",
+    lead: ["這週的口說主題是", "口說的部分，這週練的是", "這週口說帶到"],
+  },
+};
+
+// 取目前選定科目、選定單元的內容，組成一句「這週上了什麼」
+function v2LessonForCourse(){
+  const meta = COURSE_LESSON[activeCourse];
+  if(!meta) return "";
+  const entries = prepEntriesFor(activeCourse);
+  if(!entries || !entries.length) return "";
+  const sub = currentSubUnit();
+  const entry = (sub && sub.kind === "entry") ? entries[sub.idx] : entries[0];
+  if(!entry) return "";
+
+  // 標題：去掉版本括號與教材編號，只留主題
+  let title = String(entry.label)
+    .replace(/（[^）]*）/g, "")
+    .replace(/^[A-Z]?U?[\d.]+\s*[:：]\s*/, "")
+    .trim();
+  // 重點：取該科主要欄位的第一行，濾掉「文件未提供」這類佔位文字
+  const lines = (entry.fields || {})[meta.field] || [];
+  let point = lines.find(l => l && !/文件未|未提供|未特別/.test(l)) || "";
+  point = tidySpace(point).replace(/（[^）]*）/g, "").replace(/\*\*/g, "").trim();
+  // 去掉與引導語重複的開頭（如「教學重點是…」「重點在…」）
+  point = point.replace(/^(教學重點是|重點是|重點在|主要是|目標[:：]?)\s*/, "");
+  if(point.length > 42) point = point.slice(0, 42).replace(/[，、。；].*$/, "");
+
+  // 發音的標題是書系名（Adventurers 等），不是主題，改用重點本身
+  if(activeCourse === "phonics") title = "";
+  const sp = /^[A-Za-z]/.test(title) ? " " : "";   // 英文主題前補空格
+  const sp2 = /^[A-Za-z0-9]/.test(point) ? " " : "";
+  const lead = pick(meta.lead);
+  if(title && point) return `${lead}${sp}${title}，${point}`;
+  if(title) return `${lead}${sp}${title}`;
+  if(point) return `${lead}${sp2}${point}`;
+  return "";
+}
+
 // 這堂課上了什麼：不吐 topic 原文，改用自然說法
 function v2Lesson(){
+  // 選了文法／發音／閱讀／口說時，評語要講那一科的內容
+  const byCourse = v2LessonForCourse();
+  if(byCourse) return byCourse;
   const words = firstWords(chapterVocab(), 3);
   const pattern = firstPattern(chapterSentences());
   const w = words.join("、");
   const bits = [];
   if(pattern && w){
     bits.push(pick([
-      `這堂課我們練到「${pattern}」這個句型，也帶了 ${w} 這幾個字`,
-      `今天上到「${pattern}」，搭配 ${w} 這幾個單字一起練`,
-      `這次的重點是「${pattern}」，單字的部分是 ${w}`,
+      `這週我們練到「${pattern}」這個句型，也帶了 ${w} 這幾個字`,
+      `這週上到「${pattern}」，搭配 ${w} 這幾個單字一起練`,
+      `這週的重點是「${pattern}」，單字的部分是 ${w}`,
     ]));
   } else if(pattern){
     bits.push(pick([`這堂課的重點句型是「${pattern}」`, `今天我們練的是「${pattern}」`]));
@@ -2138,8 +2195,8 @@ function v2Lesson(){
     // J 級的「單字」其實是教材進度範圍，措辭要不同
     const isRange = /Unit\s*\d|上學期|下學期|第\s*\d+\s*[課回]/.test(w);
     bits.push(isRange
-      ? pick([`這次的進度是 ${w}`, `目前上到 ${w} 的範圍`])
-      : pick([`這堂課帶了 ${w} 這幾個單字`, `今天的單字是 ${w}`]));
+      ? pick([`這週的進度是 ${w}`, `目前進度到 ${w} 的範圍`])
+      : pick([`這週帶了 ${w} 這幾個單字`, `這週的單字是 ${w}`]));
   }
   return bits.join("");
 }
@@ -2177,7 +2234,7 @@ function v2Praise(name, tagIds){
   if(picked[1]) s += midFor(picked[1]) + picked[1];
   // 一段最多一個驚嘆號，且只在有多個亮點時才用
   // 傳訊息時多半不打句號；語氣詞、標點、emoji 三者不會同時出現
-  const soft = softEnd(0.13);
+  const soft = softEnd(0.06);
   return s + soft + (soft ? "" : endMark(0.26)) + maybeEmoji(soft ? 0.2 : 0.32);
 }
 
@@ -2189,7 +2246,7 @@ function v2PraiseExtra(name, tagIds){
   const f = pick(FRAG[pos[2]].core);
   const lead = pick(["另外，", "另外老師也觀察到，", "還有一個地方老師覺得很不錯，"]);
   const subj = pick(["他", ""]);
-  return lead + subj + f + softEnd(0.13) + endMark(0.25) + maybeEmoji(0.25);
+  return lead + subj + f + softEnd(0.06) + endMark(0.25) + maybeEmoji(0.25);
 }
 
 function v2Concern(name, tagIds){
@@ -2224,19 +2281,19 @@ function v2Closing(rawName){
   if(Math.random() < 0.18){
     return pick([
       `之後有任何學習上的問題都可以跟老師說`,
-      `有需要再跟老師聊聊${maybeEmoji(0.4)}`,
+      `有任何想了解的地方再跟老師說${maybeEmoji(0.35)}`,
     ]);
   }
   if(Math.random() < 0.22){
-    return pick(TO_PARENT).replace(/\$\{p\}/g, p) + softEnd(0.14) + maybeEmoji(0.4);
+    return pick(TO_PARENT).replace(/\$\{p\}/g, p) + softEnd(0.06) + maybeEmoji(0.4);
   }
   return pick([
     `期待接下來繼續陪著${nmIn(name)}一起學習與成長${maybeEmoji(0.45)}`,
     `會持續帶著${nmIn(name)}在課堂上累積，也謝謝${p}的支持${maybeEmoji(0.4)}`,
     `謝謝${p}一直以來的配合，我們一起陪著孩子往前${maybeEmoji(0.4)}`,
     `接下來的課程也會持續留意${nmIn(name)}的學習狀況${maybeEmoji(0.35)}`,
-    `我們下週課堂見${maybeEmoji(0.5)}`,
-    `先跟${p}分享到這裡${maybeEmoji(0.35)}`,
+    `我們下週課堂上見${maybeEmoji(0.45)}`,
+    `這週的狀況先跟${p}分享到這裡${maybeEmoji(0.35)}`,
   ]);
 }
 
@@ -2287,11 +2344,11 @@ function generateCommentV2(rawName, tags, ownNote){
 
   // 老師視角的一句話
   if(Math.random() < 0.4)
-    paras.push(pick(TEACHER_VIEW[concern ? "-" : "+"]) + softEnd(0.13) + maybeEmoji(0.28));
+    paras.push(pick(TEACHER_VIEW[concern ? "-" : "+"]) + softEnd(0.06) + maybeEmoji(0.28));
 
   // 對孩子整體的評價
   if(Math.random() < 0.45)
-    paras.push(pick(OVERALL_IMPRESSION[concern ? "-" : "+"]) + softEnd(0.14) + maybeEmoji(0.3));
+    paras.push(pick(OVERALL_IMPRESSION[concern ? "-" : "+"]) + softEnd(0.06) + maybeEmoji(0.3));
 
   paras.push(v2Closing(name));
   return paras.map(x=>String(x).trim()).filter(Boolean).join("\n\n");
@@ -2772,6 +2829,17 @@ function prepEntriesFor(courseKey){
 
 function getSubUnits(){
   const lv = currentLevel(), u = currentUnit();
+  // 評語分頁選了四科之一時，第四層要顯示該科的單元（評語會跟著那個單元走）
+  if(state.tool === "comment" && activeCourse !== "vocsen"){
+    if(lv.noSeriesStructure) return [];
+    const entries = prepEntriesFor(activeCourse) || [];
+    if(!entries.length) return [];
+    if(activeCourse === "phonics"){
+      const units = phonicsUnits(entries[0]);
+      return units.length < 2 ? [] : units.map(n=>({key:"pu"+n, label:"Unit "+n, kind:"phonicsUnit", unit:n}));
+    }
+    return entries.map((e,i)=>({key:"e"+i, label:shortSubLabel(e.label), kind:"entry", idx:i}));
+  }
   if(state.tool === "comment" || activeCourse === "vocsen"){
     if(lv.code === "U"){
       return uSlotsFor(state.uLevelIdx).map(s=>({key:s.key, label:s.label, kind:"uslot", slot:s}));
@@ -2818,7 +2886,7 @@ function renderChapterSection(){
 
   // 評語工具維持單選課次（不提供「全部」，評語必須對應到某一課）
   if(isComment){
-    const uMode = lv.code === "U";
+    const uMode = lv.code === "U" || activeCourse !== "vocsen";
     subs.forEach((s, i)=>{
       const el = document.createElement("span");
       const on = uMode ? (state.subKey === s.key || (!currentUSlot() && i===0)) : (i===state.chapterIdx);
