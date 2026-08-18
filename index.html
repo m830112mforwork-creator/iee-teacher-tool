@@ -1331,8 +1331,26 @@ function firstPattern(sentArr){
 }
 
 function currentLevel(){ return CURRICULUM[state.levelIdx]; }        // 現在選的「級數」= Adventures/Pacesetters/... 系列
-function currentUnit(){ return currentLevel().levels[state.unitIdx]; } // 現在選的「Level」= 該系列內的 Level 1-5（或 U 系列的 Unit1-7）
+function currentUnit(){
+  const lv = currentLevel();
+  if(lv.code === "U"){
+    // U 級：由學年 Level + 選中的 Unit×Learn 格決定；未指定時取該 Level 的第一格
+    const slots = uSlotsFor(state.uLevelIdx);
+    const s = (slots.find(x=>x.key === state.subKey) || slots[0]);
+    if(s) return lv.levels[s.unitIdx];
+  }
+  return lv.levels[state.unitIdx];
+}
 function currentChapter(){
+  const lv = currentLevel();
+  if(lv.code === "U"){
+    const slots = uSlotsFor(state.uLevelIdx);
+    const s = (slots.find(x=>x.key === state.subKey) || slots[0]);
+    if(s){
+      const ch = (lv.levels[s.unitIdx].chapters || [])[s.chIdx];
+      if(ch) return ch;
+    }
+  }
   const u = currentUnit();
   const chs = u.chapters || [];
   return chs[state.chapterIdx] || chs[0] || {id:"main", label:u.label, vocab:[], sentences:[]};
@@ -1397,9 +1415,36 @@ function uRangeLabel(r){
   return `U${r.from[0]}L${r.from[1]}–U${r.to[0]}L${r.to[1]}`;
 }
 
-// U 級選了非「單字句型」的科目時，改以學年 Level 為軸（四科資料就是這樣編排的）
+// U 級一律以「學年 Level」為軸：單字句型與四科都掛在學年 Level 底下。
+// 學年 Level ↔ H.H.H. Unit×Learn 的對照由使用者提供（見 U_LEVEL_RANGES）。
 function usesAcademicLevel(){
-  return currentLevel().code === "U" && activeCourse !== "vocsen";
+  return currentLevel().code === "U";
+}
+
+// 某個學年 Level 涵蓋哪幾個 Unit×Learn 格
+function uSlotsFor(rangeIdx){
+  const lv = currentLevel();
+  const r = U_LEVEL_RANGES[rangeIdx];
+  if(!r || lv.code !== "U") return [];
+  const out = [];
+  lv.levels.forEach((unit, ui)=>{
+    const un = parseInt(String(unit.label).replace(/\D/g,""), 10);
+    (unit.chapters || []).forEach((ch, ci)=>{
+      const ln = parseInt(String(ch.label).replace(/\D/g,""), 10);
+      if(!un || !ln) return;
+      const v = un*10 + ln;
+      if(v >= r.from[0]*10 + r.from[1] && v <= r.to[0]*10 + r.to[1]){
+        out.push({ unitIdx:ui, chIdx:ci, key:`U${un}L${ln}`, label:`U${un} L${ln}` });
+      }
+    });
+  });
+  return out;
+}
+
+function currentUSlot(){
+  const slots = uSlotsFor(state.uLevelIdx);
+  if(!slots.length) return null;
+  return slots.find(s=>s.key === state.subKey) || null;   // null = 全部
 }
 
 function renderUnits(){
@@ -1875,8 +1920,19 @@ function renderCourseBlock(courseKey, entries, notice){
 
 function renderVocSenPrepBlock(u, sub){
   const meta = COURSE_META.vocsen;
+  const lv = currentLevel();
   let chapters = u.chapters || [];
-  if(sub && sub.kind === "chapter") chapters = [chapters[sub.idx]].filter(Boolean);
+  if(lv.code === "U"){
+    // U 級：攤平該學年 Level 涵蓋的每一格，標題標明來自哪個 Unit 的哪個 Learn
+    const slots = (sub && sub.kind === "uslot") ? [sub.slot] : uSlotsFor(state.uLevelIdx);
+    chapters = slots.map(s=>{
+      const unit = lv.levels[s.unitIdx];
+      const ch = (unit.chapters || [])[s.chIdx];
+      return ch ? Object.assign({}, ch, { label: `${unit.label} · ${ch.label}` }) : null;
+    }).filter(Boolean);
+  } else if(sub && sub.kind === "chapter"){
+    chapters = [chapters[sub.idx]].filter(Boolean);
+  }
   const collapsible = chapters.length > 1;
   let html = `<div class="prep-course" data-course="vocsen" style="--course-hue:${meta.hue}"><div class="prep-course-head"><span class="dot"></span><h3>${meta.label}</h3></div>`;
   html += chapters.map(c=>{
@@ -2144,6 +2200,9 @@ function prepEntriesFor(courseKey){
 function getSubUnits(){
   const lv = currentLevel(), u = currentUnit();
   if(state.tool === "comment" || activeCourse === "vocsen"){
+    if(lv.code === "U"){
+      return uSlotsFor(state.uLevelIdx).map(s=>({key:s.key, label:s.label, kind:"uslot", slot:s}));
+    }
     return (u.chapters || []).map((ch, i)=>({key:"ch"+i, label:ch.label, kind:"chapter", idx:i}));
   }
   if(lv.noSeriesStructure) return [];
@@ -2186,12 +2245,17 @@ function renderChapterSection(){
 
   // 評語工具維持單選課次（不提供「全部」，評語必須對應到某一課）
   if(isComment){
+    const uMode = lv.code === "U";
     subs.forEach((s, i)=>{
       const el = document.createElement("span");
-      el.className = "chapter-chip" + (i===state.chapterIdx ? " active":"");
+      const on = uMode ? (state.subKey === s.key || (!currentUSlot() && i===0)) : (i===state.chapterIdx);
+      el.className = "chapter-chip" + (on ? " active":"");
       el.style.setProperty("--chip-hue", lv.hue);
       el.textContent = s.label;
-      el.onclick = ()=>{ state.chapterIdx = i; renderChapterSection(); refreshOutputStaleness(); };
+      el.onclick = ()=>{
+        if(uMode) state.subKey = s.key; else state.chapterIdx = i;
+        renderChapterSection(); refreshOutputStaleness();
+      };
       row.appendChild(el);
     });
   } else {
@@ -2316,7 +2380,16 @@ function prepPlainText(){
   if(activeCourse === "vocsen"){
     lines.push("【Vocabulary & Sentence 單字句型】");
     let chs = u.chapters || [];
-    if(subSel && subSel.kind === "chapter") chs = [chs[subSel.idx]].filter(Boolean);
+    if(lv.code === "U"){
+      const slots = (subSel && subSel.kind === "uslot") ? [subSel.slot] : uSlotsFor(state.uLevelIdx);
+      chs = slots.map(s=>{
+        const unit = lv.levels[s.unitIdx];
+        const ch = (unit.chapters || [])[s.chIdx];
+        return ch ? Object.assign({}, ch, { label: `${unit.label} · ${ch.label}` }) : null;
+      }).filter(Boolean);
+    } else if(subSel && subSel.kind === "chapter"){
+      chs = [chs[subSel.idx]].filter(Boolean);
+    }
     chs.forEach(c=>{
       lines.push("◆ " + c.label);
       (c.vocab||[]).forEach(l=>lines.push("  ・" + l));
