@@ -178,90 +178,49 @@
   }
   .exam-date-input:read-only,
   .exam-range-input:read-only{ color:var(--ink-faint); cursor:default; }
-  .course-filter{
+  .course-row{
     display:flex;
-    align-items:center;
     flex-wrap:wrap;
     gap:8px;
-    padding:10px 12px;
-    margin-bottom:14px;
-    background:var(--bg);
-    border:1px solid var(--line);
-    border-radius:10px;
-  }
-  .course-filter-label{
-    font-family:var(--mono);
-    font-size:11px;
-    font-weight:700;
-    color:var(--ink-soft);
-    letter-spacing:.04em;
-    flex:none;
-  }
-  .course-filter-boxes{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px;
-    flex:1;
-    min-width:0;
   }
   .course-chip{
     display:inline-flex;
+    flex-direction:column;
     align-items:center;
-    gap:5px;
-    padding:5px 10px;
+    gap:2px;
+    min-width:92px;
+    padding:10px 14px;
     border:1px solid var(--line);
-    border-radius:999px;
+    border-radius:10px;
     background:var(--surface);
-    font-size:12px;
     color:var(--ink-soft);
+    font-size:13px;
     cursor:pointer;
     user-select:none;
     transition:background .12s, border-color .12s, color .12s;
   }
-  .course-chip:hover{ border-color:var(--course-hue, var(--accent)); }
-  .course-chip input{
-    appearance:none;
-    -webkit-appearance:none;
-    width:13px;
-    height:13px;
-    margin:0;
-    border:1.5px solid var(--line-strong, #b9b4ab);
-    border-radius:4px;
-    flex:none;
-    position:relative;
-    cursor:pointer;
+  .course-chip:hover{ border-color:var(--course-hue); }
+  .course-chip .course-chip-en{
+    font-family:var(--mono);
+    font-size:10px;
+    color:var(--ink-faint);
+    letter-spacing:.02em;
   }
-  .course-chip input:checked{
-    background:var(--course-hue, var(--accent));
-    border-color:var(--course-hue, var(--accent));
+  .course-chip.active{
+    border-color:var(--course-hue);
+    background:color-mix(in srgb, var(--course-hue) 10%, var(--surface));
+    color:var(--course-hue);
+    font-weight:700;
   }
-  .course-chip input:checked::after{
-    content:"";
-    position:absolute;
-    left:3.5px; top:.5px;
-    width:3px; height:7px;
-    border:solid #fff;
-    border-width:0 2px 2px 0;
-    transform:rotate(45deg);
-  }
-  .course-chip:has(input:checked){
-    background:var(--surface);
-    border-color:var(--course-hue, var(--accent));
-    color:var(--ink);
-    font-weight:600;
-  }
-  .course-filter-all{
-    flex:none;
-    border:1px solid var(--line);
-    background:var(--surface);
-    color:var(--ink-soft);
-    border-radius:8px;
-    padding:5px 10px;
+  .course-chip.active .course-chip-en{ color:var(--course-hue); opacity:.75; }
+  .course-chip.empty{ opacity:.45; }
+  .course-hint{
     font-size:12px;
-    font-family:var(--sans);
-    cursor:pointer;
+    color:var(--ink-soft);
+    margin:10px 0 0;
+    line-height:1.6;
   }
-  .course-filter-all:hover{ border-color:var(--accent); color:var(--accent); }
+  .course-hint:empty{ display:none; }
   .prep-course[hidden]{ display:none; }
   .exam-head{
     display:flex;
@@ -856,14 +815,21 @@
     <div class="level-row" id="levelRow"></div>
   </section>
 
+  <section class="card" id="courseSection">
+    <h2 class="section-title"><span class="num">02</span> 核心課程</h2>
+    <div class="course-row" id="courseRow"></div>
+    <p class="course-hint" id="courseHint"></p>
+  </section>
+
   <section class="card">
-    <h2 class="section-title"><span class="num">02</span> Level</h2>
+    <h2 class="section-title"><span class="num">03</span> Level</h2>
     <div class="unit-list" id="unitList"></div>
   </section>
 
   <section class="card" id="chapterSection">
-    <h2 class="section-title"><span class="num">03</span> 課次</h2>
+    <h2 class="section-title"><span class="num">04</span> 課次</h2>
     <div class="chapter-row" id="chapterRow"></div>
+    <p class="course-hint" id="chapterHint"></p>
   </section>
 
   <div class="tool-tabs" id="toolTabs">
@@ -873,7 +839,7 @@
 
   <!-- COMMENT TOOL -->
   <section class="card tool-pane active" id="paneComment">
-    <h2 class="section-title"><span class="num">04</span> 學生與課堂表現</h2>
+    <h2 class="section-title"><span class="num">05</span> 學生與課堂表現</h2>
 
     <div style="margin-bottom:14px;">
       <input type="text" id="studentName" placeholder="學生姓名／暱稱（可留空）" maxlength="20">
@@ -888,13 +854,7 @@
 
   <!-- PREP TOOL -->
   <section class="card tool-pane" id="panePrep">
-    <h2 class="section-title"><span class="num">04</span> <span id="prepLevelLabel">備課摘要</span></h2>
-
-    <div class="course-filter" id="courseFilter">
-      <span class="course-filter-label">顯示科目</span>
-      <div class="course-filter-boxes" id="courseFilterBoxes"></div>
-      <button type="button" class="course-filter-all" id="courseFilterAllBtn">全選</button>
-    </div>
+    <h2 class="section-title"><span class="num">05</span> <span id="prepLevelLabel">備課摘要</span></h2>
 
     <div id="prepContent"></div>
     <div style="margin-top:14px;">
@@ -1290,7 +1250,7 @@ function renderChapters(){
     el.className = "chapter-chip" + (i===state.chapterIdx ? " active":"");
     el.style.setProperty("--chip-hue", lv.hue);
     el.textContent = c.label;
-    el.onclick = ()=>{ state.chapterIdx = i; renderChapters(); };
+    el.onclick = ()=>{ state.chapterIdx = i; renderChapters(); if(state.tool === "prep") renderPrepTool(); };
     row.appendChild(el);
   });
 }
@@ -1691,67 +1651,78 @@ const COURSE_ORDER = ["vocsen","grammar","speaking","phonics","reading"];
 const COURSE_SHORT = {
   vocsen:"單字句型", grammar:"文法", speaking:"口說", phonics:"發音", reading:"閱讀"
 };
-const COURSE_FILTER_STORAGE_KEY = "iee_course_filter_v1";
+const COURSE_EN = {
+  vocsen:"Voc & Sen", grammar:"Grammar", speaking:"Speaking", phonics:"Phonics", reading:"Reading"
+};
+// 只有「單字句型」的原始課綱是依課次（Ch1/Ch2/Ch3）編排；其餘四科都是 Level 層級的資料
+const CHAPTER_AWARE_COURSE = "vocsen";
+const COURSE_STORAGE_KEY = "iee_active_course_v2";
 
-function loadCourseFilter(){
+function loadActiveCourse(){
   try{
-    const raw = localStorage.getItem(COURSE_FILTER_STORAGE_KEY);
-    if(!raw) return COURSE_ORDER.slice();
-    const saved = JSON.parse(raw);
-    const valid = Array.isArray(saved) ? saved.filter(k=>COURSE_ORDER.includes(k)) : [];
-    // 全部取消勾選時視同全選，避免畫面整片空白
-    return valid.length ? valid : COURSE_ORDER.slice();
+    const saved = localStorage.getItem(COURSE_STORAGE_KEY);
+    return COURSE_ORDER.includes(saved) ? saved : CHAPTER_AWARE_COURSE;
   }catch(e){
-    return COURSE_ORDER.slice();
+    return CHAPTER_AWARE_COURSE;
   }
 }
 
-let activeCourses = loadCourseFilter();
+let activeCourse = loadActiveCourse();
 
-function saveCourseFilter(){
-  try{ localStorage.setItem(COURSE_FILTER_STORAGE_KEY, JSON.stringify(activeCourses)); }catch(e){}
+function saveActiveCourse(){
+  try{ localStorage.setItem(COURSE_STORAGE_KEY, activeCourse); }catch(e){}
 }
 
-function renderCourseFilter(){
-  const box = document.getElementById("courseFilterBoxes");
-  box.innerHTML = COURSE_ORDER.map(key=>{
-    const checked = activeCourses.includes(key) ? " checked" : "";
-    return `<label class="course-chip" style="--course-hue:${COURSE_META[key].hue}">`
-         + `<input type="checkbox" data-course-toggle="${key}"${checked}>`
-         + `<span>${COURSE_SHORT[key]}</span></label>`;
-  }).join("");
+// 這個級數＋Level 底下，該科目有沒有實際資料
+function courseHasData(courseKey, lv, u){
+  if(courseKey === "vocsen") return true;
+  if(lv.code === "U") return false;               // U 系列編號系統不同，四科無法對應
+  if(lv.noSeriesStructure) return false;          // J 級沒有跨科目資料
+  const entries = (PREP_DATA[courseKey] || {})[lv.code];
+  return !!(entries && entries[String(u.level)] && entries[String(u.level)].length);
+}
 
-  box.querySelectorAll("[data-course-toggle]").forEach(input=>{
-    input.addEventListener("change", ()=>{
-      const key = input.dataset.courseToggle;
-      if(input.checked){
-        if(!activeCourses.includes(key)) activeCourses.push(key);
-      } else {
-        activeCourses = activeCourses.filter(k=>k!==key);
-      }
-      if(!activeCourses.length){
-        // 至少保留一科，否則把這次的取消還原
-        activeCourses = [key];
-        input.checked = true;
-        showToast("至少要顯示一個科目");
-      }
-      saveCourseFilter();
-      applyCourseFilter();
-      syncCourseFilterAllBtn();
-    });
+function renderCourseRow(){
+  const row = document.getElementById("courseRow");
+  const lv = currentLevel();
+  const u = currentUnit();
+  row.innerHTML = "";
+
+  COURSE_ORDER.forEach(key=>{
+    const el = document.createElement("div");
+    const has = courseHasData(key, lv, u);
+    el.className = "course-chip" + (key===activeCourse ? " active":"") + (has ? "" : " empty");
+    el.style.setProperty("--course-hue", COURSE_META[key].hue);
+    el.innerHTML = `<span>${COURSE_SHORT[key]}</span><span class="course-chip-en">${COURSE_EN[key]}</span>`;
+    el.title = has ? "" : "此級數／Level 查無此科目資料";
+    el.onclick = ()=>{
+      activeCourse = key;
+      saveActiveCourse();
+      renderCourseRow();
+      renderChapterSection();
+      if(state.tool === "prep") renderPrepTool();
+    };
+    row.appendChild(el);
   });
-  syncCourseFilterAllBtn();
+
+  const hint = document.getElementById("courseHint");
+  hint.textContent = activeCourse === CHAPTER_AWARE_COURSE
+    ? "單字句型依課次（Ch1／Ch2／Ch3）編排，請於下方選擇課次。"
+    : `${COURSE_SHORT[activeCourse]}的原始課綱以 Level 為單位，不分課次，選好 Level 即可。`;
 }
 
-function syncCourseFilterAllBtn(){
-  const btn = document.getElementById("courseFilterAllBtn");
-  if(btn) btn.textContent = activeCourses.length === COURSE_ORDER.length ? "只看單字句型" : "全選";
-}
+// 課次區塊只有在「單字句型」或使用評語工具時才有意義
+function renderChapterSection(){
+  const section = document.getElementById("chapterSection");
+  const needsChapter = activeCourse === CHAPTER_AWARE_COURSE || state.tool === "comment";
+  section.hidden = !needsChapter;
+  if(!needsChapter) return;
 
-function applyCourseFilter(){
-  document.querySelectorAll("#prepContent .prep-course").forEach(el=>{
-    el.hidden = !activeCourses.includes(el.dataset.course);
-  });
+  renderChapters();
+  const hint = document.getElementById("chapterHint");
+  hint.textContent = (state.tool === "comment" && activeCourse !== CHAPTER_AWARE_COURSE)
+    ? "評語的語言焦點取自單字句型課綱，因此仍需選擇課次。"
+    : "";
 }
 
 function renderPrepTool(){
@@ -1769,22 +1740,22 @@ function renderPrepTool(){
   const lvlKey = String(u.level);
   let html = "";
   html += renderQuickView(u, code, lvlKey);
-  html += renderVocSenPrepBlock(u);
 
-  if(code === "U"){
-    html += `<div class="prep-notice">Unlimited-Potential 書系的 Grammar／Phonics／Speaking／Reading 課綱是依「原始學年資料夾」（Level 1–5）分類，跟這裡 Voc+Sen 依 H.H.H. 教材單元（${escapeHtml(u.label)}）呈現的切法不是同一套編號，暫時無法精準對應，故不顯示，避免誤導。如需這幾科的 U 書系內容，請直接查閱原始課綱。</div>`;
+  if(activeCourse === "vocsen"){
+    html += renderVocSenPrepBlock(u);
+  } else if(code === "U"){
+    html += `<div class="prep-notice">Unlimited-Potential 書系的 ${escapeHtml(COURSE_SHORT[activeCourse])} 課綱是依「原始學年資料夾」（Level 1–5）分類，跟這裡 Voc+Sen 依 H.H.H. 教材單元（${escapeHtml(u.label)}）呈現的切法不是同一套編號，暫時無法精準對應，故不顯示，避免誤導。如需這一科的 U 書系內容，請直接查閱原始課綱。</div>`;
   } else {
-    html += renderCourseBlock("grammar", (PREP_DATA.grammar[code]||{})[lvlKey],
-      code==="S" ? "Success 書系沒有獨立文法課綱，文法教學沿用 Unlimited-Potential 教材內容。" : null);
-    html += renderCourseBlock("speaking", (PREP_DATA.speaking[code]||{})[lvlKey],
-      PREP_DATA.speakingNotices[lvlKey] || null);
-    html += renderCourseBlock("phonics", (PREP_DATA.phonics[code]||{})[lvlKey],
-      code==="S" ? "Success 書系沒有獨立發音課綱，發音教學沿用 Unlimited-Potential（K.K.）教材內容。" : null);
-    html += renderCourseBlock("reading", (PREP_DATA.reading[code]||{})[lvlKey], null);
+    const NOTICES = {
+      grammar: code==="S" ? "Success 書系沒有獨立文法課綱，文法教學沿用 Unlimited-Potential 教材內容。" : null,
+      phonics: code==="S" ? "Success 書系沒有獨立發音課綱，發音教學沿用 Unlimited-Potential（K.K.）教材內容。" : null,
+      speaking: PREP_DATA.speakingNotices[lvlKey] || null,
+      reading: null,
+    };
+    html += renderCourseBlock(activeCourse, (PREP_DATA[activeCourse][code]||{})[lvlKey], NOTICES[activeCourse]);
   }
 
   content.innerHTML = html;
-  applyCourseFilter();
 }
 
 function entriesToText(lines, entries, notice){
@@ -1837,8 +1808,8 @@ function prepPlainText(){
 
   const code = lv.code, lvlKey = String(u.level);
 
-  // 只匯出目前有勾選的科目
-  if(activeCourses.includes("vocsen")){
+  // 只匯出目前選擇的核心課程
+  if(activeCourse === "vocsen"){
     lines.push("【Vocabulary & Sentence 單字句型】");
     (u.chapters||[]).forEach(c=>{
       lines.push("◆ " + c.label);
@@ -1849,33 +1820,17 @@ function prepPlainText(){
       lines.push("  教學提醒：");
       u.notes.forEach(l=>lines.push("  ・" + l));
     }
-    lines.push("");
-  }
-
-  if(code === "U"){
-    if(activeCourses.some(k=>k!=="vocsen")){
-      lines.push("（Unlimited-Potential 書系的 Grammar／Phonics／Speaking／Reading 因編號系統不同，暫不顯示，請查閱原始課綱。）");
-    }
+  } else if(code === "U"){
+    lines.push(`（Unlimited-Potential 書系的 ${COURSE_SHORT[activeCourse]} 因編號系統不同，暫不顯示，請查閱原始課綱。）`);
   } else {
-    if(activeCourses.includes("grammar")){
-      lines.push("【Grammar 文法】");
-      entriesToText(lines, (PREP_DATA.grammar[code]||{})[lvlKey], code==="S" ? "Success 書系沒有獨立文法課綱，沿用 Unlimited-Potential 教材。" : null);
-      lines.push("");
-    }
-    if(activeCourses.includes("speaking")){
-      lines.push("【Speaking 口說】");
-      entriesToText(lines, (PREP_DATA.speaking[code]||{})[lvlKey], PREP_DATA.speakingNotices[lvlKey] || null);
-      lines.push("");
-    }
-    if(activeCourses.includes("phonics")){
-      lines.push("【Phonics 發音】");
-      entriesToText(lines, (PREP_DATA.phonics[code]||{})[lvlKey], code==="S" ? "Success 書系沒有獨立發音課綱，沿用 Unlimited-Potential（K.K.）教材。" : null);
-      lines.push("");
-    }
-    if(activeCourses.includes("reading")){
-      lines.push("【Reading 閱讀】");
-      entriesToText(lines, (PREP_DATA.reading[code]||{})[lvlKey], null);
-    }
+    const NOTICES = {
+      grammar: code==="S" ? "Success 書系沒有獨立文法課綱，沿用 Unlimited-Potential 教材。" : null,
+      phonics: code==="S" ? "Success 書系沒有獨立發音課綱，沿用 Unlimited-Potential（K.K.）教材。" : null,
+      speaking: PREP_DATA.speakingNotices[lvlKey] || null,
+      reading: null,
+    };
+    lines.push(`【${COURSE_META[activeCourse].label}】`);
+    entriesToText(lines, (PREP_DATA[activeCourse][code]||{})[lvlKey], NOTICES[activeCourse]);
   }
   return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
@@ -1883,7 +1838,8 @@ function prepPlainText(){
 function renderAll(){
   renderLevels();
   renderUnits();
-  renderChapters();
+  renderCourseRow();
+  renderChapterSection();
   if(state.tool === "prep") renderPrepTool();
 }
 
@@ -1894,7 +1850,7 @@ document.getElementById("toolTabs").addEventListener("click", e=>{
   document.querySelectorAll(".tool-tab").forEach(b=>b.classList.toggle("active", b===btn));
   document.getElementById("paneComment").classList.toggle("active", state.tool==="comment");
   document.getElementById("panePrep").classList.toggle("active", state.tool==="prep");
-  document.getElementById("chapterSection").style.display = state.tool==="prep" ? "none" : "";
+  renderChapterSection();
   if(state.tool==="prep") renderPrepTool();
 });
 
@@ -1989,14 +1945,6 @@ document.getElementById("loginForm").addEventListener("submit", e=>{
 });
 document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut());
 
-document.getElementById("courseFilterAllBtn").addEventListener("click", ()=>{
-  activeCourses = activeCourses.length === COURSE_ORDER.length ? ["vocsen"] : COURSE_ORDER.slice();
-  saveCourseFilter();
-  renderCourseFilter();
-  applyCourseFilter();
-});
-
-renderCourseFilter();
 renderAll();
 renderTagGroups();
 </script>
