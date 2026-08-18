@@ -178,6 +178,79 @@
   }
   .exam-date-input:read-only,
   .exam-range-input:read-only{ color:var(--ink-faint); cursor:default; }
+  .mode-toggle{
+    display:inline-flex;
+    gap:2px;
+    padding:3px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:10px;
+    margin-bottom:14px;
+  }
+  .mode-btn{
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    font-family:var(--sans);
+    font-size:13px;
+    padding:6px 16px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .mode-btn.active{ background:var(--surface); color:var(--ink); font-weight:700; box-shadow:var(--shadow); }
+  .batch-block{ margin-bottom:16px; }
+  .batch-label{
+    display:flex; align-items:center; flex-wrap:wrap; gap:8px;
+    font-family:var(--serif); font-size:14px; font-weight:700;
+    color:var(--ink); margin-bottom:8px;
+  }
+  .batch-hint{ font-family:var(--sans); font-size:11px; font-weight:400; color:var(--ink-soft); }
+  .batch-count{ font-family:var(--mono); font-size:11px; color:var(--accent); font-weight:700; }
+  .batch-mini{ margin-left:auto; font-size:11px; padding:3px 9px; }
+  #rosterInput{
+    width:100%; border:1px solid var(--line); border-radius:10px;
+    padding:10px 12px; font-family:var(--sans); font-size:13px;
+    background:var(--surface); color:var(--ink); resize:vertical; line-height:1.7;
+  }
+  #rosterInput:focus{ outline:none; border-color:var(--accent); }
+  .batch-row-btns{ display:flex; align-items:center; gap:10px; margin-top:10px; }
+  .batch-style{ display:flex; gap:16px; font-size:13px; color:var(--ink-soft); }
+  .batch-style label{ display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
+  .roster-row{
+    border:1px solid var(--line); border-radius:10px;
+    background:var(--surface); margin-bottom:6px; overflow:hidden;
+  }
+  .roster-head{
+    display:flex; align-items:center; gap:10px;
+    padding:9px 12px; cursor:pointer;
+  }
+  .roster-head:hover{ background:var(--bg); }
+  .roster-name{ font-weight:700; font-size:13px; flex:none; min-width:64px; }
+  .roster-tags{ flex:1; min-width:0; font-size:11.5px; color:var(--ink-soft); line-height:1.5; }
+  .roster-tags.none{ color:var(--ink-faint); font-style:italic; }
+  .roster-badge{
+    flex:none; font-family:var(--mono); font-size:10px; font-weight:700;
+    color:var(--accent); border:1px solid var(--accent);
+    border-radius:999px; padding:1px 7px;
+  }
+  .roster-chevron{ flex:none; color:var(--ink-faint); font-size:11px; transition:transform .15s; }
+  .roster-row.open .roster-chevron{ transform:rotate(90deg); }
+  .roster-editor{ padding:4px 12px 12px; border-top:1px solid var(--line); }
+  .roster-row:not(.open) .roster-editor{ display:none; }
+  .roster-reset{
+    margin-top:8px; font-size:11px; padding:4px 10px;
+    border:1px solid var(--line); border-radius:8px;
+    background:var(--surface); color:var(--ink-soft);
+    font-family:var(--sans); cursor:pointer;
+  }
+  .roster-reset:hover{ border-color:var(--accent); color:var(--accent); }
+  .batch-out-head{
+    display:flex; align-items:center; gap:10px;
+    margin:16px 0 10px;
+  }
+  .batch-out-head h3{ font-family:var(--serif); font-size:14px; margin:0; }
+  .batch-out-count{ font-family:var(--mono); font-size:11px; color:var(--ink-soft); }
+  .batch-out-head .ghost{ margin-left:auto; }
   .stale-notice{
     background:var(--warn-bg, #FDF3E3);
     border:1px solid var(--warn-line, #E0C089);
@@ -852,15 +925,60 @@
   <section class="card tool-pane active" id="paneComment">
     <h2 class="section-title"><span class="num">05</span> 學生與課堂表現</h2>
 
-    <div style="margin-bottom:14px;">
-      <input type="text" id="studentName" placeholder="學生姓名／暱稱（可留空）" maxlength="20">
+    <div class="mode-toggle" id="commentModeToggle">
+      <button class="mode-btn active" data-mode="single">單人</button>
+      <button class="mode-btn" data-mode="batch">全班批次</button>
     </div>
 
-    <div id="tagGroups"></div>
+    <div id="singleMode">
+      <div style="margin-bottom:14px;">
+        <input type="text" id="studentName" placeholder="學生姓名／暱稱（可留空）" maxlength="20">
+      </div>
 
-    <button class="primary" id="genBtn">產生評語草稿</button>
+      <div id="tagGroups"></div>
 
-    <div id="outputArea"></div>
+      <button class="primary" id="genBtn">產生評語草稿</button>
+
+      <div id="outputArea"></div>
+    </div>
+
+    <div id="batchMode" hidden>
+      <div class="batch-block" id="rosterInputBlock">
+        <div class="batch-label">班級名單</div>
+        <textarea id="rosterInput" rows="5" placeholder="貼上學生姓名，一行一位&#10;例如：&#10;小明&#10;小華&#10;小美"></textarea>
+        <div class="batch-row-btns">
+          <button class="primary" id="loadRosterBtn">建立名單</button>
+          <span class="batch-hint" id="rosterInputHint"></span>
+        </div>
+      </div>
+
+      <div id="batchBody" hidden>
+        <div class="batch-block">
+          <div class="batch-label">全班共同表現
+            <span class="batch-hint">先勾選多數學生今天的狀況，會自動套用到全班</span>
+          </div>
+          <div id="baselineTags"></div>
+        </div>
+
+        <div class="batch-block">
+          <div class="batch-label">學生名單 <span class="batch-count" id="rosterCount"></span>
+            <button class="ghost batch-mini" id="editRosterBtn">修改名單</button>
+          </div>
+          <div id="rosterList"></div>
+        </div>
+
+        <div class="batch-block">
+          <div class="batch-label">語氣</div>
+          <div class="batch-style" id="batchStyleRow">
+            <label><input type="radio" name="batchStyle" value="warm" checked> 溫暖鼓勵型</label>
+            <label><input type="radio" name="batchStyle" value="precise"> 精準專業型</label>
+          </div>
+        </div>
+
+        <button class="primary" id="genBatchBtn">產生全班評語</button>
+        <div id="batchOutput"></div>
+      </div>
+    </div>
   </section>
 
   <!-- PREP TOOL -->
@@ -1432,10 +1550,170 @@ function buildTask(style, name, unit, cTagIds){
   return `【今晚無痛共學任務】\n${pick(variants[style])(name)}`;
 }
 
-function generateComment(style){
-  const name = (document.getElementById("studentName").value || "這位同學").trim();
+// ═══ 全班批次模式 ═══════════════════════════════════════
+const BATCH_STORAGE_KEY = "iee_batch_v1";
+const TAG_LABEL = {};
+Object.values(TAGS).forEach(g=>g.items.forEach(it=>{ TAG_LABEL[it.id] = it.label; }));
+
+let batch = { roster: [], baseline: [] };
+
+function saveBatch(){
+  try{ localStorage.setItem(BATCH_STORAGE_KEY, JSON.stringify(batch)); }catch(e){}
+}
+function loadBatch(){
+  try{
+    const raw = localStorage.getItem(BATCH_STORAGE_KEY);
+    if(!raw) return;
+    const d = JSON.parse(raw);
+    if(d && Array.isArray(d.roster)){
+      batch.roster = d.roster.filter(s=>s && typeof s.name === "string")
+        .map(s=>({ name:s.name, tags:Array.isArray(s.tags)?s.tags.filter(t=>TAG_LABEL[t]):[], touched:!!s.touched }));
+      batch.baseline = Array.isArray(d.baseline) ? d.baseline.filter(t=>TAG_LABEL[t]) : [];
+    }
+  }catch(e){}
+}
+
+// 全班共同表現變動時，只更新「沒有個別調整過」的學生
+function applyBaseline(){
+  batch.roster.forEach(s=>{ if(!s.touched) s.tags = batch.baseline.slice(); });
+}
+
+function renderTagChips(container, selected, onToggle){
+  container.innerHTML = "";
+  Object.entries(TAGS).forEach(([key, group])=>{
+    const g = document.createElement("div");
+    g.className = "tag-group";
+    g.innerHTML = `<div class="tag-group-label"><span class="dot" style="--dot:${group.dot}"></span>${group.label}</div>`;
+    const chips = document.createElement("div");
+    chips.className = "tag-chips";
+    group.items.forEach(item=>{
+      const chip = document.createElement("span");
+      chip.className = "tag-chip" + (selected.includes(item.id) ? " selected" : "");
+      chip.style.setProperty("--dot", group.dot);
+      chip.textContent = item.label;
+      chip.onclick = (e)=>{ e.stopPropagation(); onToggle(item.id); };
+      chips.appendChild(chip);
+    });
+    g.appendChild(chips);
+    container.appendChild(g);
+  });
+}
+
+function renderBaselineTags(){
+  renderTagChips(document.getElementById("baselineTags"), batch.baseline, id=>{
+    const i = batch.baseline.indexOf(id);
+    if(i >= 0) batch.baseline.splice(i,1); else batch.baseline.push(id);
+    applyBaseline();
+    saveBatch();
+    renderBaselineTags();
+    renderRoster();
+  });
+}
+
+function tagSummary(tags){
+  if(!tags.length) return "";
+  return tags.map(t=>TAG_LABEL[t]).filter(Boolean).join("・");
+}
+
+function renderRoster(){
+  const list = document.getElementById("rosterList");
+  const openIdx = Array.from(list.querySelectorAll(".roster-row.open")).map(r=>Number(r.dataset.idx));
+  list.innerHTML = "";
+  document.getElementById("rosterCount").textContent = `${batch.roster.length} 位`;
+
+  batch.roster.forEach((s, idx)=>{
+    const row = document.createElement("div");
+    row.className = "roster-row" + (openIdx.includes(idx) ? " open" : "");
+    row.dataset.idx = idx;
+
+    const summary = tagSummary(s.tags);
+    const head = document.createElement("div");
+    head.className = "roster-head";
+    head.innerHTML = `<span class="roster-chevron">▸</span>`
+      + `<span class="roster-name">${escapeHtml(s.name)}</span>`
+      + `<span class="roster-tags${summary ? "" : " none"}">${summary ? escapeHtml(summary) : "（無標籤，將產生一般性評語）"}</span>`
+      + (s.touched ? `<span class="roster-badge">已調整</span>` : "");
+    head.onclick = ()=> row.classList.toggle("open");
+    row.appendChild(head);
+
+    const ed = document.createElement("div");
+    ed.className = "roster-editor";
+    const chipWrap = document.createElement("div");
+    ed.appendChild(chipWrap);
+    renderTagChips(chipWrap, s.tags, id=>{
+      const i = s.tags.indexOf(id);
+      if(i >= 0) s.tags.splice(i,1); else s.tags.push(id);
+      s.touched = true;
+      saveBatch();
+      renderRoster();
+    });
+    if(s.touched){
+      const reset = document.createElement("button");
+      reset.className = "roster-reset";
+      reset.textContent = "回復為全班共同表現";
+      reset.onclick = (e)=>{
+        e.stopPropagation();
+        s.tags = batch.baseline.slice();
+        s.touched = false;
+        saveBatch();
+        renderRoster();
+      };
+      ed.appendChild(reset);
+    }
+    row.appendChild(ed);
+    list.appendChild(row);
+  });
+}
+
+function showBatchBody(show){
+  document.getElementById("batchBody").hidden = !show;
+  document.getElementById("rosterInputBlock").hidden = show;
+}
+
+function batchStyle(){
+  const el = document.querySelector('input[name="batchStyle"]:checked');
+  return el ? el.value : "warm";
+}
+
+function renderBatchOutput(){
+  const area = document.getElementById("batchOutput");
+  area.innerHTML = "";
+  if(!batch.roster.length) return;
+  batchSignature = selectionSignature();
+
+  const style = batchStyle();
+  const results = batch.roster.map(s=>({ name:s.name, text:generateComment(style, s.name, s.tags) }));
+
+  const head = document.createElement("div");
+  head.className = "batch-out-head";
+  head.innerHTML = `<h3>全班評語草稿</h3><span class="batch-out-count">${results.length} 位</span>`;
+  const copyAll = document.createElement("button");
+  copyAll.className = "ghost";
+  copyAll.textContent = "複製全部";
+  copyAll.onclick = ()=> copyText(results.map(r=>`【${r.name}】\n${r.text}`).join("\n\n" + "─".repeat(20) + "\n\n"));
+  head.appendChild(copyAll);
+  area.appendChild(head);
+
+  results.forEach(r=>{
+    const card = document.createElement("div");
+    card.className = "output-card";
+    card.innerHTML = `
+      <div class="out-head">
+        <span class="style-name">${escapeHtml(r.name)}</span>
+        <button class="ghost" data-copy>複製</button>
+      </div>
+      <pre>${r.text.replace(/【([^】]+)】/g,"<b>【$1】</b>")}</pre>
+    `;
+    card.querySelector("[data-copy]").onclick = ()=>copyText(r.text);
+    area.appendChild(card);
+  });
+}
+
+function generateComment(style, nameArg, tagsArg){
+  const rawName = (nameArg !== undefined) ? nameArg : document.getElementById("studentName").value;
+  const name = (rawName || "這位同學").trim() || "這位同學";
   const unit = currentUnit();
-  const allTags = Array.from(state.selectedTags);
+  const allTags = (tagsArg !== undefined) ? Array.from(tagsArg) : Array.from(state.selectedTags);
   const cTags = allTags.filter(id=>id[0]==="c");
   const highlightTags = allTags.filter(id=>id[0]!=="c");
   return [
@@ -1458,18 +1736,18 @@ function selectionDescription(){
 }
 
 let outputSignature = null;
+let batchSignature = null;
 
 // 選擇有變動時，在既有草稿上方顯示提醒（不清空，避免老師正在複製的內容消失）
-function refreshOutputStaleness(){
-  const area = document.getElementById("outputArea");
+function markStale(areaId, noticeId, sig, btnLabel){
+  const area = document.getElementById(areaId);
   const existing = area.querySelector(".output-card");
-  const banner = document.getElementById("staleNotice");
-  if(!existing || outputSignature === null){
+  const banner = document.getElementById(noticeId);
+  if(!existing || sig === null){
     if(banner) banner.remove();
     return;
   }
-  const stale = outputSignature !== selectionSignature();
-  if(!stale){
+  if(sig === selectionSignature()){
     if(banner) banner.remove();
     return;
   }
@@ -1478,11 +1756,16 @@ function refreshOutputStaleness(){
     return;
   }
   const el = document.createElement("div");
-  el.id = "staleNotice";
+  el.id = noticeId;
   el.className = "stale-notice";
   el.innerHTML = `⚠️ 課程選擇已變更為「<span>${escapeHtml(selectionDescription())}</span>」，`
-               + `下方草稿仍是舊的，請重新按「產生評語草稿」。`;
+               + `下方草稿仍是舊的，請重新按「${btnLabel}」。`;
   area.insertBefore(el, area.firstChild);
+}
+
+function refreshOutputStaleness(){
+  markStale("outputArea", "staleNotice", outputSignature, "產生評語草稿");
+  markStale("batchOutput", "batchStaleNotice", batchSignature, "產生全班評語");
 }
 
 function renderOutput(){
@@ -2181,6 +2464,54 @@ document.getElementById("loginForm").addEventListener("submit", e=>{
     .catch(err=>{ document.getElementById("loginError").textContent = "登入失敗：" + err.message; });
 });
 document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut());
+
+// 批次模式事件綁定
+document.getElementById("commentModeToggle").addEventListener("click", e=>{
+  const btn = e.target.closest(".mode-btn");
+  if(!btn) return;
+  const mode = btn.dataset.mode;
+  document.querySelectorAll(".mode-btn").forEach(b=>b.classList.toggle("active", b===btn));
+  document.getElementById("singleMode").hidden = mode !== "single";
+  document.getElementById("batchMode").hidden = mode !== "batch";
+});
+
+document.getElementById("loadRosterBtn").addEventListener("click", ()=>{
+  const raw = document.getElementById("rosterInput").value;
+  const names = raw.split(/[\n,，、]/).map(s=>s.trim()).filter(Boolean);
+  const hint = document.getElementById("rosterInputHint");
+  if(!names.length){
+    hint.textContent = "請先輸入至少一位學生姓名。";
+    return;
+  }
+  // 已存在的學生保留原本的標籤設定
+  const prev = {};
+  batch.roster.forEach(s=>{ prev[s.name] = s; });
+  batch.roster = names.map(n=> prev[n] || ({ name:n, tags:batch.baseline.slice(), touched:false }));
+  hint.textContent = "";
+  saveBatch();
+  renderBaselineTags();
+  renderRoster();
+  showBatchBody(true);
+});
+
+document.getElementById("editRosterBtn").addEventListener("click", ()=>{
+  document.getElementById("rosterInput").value = batch.roster.map(s=>s.name).join("\n");
+  showBatchBody(false);
+});
+
+document.getElementById("genBatchBtn").addEventListener("click", renderBatchOutput);
+document.getElementById("batchStyleRow").addEventListener("change", ()=>{
+  if(document.getElementById("batchOutput").children.length) renderBatchOutput();
+});
+
+loadBatch();
+if(batch.roster.length){
+  renderBaselineTags();
+  renderRoster();
+  showBatchBody(true);
+} else {
+  renderBaselineTags();
+}
 
 renderAll();
 renderTagGroups();
