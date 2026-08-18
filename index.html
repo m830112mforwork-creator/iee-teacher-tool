@@ -178,6 +178,28 @@
   }
   .exam-date-input:read-only,
   .exam-range-input:read-only{ color:var(--ink-faint); cursor:default; }
+  .teacher-bar{
+    display:flex; align-items:center; flex-wrap:wrap; gap:8px;
+    padding:10px 12px; margin-bottom:12px;
+    background:var(--bg); border:1px solid var(--line); border-radius:10px;
+  }
+  .teacher-bar-label{
+    font-family:var(--mono); font-size:11px; font-weight:700;
+    color:var(--ink-soft); letter-spacing:.04em; flex:none;
+  }
+  #teacherName{
+    flex:1; min-width:150px;
+    border:1px solid var(--line); border-radius:8px;
+    padding:6px 10px; font-family:var(--sans); font-size:13px;
+    background:var(--surface); color:var(--ink);
+  }
+  #teacherName:focus{ outline:none; border-color:var(--accent); }
+  #parentHonorific{
+    border:1px solid var(--line); border-radius:8px;
+    padding:6px 8px; font-family:var(--sans); font-size:13px;
+    background:var(--surface); color:var(--ink); cursor:pointer;
+  }
+  .teacher-bar-hint{ font-size:11px; color:var(--ink-faint); }
   .mode-toggle{
     display:inline-flex;
     gap:2px;
@@ -925,6 +947,18 @@
   <section class="card tool-pane active" id="paneComment">
     <h2 class="section-title"><span class="num">05</span> 學生與課堂表現</h2>
 
+    <div class="teacher-bar" id="teacherBar">
+      <span class="teacher-bar-label">署名</span>
+      <input type="text" id="teacherName" placeholder="例：Ms. Melody Gao" maxlength="30">
+      <span class="teacher-bar-label">稱呼家長</span>
+      <select id="parentHonorific">
+        <option value="爸爸媽媽">爸爸媽媽</option>
+        <option value="媽媽">媽媽</option>
+        <option value="爸爸">爸爸</option>
+      </select>
+      <span class="teacher-bar-hint" id="teacherBarHint"></span>
+    </div>
+
     <div class="mode-toggle" id="commentModeToggle">
       <button class="mode-btn active" data-mode="single">單人</button>
       <button class="mode-btn" data-mode="batch">全班批次</button>
@@ -970,7 +1004,8 @@
         <div class="batch-block">
           <div class="batch-label">語氣</div>
           <div class="batch-style" id="batchStyleRow">
-            <label><input type="radio" name="batchStyle" value="warm" checked> 溫暖鼓勵型</label>
+            <label><input type="radio" name="batchStyle" value="message" checked> 家長訊息版</label>
+            <label><input type="radio" name="batchStyle" value="warm"> 溫暖鼓勵型</label>
             <label><input type="radio" name="batchStyle" value="precise"> 精準專業型</label>
           </div>
         </div>
@@ -1696,7 +1731,7 @@ function showBatchBody(show){
 
 function batchStyle(){
   const el = document.querySelector('input[name="batchStyle"]:checked');
-  return el ? el.value : "warm";
+  return el ? el.value : "message";
 }
 
 function renderBatchOutput(){
@@ -1733,11 +1768,284 @@ function renderBatchOutput(){
   });
 }
 
+// ═══ v2 評語引擎：片段組裝式 ═══════════════════════════════
+// 設計原則（依 175 段真實教師訊息樣本校準）：
+//   · 片段不含主詞、不含句尾標點 —— 由組裝器決定，才能做主詞輪替與標點配額
+//   · 驚嘆號目標 ≈16%（樣本值），emoji 約每兩段一個
+//   · 缺點採「承認 → 轉折 → 條件 → 預期」四段式
+
+const TEACHER_KEY = "iee_teacher_v1";
+let teacher = { name: "", parent: "爸爸媽媽" };
+
+function loadTeacher(){
+  try{
+    const d = JSON.parse(localStorage.getItem(TEACHER_KEY) || "{}");
+    if(typeof d.name === "string") teacher.name = d.name;
+    if(["爸爸媽媽","媽媽","爸爸"].includes(d.parent)) teacher.parent = d.parent;
+  }catch(e){}
+}
+function saveTeacher(){
+  try{ localStorage.setItem(TEACHER_KEY, JSON.stringify(teacher)); }catch(e){}
+}
+
+// 正向片段：可直接接在主詞後面，語氣自然、不含標點
+const FRAG = {
+  a1: { pos:"+", area:"發音", core:[
+    "唸錯的時候自己就聽得出來，會馬上重唸一次",
+    "對自己的發音很有要求，發現不對會自己修正",
+    "不用老師提醒，自己就會把唸錯的地方改過來" ]},
+  a2: { pos:"+", area:"句型", core:[
+    "用新句型造句很流暢",
+    "句型抓得很穩，幾乎不用修正",
+    "新學的句型一下就上手了" ]},
+  a3: { pos:"+", area:"字彙", core:[
+    "新單字記得很快",
+    "單字幾乎聽過一兩次就記住了",
+    "對新單字的記憶力很好" ]},
+  a4: { pos:"+", area:"朗讀", core:[
+    "朗讀很流暢，語調也有起伏",
+    "唸課文的時候很有感情，不是平平地帶過",
+    "朗讀時語氣自然，聽起來很舒服" ]},
+  a5: { pos:"+", area:"拼字", core:[
+    "拼字的正確率很高",
+    "單字拼寫很扎實，基本功打得穩",
+    "拼字幾乎不出錯" ]},
+  a6: { pos:"+", area:"聽力", core:[
+    "聽力反應很快，老師一問就能回應",
+    "聽指令的反應很快",
+    "聽到問題幾乎不用想就能回答" ]},
+
+  b1: { pos:"+", area:"參與", core:[
+    "很勇於舉手回答問題",
+    "上課很主動，常常第一個舉手",
+    "回答問題很積極" ]},
+  b2: { pos:"+", area:"專注", core:[
+    "上課很專注，老師講到哪就跟到哪",
+    "聽講的時候很認真",
+    "整堂課都很專心，幾乎沒有分心" ]},
+  b3: { pos:"+", area:"表達", core:[
+    "很願意分享自己的想法",
+    "上課很敢開口，想到什麼就說什麼",
+    "很樂於表達，課堂氣氛因為他變得很熱絡" ]},
+  b4: { pos:"+", area:"互動", core:[
+    "會主動幫忙旁邊的同學",
+    "看到同學卡住會主動去幫忙",
+    "很願意照顧同學，是很暖心的孩子" ]},
+  b5: { pos:"+", area:"常規", core:[
+    "課堂常規很好，坐姿也很端正",
+    "上課的規矩掌握得很好",
+    "課堂表現很穩定，不用老師特別提醒" ]},
+  b6: { pos:"+", area:"專注", core:[
+    "眼神一直跟著老師走",
+    "老師講到哪、寫到哪，視線都會跟過去",
+    "上課的投入度很高，眼神很專注" ]},
+
+  d1: { pos:"+", area:"信心", core:[
+    "這次克服了緊張，主動開口說了",
+    "原本有點害羞，但今天勇敢開口了",
+    "願意跨出那一步主動發言，很不容易" ]},
+  d2: { pos:"+", area:"創意", core:[
+    "造句的時候會加入自己的巧思",
+    "想法很有創意，常常給出讓人驚喜的答案",
+    "不會只照著範例做，會自己變化" ]},
+  d3: { pos:"+", area:"信心", core:[
+    "看得出來自信心比之前提升了不少",
+    "比起前陣子，明顯更敢表現自己了",
+    "整個人比以前更有底氣" ]},
+  d4: { pos:"+", area:"提問", core:[
+    "會主動提出問題",
+    "遇到不懂的地方會直接問，不會放著",
+    "很願意發問，這是很好的學習habit" ]},
+
+  // 需留意：拆成「問題 / 條件 / 預期」三段，由組裝器串成四段式
+  c1: { pos:"-", area:"句型", issue:[
+    "在句型的轉換上還有點混淆",
+    "幾個句型放在一起時容易搞混" ],
+    remedy:["多練習幾次","課堂上多做幾輪代換練習"],
+    outlook:["就會慢慢分清楚","應該就能抓到差別了"] },
+  c2: { pos:"-", area:"字彙", issue:[
+    "新單字還需要多看幾次才記得住",
+    "單字的記憶還在建立中" ],
+    remedy:["持續複習","每次上課前先快速看過一遍"],
+    outlook:["會愈記愈牢","記憶會慢慢穩下來"] },
+  c3: { pos:"-", area:"發音", issue:[
+    "有幾個音還在抓感覺",
+    "部分發音還不太穩定" ],
+    remedy:["跟著音檔多唸幾次","課堂上多帶著練"],
+    outlook:["就會愈唸愈準","口腔肌肉熟悉之後就順了"] },
+  c4: { pos:"-", area:"專注", issue:[
+    "專注力比較容易分散",
+    "上課偶爾會分心" ],
+    remedy:["老師會多留意他的狀態","把座位調整到老師好照顧的位置"],
+    outlook:["注意力會慢慢拉回來","狀態應該會愈來愈穩定"] },
+  c5: { pos:"-", area:"作業", issue:[
+    "這次的作業還沒完成",
+    "作業有一部分沒交" ],
+    remedy:["請提醒他補上","下次上課前補齊"],
+    outlook:["就能跟上進度","進度就不會落下"] },
+  c6: { pos:"-", area:"整體", issue:[
+    "這次的狀況比上次稍微退了一些",
+    "表現跟前幾次相比略有起伏" ],
+    remedy:["老師會多觀察一下","我們一起留意看看"],
+    outlook:["調整回來應該不難","很快就會回到原本的節奏"] },
+};
+
+// 連接詞：把多個觀察縫成一段，而不是並列
+const CONNECT_MID  = ["，", "，也", "，而且"];
+const CONNECT_LAST = ["，", "，另外", "，"];
+const EMOJI_POOL   = ["✨","💪","😊","📚","👍","☺️","🌱","👏","✏️","🎯","🍎"];
+
+// 英文名字接中文時要空一格，符合樣本寫法（「Alvin 上課很專注」）
+function nm(name){
+  return /[A-Za-z0-9]$/.test(String(name)) ? name + " " : name;
+}
+// 夾在中文之間的英文名，前後都要空格
+function nmIn(name){
+  const s = String(name);
+  return /^[A-Za-z0-9]/.test(s) ? " " + nm(s) : nm(s);
+}
+
+function pickN(arr, n){
+  const a = arr.slice();
+  const out = [];
+  while(a.length && out.length < n) out.push(a.splice(Math.floor(Math.random()*a.length),1)[0]);
+  return out;
+}
+let _usedEmoji = [];
+function maybeEmoji(chance){
+  if(Math.random() >= chance) return "";
+  const avail = EMOJI_POOL.filter(e=>!_usedEmoji.includes(e));
+  const e = pick(avail.length ? avail : EMOJI_POOL);
+  _usedEmoji.push(e);
+  return e;
+}
+
+// 開場：招呼 + 老師自我介紹（樣本中 100% 都有）
+function v2Opening(name){
+  const p = teacher.parent;
+  const t = teacher.name ? `我是 ${teacher.name}` : "我是他的英文老師";
+  const N = nm(name);          // 英文名後補空格，中文名不補
+  const intro = pick([
+    `${N}${p}好～${t}`,
+    `Hello ${N}${p}👋🏻 ${t}`,
+    `${N}${p}您好～${t}`,
+  ]);
+  const share = pick([
+    `\n想跟${p}分享一下${nmIn(name)}這次上課的狀況`,
+    `\n跟${p}分享${nmIn(name)}今天的學習情況`,
+    "",
+  ]);
+  const tail = share && Math.random() < 0.35 ? "！" : "";
+  return intro + share + tail + maybeEmoji(0.45);
+}
+
+// 這堂課上了什麼：不吐 topic 原文，改用自然說法
+function v2Lesson(){
+  const words = firstWords(chapterVocab(), 3);
+  const pattern = firstPattern(chapterSentences());
+  const w = words.join("、");
+  const bits = [];
+  if(pattern && w){
+    bits.push(pick([
+      `這堂課我們練到「${pattern}」這個句型，也帶了 ${w} 這幾個字`,
+      `今天上到「${pattern}」，搭配 ${w} 這幾個單字一起練`,
+      `這次的重點是「${pattern}」，單字的部分是 ${w}`,
+    ]));
+  } else if(pattern){
+    bits.push(pick([`這堂課的重點句型是「${pattern}」`, `今天我們練的是「${pattern}」`]));
+  } else if(w){
+    bits.push(pick([`這堂課帶了 ${w} 這幾個單字`, `今天的單字是 ${w}`]));
+  }
+  return bits.join("");
+}
+
+// 正向段落：主詞只出現一次，其餘用連接詞縫合
+function v2Praise(name, tagIds){
+  const frags = tagIds.filter(id=>FRAG[id] && FRAG[id].pos === "+")
+                      .map(id=>pick(FRAG[id].core));
+  if(!frags.length){
+    return pick([
+      `${nm(name)}這堂課的狀況很穩定，跟著進度走沒有問題`,
+      `${nm(name)}今天的學習狀態不錯，該掌握的都有跟上`,
+      `${nm(name)}整體表現穩定，老師這邊沒有特別需要提出的地方`,
+    ]) + "。";
+  }
+  // 避免相鄰片段開頭用詞重複（例如「很願意分享…願意跨出…」）
+  const picked = [];
+  for(const f of frags){
+    const head = f.replace(/^(很|會|對|不用|上課|整堂課|今天)/, "").slice(0,2);
+    if(picked.some(p=>p.replace(/^(很|會|對|不用|上課|整堂課|今天)/, "").slice(0,2) === head)) continue;
+    picked.push(f);
+    if(picked.length >= (Math.random() < 0.45 ? 2 : 3)) break;   // 多數時候只講兩件事，段落才不會太長
+  }
+  // 片段本身已帶時間語（整堂課／今天）時就不再加，避免「這堂課整堂課」
+  const hasTime = /^(整堂課|今天|這次|上課)/.test(picked[0]);
+  const timeWord = hasTime ? "" : pick(["今天","這堂課",""]);
+  // 「也」只能接動詞／形容詞開頭的片段（「也很專注」可，「也新學的句型…」不可）
+  const canUseYe = f => /^(很|會|對|願意|不用|能)/.test(f);
+  const midFor = f => pick(canUseYe(f) ? ["，", "，也", "，而且"] : ["，", "，而且"]);
+  let s = `${nm(name)}${timeWord}${picked[0]}`;
+  if(picked[1]) s += midFor(picked[1]) + picked[1];
+  if(picked[2]) s += pick(CONNECT_LAST) + picked[2];
+  // 一段最多一個驚嘆號，且只在有多個亮點時才用
+  const excited = Math.random() < 0.42;
+  return s + (excited ? "！" : "。") + maybeEmoji(0.5);
+}
+
+// 需留意段落：承認 → 轉折 → 條件 → 預期
+function v2Concern(name, tagIds){
+  const ids = tagIds.filter(id=>FRAG[id] && FRAG[id].pos === "-");
+  if(!ids.length) return "";
+  const f = FRAG[ids[0]];
+  // 這段不再重複姓名——前一段已經提過，真人會改用「他/她」或直接省略主詞
+  const issue = pick(f.issue);
+  // 問題描述若已含該領域詞，開頭就不再重複（避免「作業這一塊，他作業有一部分沒交」）
+  const heads = issue.includes(f.area)
+    ? [`另外想跟${teacher.parent}提一下，`, ""]
+    : [`目前在${f.area}的部分，`, `${f.area}這一塊，`, `另外想跟${teacher.parent}提一下，`];
+  const head = pick(heads);
+  const subj = head ? pick(["他", "", ""]) : "他";
+  let s = `${head}${subj}${issue}`;
+  s += pick(["，不過只要", "，但只要", "，不過只要"]) + pick(f.remedy);
+  s += pick(["，", "，相信"]) + pick(f.outlook);
+  // 第二個 C 標籤只補一句短的，避免整段變成缺點清單
+  if(ids[1]){
+    const g = FRAG[ids[1]];
+    s += `。另外，${pick(g.issue)}，我們也會一起留意`;
+  }
+  return s + "。" + maybeEmoji(0.48);
+}
+
+// 收尾：邀請聯繫（樣本中很常見）
+function v2Closing(name){
+  const p = teacher.parent;
+  return pick([
+    `之後有任何英語學習上的問題，都歡迎${p}隨時跟老師聯繫${maybeEmoji(0.62)}`,
+    `如果${p}有任何想了解的地方，都可以直接跟老師說～${maybeEmoji(0.5)}`,
+    `期待繼續陪著${nmIn(name)}一起進步${maybeEmoji(0.45)}`,
+  ]);
+}
+
+function generateCommentV2(name, tags){
+  _usedEmoji = [];          // 每則訊息重置，避免同一則出現重複 emoji
+  const paras = [];
+  paras.push(v2Opening(name));
+  const lesson = v2Lesson();
+  const praise = v2Praise(name, tags);
+  if(lesson) paras.push(lesson + "。" + maybeEmoji(0.4));
+  paras.push(praise);
+  const concern = v2Concern(name, tags);
+  if(concern) paras.push(concern);
+  paras.push(v2Closing(name));
+  return paras.join("\n\n");
+}
+
 function generateComment(style, nameArg, tagsArg){
   const rawName = (nameArg !== undefined) ? nameArg : document.getElementById("studentName").value;
   const name = (rawName || "這位同學").trim() || "這位同學";
   const unit = currentUnit();
   const allTags = (tagsArg !== undefined) ? Array.from(tagsArg) : Array.from(state.selectedTags);
+  if(style === "message") return generateCommentV2(name, allTags);
   const cTags = allTags.filter(id=>id[0]==="c");
   const highlightTags = allTags.filter(id=>id[0]!=="c");
   return [
@@ -1795,7 +2103,7 @@ function renderOutput(){
   const area = document.getElementById("outputArea");
   area.innerHTML = "";
   outputSignature = selectionSignature();
-  [["warm","溫暖鼓勵型"],["precise","精準專業型"]].forEach(([style,label])=>{
+  [["message","家長訊息版"],["warm","溫暖鼓勵型"],["precise","精準專業型"]].forEach(([style,label])=>{
     const text = generateComment(style);
     const card = document.createElement("div");
     card.className = "output-card";
@@ -2572,6 +2880,20 @@ document.getElementById("genBatchBtn").addEventListener("click", renderBatchOutp
 document.getElementById("batchStyleRow").addEventListener("change", ()=>{
   if(document.getElementById("batchOutput").children.length) renderBatchOutput();
 });
+
+loadTeacher();
+document.getElementById("teacherName").value = teacher.name;
+document.getElementById("parentHonorific").value = teacher.parent;
+function onTeacherChange(){
+  teacher.name = document.getElementById("teacherName").value.trim();
+  teacher.parent = document.getElementById("parentHonorific").value;
+  saveTeacher();
+  document.getElementById("teacherBarHint").textContent = "已儲存";
+  clearTimeout(onTeacherChange._t);
+  onTeacherChange._t = setTimeout(()=>{ document.getElementById("teacherBarHint").textContent = ""; }, 1200);
+}
+document.getElementById("teacherName").addEventListener("change", onTeacherChange);
+document.getElementById("parentHonorific").addEventListener("change", onTeacherChange);
 
 loadBatch();
 if(batch.roster.length){
