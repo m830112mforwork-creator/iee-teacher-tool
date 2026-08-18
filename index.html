@@ -1967,6 +1967,49 @@ const FRAG = {
     outlook:["調整回來應該不難","很快就會回到原本的節奏"] },
 };
 
+// ── 補足層次：真實訊息平均 370 字、9 段，遠比單純「上了什麼＋表現如何」豐富 ──
+
+// 開場後說明這次要分享什麼
+const INTRO_LINE = [
+  "想跟${p}分享一下${N}最近上課的狀況",
+  "跟${p}說說${N}這幾堂課的學習情形",
+  "想讓${p}知道${N}在課堂上的樣子",
+  "簡單跟${p}報告一下${N}的學習近況",
+];
+
+// 課堂做了什麼（搭配當課內容，補在單字句型之後）
+const CLASS_ACTIVITY = [
+  "課堂上我們用問答的方式一句一句帶過，讓孩子先聽熟再開口",
+  "這次是先聽音檔、再一起唸，最後讓孩子自己造一句看看",
+  "我們搭配圖卡練習，讓孩子把單字跟畫面連在一起記",
+  "課堂中安排了小組互相問答，孩子彼此練習會比較敢開口",
+  "我們先從孩子熟悉的內容切入，再慢慢帶到這次的新句型",
+];
+
+// 老師的教學說明（語料中很常見：解釋「我們是怎麼教的」）
+const TEACHING_NOTE = [
+  "這個階段主要是讓孩子先建立語感，不會急著要求完全正確",
+  "我們不會讓孩子死背，而是從理解句子的意思開始",
+  "這部分會隨著課程一直複習到，${p}不用擔心一次沒記熟",
+  "英文的累積是慢慢來的，孩子有接觸就會一點一點進步",
+  "課程設計上會反覆帶到之前學過的內容，孩子會愈來愈熟悉",
+];
+
+// 對孩子整體的評價（語料：「真的是一個很活潑、很可愛的孩子！」）
+const OVERALL_IMPRESSION = {
+  "+": [
+    "整體來說是個學習態度很好的孩子",
+    "真的是個很讓人放心的孩子",
+    "是個很願意嘗試的孩子",
+    "在班上是很正向的存在",
+  ],
+  "-": [
+    "整體來說學習態度是好的，只是還需要一點時間",
+    "孩子本身很願意學，這一點老師很肯定",
+    "是個肯努力的孩子，慢慢來就好",
+  ],
+};
+
 // ── 依 175 段真實教師訊息語料萃取的三個特徵 ──
 // ① 老師一律以第三人稱「老師」自稱（語料中「我」出現 0 次、「老師」28 次）
 const TEACHER_VIEW = {
@@ -2090,7 +2133,7 @@ function v2Praise(name, tagIds){
   }
   // 避免相鄰片段開頭用詞重複（例如「很願意分享…願意跨出…」）
   const picked = [];
-  const onlyOne = Math.random() < 0.4;      // 四成機率只講一件事，段落才會短
+  const onlyOne = Math.random() < 0.15;     // 多數講兩件事；少數只講一件，維持節奏變化
   for(const f of frags){
     if(onlyOne && picked.length >= 1) break;
     const head = f.replace(/^(很|會|對|不用|上課|整堂課|今天)/, "").slice(0,2);
@@ -2115,6 +2158,16 @@ function v2Praise(name, tagIds){
 }
 
 // 需留意段落：承認 → 轉折 → 條件 → 預期
+// 第三個以後的亮點另起一段，讓訊息有層次而不是塞成長句
+function v2PraiseExtra(name, tagIds){
+  const pos = tagIds.filter(id=>FRAG[id] && FRAG[id].pos === "+");
+  if(pos.length < 3) return "";
+  const f = pick(FRAG[pos[2]].core);
+  const lead = pick(["另外，", "而且", "還有一個地方老師覺得很不錯，"]);
+  const subj = lead === "而且" ? "" : pick(["他", ""]);
+  return lead + subj + f + softEnd(0.22) + endMark(0.25) + maybeEmoji(0.25);
+}
+
 function v2Concern(name, tagIds){
   const ids = tagIds.filter(id=>FRAG[id] && FRAG[id].pos === "-");
   if(!ids.length) return "";
@@ -2166,21 +2219,40 @@ function v2Closing(rawName){
 function generateCommentV2(rawName, tags){
   const name = safeName(rawName);
   _usedEmoji = [];          // 每則訊息重置，避免同一則出現重複 emoji
+  const p = teacher.parent, N = nm(name);
+  const fill = s => String(s).replace(/\$\{p\}/g, p).replace(/\$\{N\}/g, nmIn(name));
   const paras = [];
+
   paras.push(v2Opening(name));
+  // 開場後說明要分享什麼（語料中幾乎每則都有）
+  if(Math.random() < 0.75) paras.push(fill(pick(INTRO_LINE)) + endMark(0.25) + maybeEmoji(0.25));
+
   const lesson = v2Lesson();
-  const praise = v2Praise(name, tags);
-  if(lesson) paras.push(lesson + endMark(0.3) + maybeEmoji(0.26));
-  paras.push(praise);
+  if(lesson) paras.push(lesson + endMark(0.3) + maybeEmoji(0.22));
+  // 課堂實際怎麼進行的
+  if(Math.random() < 0.6) paras.push(pick(CLASS_ACTIVITY) + endMark(0.25) + maybeEmoji(0.22));
+
+  paras.push(v2Praise(name, tags));
+  // 亮點多於兩項時，第三項另起一段，不要塞進同一句
+  const extra = v2PraiseExtra(name, tags);
+  if(extra) paras.push(extra);
+
   const concern = v2Concern(name, tags);
   if(concern) paras.push(concern);
-  // 老師視角的一句話（語料中很常見，且能打破「全篇都在描述學生」的單調）
-  if(Math.random() < 0.32){
-    const view = pick(TEACHER_VIEW[concern ? "-" : "+"]);
-    paras.push(view + softEnd(0.25) + maybeEmoji(0.3));
-  }
+  // 老師的教學說明——解釋「我們是怎麼帶的」，讓家長安心
+  if(Math.random() < (concern ? 0.72 : 0.42))
+    paras.push(fill(pick(TEACHING_NOTE)) + endMark(0.25) + maybeEmoji(0.22));
+
+  // 老師視角的一句話
+  if(Math.random() < 0.4)
+    paras.push(pick(TEACHER_VIEW[concern ? "-" : "+"]) + softEnd(0.25) + maybeEmoji(0.28));
+
+  // 對孩子整體的評價
+  if(Math.random() < 0.45)
+    paras.push(pick(OVERALL_IMPRESSION[concern ? "-" : "+"]) + softEnd(0.3) + maybeEmoji(0.3));
+
   paras.push(v2Closing(name));
-  return paras.map(p=>String(p).trim()).filter(Boolean).join("\n\n");
+  return paras.map(x=>String(x).trim()).filter(Boolean).join("\n\n");
 }
 
 function generateComment(style, nameArg, tagsArg){
