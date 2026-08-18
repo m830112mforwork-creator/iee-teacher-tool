@@ -1456,12 +1456,16 @@ function renderUnits(){
   // U 級 + 四科：顯示學年 Level 1–5，並標註對應的 H.H.H. 範圍
   if(usesAcademicLevel()){
     list.classList.remove("compact");
+    // H.H.H. 的 Unit×Learn 只有「單字句型」需要對照，其餘四科只看 Level
+    const showRange = (activeCourse === "vocsen") || state.tool === "comment";
+    if(!showRange) list.classList.add("compact");
     U_LEVEL_RANGES.forEach((r,i)=>{
       const el = document.createElement("div");
       el.className = "unit-item" + (i===state.uLevelIdx ? " active":"");
       el.style.setProperty("--chip-hue", lv.hue);
-      el.innerHTML = `<span class="u-num">Level ${r.level}</span>`
-                   + `<span class="u-body"><span class="u-title">${uRangeLabel(r)}</span></span>`;
+      el.innerHTML = showRange
+        ? `<span class="u-num">Level ${r.level}</span><span class="u-body"><span class="u-title">${uRangeLabel(r)}</span></span>`
+        : `<span class="u-num-solo">Level ${r.level}</span>`;
       el.onclick = ()=>{ state.uLevelIdx = i; state.subKey = ALL_KEY; renderAll(); refreshOutputStaleness(); };
       list.appendChild(el);
     });
@@ -2286,7 +2290,9 @@ function renderPrepTool(){
   const lv = currentLevel();
   const u = currentUnit();
   const scopeLabel = usesAcademicLevel()
-    ? `Level ${U_LEVEL_RANGES[state.uLevelIdx].level}（${uRangeLabel(U_LEVEL_RANGES[state.uLevelIdx])}）`
+    ? (activeCourse === "vocsen"
+        ? `Level ${U_LEVEL_RANGES[state.uLevelIdx].level}（${uRangeLabel(U_LEVEL_RANGES[state.uLevelIdx])}）`
+        : `Level ${U_LEVEL_RANGES[state.uLevelIdx].level}`)
     : u.label;
   document.getElementById("prepLevelLabel").textContent = `${lv.code}級 ${lv.en} ${scopeLabel} 備課摘要`;
   const content = document.getElementById("prepContent");
