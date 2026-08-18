@@ -1049,6 +1049,9 @@ const TAGS = {
     {id:"a4", label:"朗讀流暢有語調"},
     {id:"a5", label:"拼字準確"},
     {id:"a6", label:"聽力反應快"},
+    {id:"a7", label:"發音進步"},
+    {id:"a8", label:"主動用英文回答問題"},
+    {id:"a9", label:"發音留意到細節"},
   ]},
   B: { label:"課堂參與／微行為", dot:"#4C7A5E", items:[
     {id:"b1", label:"主動舉手發言"},
@@ -1057,6 +1060,9 @@ const TAGS = {
     {id:"b4", label:"主動協助同儕"},
     {id:"b5", label:"常規坐姿佳"},
     {id:"b6", label:"眼神專注跟隨"},
+    {id:"b7", label:"課堂參與度高"},
+    {id:"b8", label:"能夠幫助同儕"},
+    {id:"b9", label:"帶動班級英語氛圍"},
   ]},
   C: { label:"待加強／需觀察", dot:"#B65C3D", items:[
     {id:"c1", label:"句型容易混淆"},
@@ -1064,12 +1070,23 @@ const TAGS = {
     {id:"c3", label:"發音待加強"},
     {id:"c4", label:"專注力待加強"},
     {id:"c6", label:"表現較上次退步"},
+    {id:"c7", label:"較少用英文回答"},
+    {id:"c8", label:"口說較沒有自信"},
+    {id:"c9", label:"文法概念尚未熟悉"},
+    {id:"c10", label:"對英語環境較陌生"},
   ]},
   D: { label:"特殊亮點", dot:"#6B4E8E", items:[
     {id:"d1", label:"克服緊張主動開口"},
     {id:"d2", label:"展現創意巧思"},
     {id:"d3", label:"自信心明顯提升"},
     {id:"d4", label:"主動提出問題"},
+    {id:"d5", label:"喜愛英文學習環境"},
+    {id:"d6", label:"班級的好幫手"},
+    {id:"d7", label:"班級學習的帶領者"},
+    {id:"d8", label:"明顯比上週進步"},
+    {id:"d9", label:"樂於團隊合作"},
+    {id:"d10", label:"喜歡英文分組活動"},
+    {id:"d11", label:"樂於上臺分享"},
   ]},
 };
 
@@ -1270,6 +1287,8 @@ function pick(arr){
 }
 
 function pickPhrase(id, style, name, pattern){
+  // 舊版（溫暖/精準）句庫只涵蓋最初的 21 個標籤；新增標籤只在 v2 訊息版有內容
+  if(!PHRASES[id] || !PHRASES[id][style]) return "";
   const fn = pick(PHRASES[id][style]);
   return fn(name, pattern);
 }
@@ -1589,7 +1608,8 @@ function buildFocus(style, name, unit, cTagIds){
   const composed = pick(CONTEXT_COMPOSERS)(ctx, pattern, words);
   let tail;
   if(cTagIds.length){
-    tail = cTagIds.map(id=>pickPhrase(id, style, name, pattern)).join(" ");
+    tail = cTagIds.map(id=>pickPhrase(id, style, name, pattern)).filter(Boolean).join(" ");
+    if(!tail) tail = pick(NO_TAG_FOCUS[style])(name);
   } else {
     tail = pick(NO_TAG_FOCUS[style])(name);
   }
@@ -1600,7 +1620,8 @@ function buildHighlight(style, name, tagIds){
   if(!tagIds.length){
     return `【課堂高光與微行為】\n${pick(NO_TAG_HIGHLIGHT[style])(name)}`;
   }
-  const sentences = tagIds.map(id=>pickPhrase(id, style, name));
+  const sentences = tagIds.map(id=>pickPhrase(id, style, name)).filter(Boolean);
+  if(!sentences.length) return `【課堂高光與微行為】\n${pick(NO_TAG_HIGHLIGHT[style])(name)}`;
   return `【課堂高光與微行為】\n${sentences.join(" ")}`;
 }
 
@@ -1852,6 +1873,61 @@ const FRAG = {
     "遇到不懂的地方會直接問，不會放著",
     "很願意發問，這是很好的學習habit" ]},
 
+  a7: { pos:"+", area:"發音", core:[
+    "發音比前陣子進步很多",
+    "這陣子發音明顯變準了",
+    "幾個原本卡住的音，現在都唸得出來了" ]},
+  a8: { pos:"+", area:"口說", core:[
+    "會主動用英文回答問題",
+    "被問到的時候都直接用英文回，不會先講中文",
+    "很自然地就用英文回應了" ]},
+  a9: { pos:"+", area:"發音", core:[
+    "連尾音這種細節都有注意到",
+    "發音的細節抓得很仔細",
+    "會留意到長短音、尾音這些容易被忽略的地方" ]},
+
+  b7: { pos:"+", area:"參與", core:[
+    "整堂課的參與度很高",
+    "每個活動都很投入",
+    "課堂活動幾乎都有跟上，參與度很高" ]},
+  b8: { pos:"+", area:"互動", core:[
+    "會主動幫旁邊的同學",
+    "同學卡住的時候會過去幫忙",
+    "很願意照顧班上的同學" ]},
+  b9: { pos:"+", area:"氛圍", core:[
+    "帶動了班上開口說英文的氣氛",
+    "會影響旁邊的同學一起用英文",
+    "讓整個班的英語氣氛變得很好" ]},
+
+  d5: { pos:"+", area:"態度", core:[
+    "看得出來很喜歡上英文課",
+    "每次來上課的狀態都很好",
+    "對英文課的期待感很明顯" ]},
+  d6: { pos:"+", area:"互動", core:[
+    "是老師在班上很得力的小幫手",
+    "課堂上很多事情都會主動幫忙",
+    "會主動幫老師處理課堂上的事" ]},
+  d7: { pos:"+", area:"氛圍", core:[
+    "在班上有帶頭的作用",
+    "常常是第一個開口、帶著大家一起做的人",
+    "同學會跟著他的節奏走" ]},
+  d8: { pos:"+", area:"進步", core:[
+    "跟上週比起來進步很明顯",
+    "這週的狀態比上週好很多",
+    "進步的幅度比前一週明顯" ]},
+  d9: { pos:"+", area:"合作", core:[
+    "分組的時候很願意跟同學合作",
+    "團隊活動中很好溝通",
+    "跟同學合作得很順" ]},
+  d10: { pos:"+", area:"合作", core:[
+    "特別喜歡分組活動",
+    "一到分組活動就特別投入",
+    "分組討論的時候最有活力" ]},
+  d11: { pos:"+", area:"表達", core:[
+    "很樂意上臺分享",
+    "輪到上臺的時候一點都不怯場",
+    "上臺分享時很自在" ]},
+
   // 需留意：拆成「問題 / 條件 / 預期」三段，由組裝器串成四段式
   c1: { pos:"-", area:"句型", issue:[
     "在句型的轉換上還有點混淆",
@@ -1873,6 +1949,26 @@ const FRAG = {
     "上課偶爾會分心" ],
     remedy:["老師會多留意他的狀態","把座位調整到老師好照顧的位置"],
     outlook:["注意力會慢慢拉回來","狀態應該會愈來愈穩定"] },
+  c7: { pos:"-", area:"口說", issue:[
+    "比較少主動用英文回答，還是習慣先講中文",
+    "回答時比較常用中文" ],
+    remedy:["課堂上多給一些簡單句型讓他套用","從短句開始練習開口"],
+    outlook:["會愈來愈願意用英文表達","開口的意願會慢慢提高"] },
+  c8: { pos:"-", area:"口說", issue:[
+    "開口說的時候還不太有把握",
+    "口說的自信還在建立中" ],
+    remedy:["多給一些成功的小經驗","從他熟悉的內容開始練"],
+    outlook:["自信會慢慢累積起來","會愈說愈敢說"] },
+  c9: { pos:"-", area:"文法", issue:[
+    "文法概念還在建立中",
+    "幾個文法規則還沒完全熟悉" ],
+    remedy:["課堂上多做幾輪練習","搭配例句反覆帶過"],
+    outlook:["觀念會慢慢清楚","規則熟了之後就會順很多"] },
+  c10: { pos:"-", area:"適應", issue:[
+    "對全英文的課堂環境還在適應",
+    "還在習慣全英語的上課方式" ],
+    remedy:["老師會放慢速度、多用手勢輔助","先從聽懂指令開始建立熟悉感"],
+    outlook:["適應之後就會輕鬆很多","慢慢就會習慣這個節奏"] },
   c6: { pos:"-", area:"整體", issue:[
     "這次的狀況比上次稍微退了一些",
     "表現跟前幾次相比略有起伏" ],
