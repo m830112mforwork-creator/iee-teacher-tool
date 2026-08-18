@@ -1525,77 +1525,6 @@ function buildHighlight(style, name, tagIds){
   return `【課堂高光與微行為】\n${sentences.join(" ")}`;
 }
 
-function buildTask(style, name, unit, cTagIds){
-  const words = firstWords(chapterVocab(), 3);
-  const pattern = firstPattern(chapterSentences());
-  const hasC = id => cTagIds.indexOf(id) !== -1;
-  const w = words.join("、");
-  let variants;
-
-  if(hasC("c2") && words.length){
-    variants = { warm: [
-      n=>`今晚請${n}當1分鐘小老師，教爸爸媽媽這幾個單字怎麼唸、什麼意思：${w}。說對一個蓋一個章，簡單又有成就感！`,
-      n=>`今晚可以請${n}挑${w}這幾個單字考考爸媽會不會唸，順便自己也複習一次！`,
-      n=>`睡前花1分鐘，讓${n}把今天學的${w}教給爸媽聽，當一日小老師！`,
-    ], precise: [
-      n=>`建議安排1–2分鐘，由${n}主動教家長本課重點字彙（${w}）之發音與字義，作為口說輸出與記憶鞏固練習。`,
-      n=>`建議今晚安排簡短時間，請${n}以口說方式複述本課字彙（${w}）供家長確認記憶狀況。`,
-      n=>`建議由${n}主動向家長講解本課字彙（${w}）之發音與意義，強化記憶保留與口說輸出。`,
-    ]};
-  } else if(hasC("c1") && pattern){
-    variants = { warm: [
-      n=>`今晚可以請${n}用「${pattern}」這句話考考爸爸媽媽，看爸媽答不答得出來，順便自己也再練習一次！`,
-      n=>`今晚讓${n}拿「${pattern}」這句話出題考爸媽，答對了記得稱讚一下！`,
-      n=>`睡前花點時間，請${n}教爸媽今天學的句型「${pattern}」，順便自己再說一次！`,
-    ], precise: [
-      n=>`建議今晚由${n}主動以本課句型（${pattern}）向家長提問，作為口說輸出與句型內化練習。`,
-      n=>`建議安排簡短時間，由${n}向家長示範並提問本課句型（${pattern}），強化句型內化。`,
-      n=>`建議請${n}以本課句型（${pattern}）與家長進行簡短問答練習，鞏固句型結構。`,
-    ]};
-  } else if(hasC("c3") && words.length){
-    variants = { warm: [
-      n=>`今晚請${n}挑今天教的單字唸給爸媽聽，請爸媽當小裁判聽聽看發音清不清楚！單字：${w}`,
-      n=>`今晚讓${n}把${w}這幾個字唸給爸媽聽，請爸媽幫忙聽聽發音準不準！`,
-      n=>`睡前請${n}示範唸${w}給爸媽聽，順便練習正確發音！`,
-    ], precise: [
-      n=>`建議由${n}朗讀本課重點字彙供家長評聽，作為發音校正的口說練習：${w}`,
-      n=>`建議安排${n}朗讀本課字彙（${w}）供家長聆聽評估，作為發音矯正練習。`,
-      n=>`建議請${n}示範朗讀本課字彙（${w}），由家長協助確認發音準確度。`,
-    ]};
-  } else if(words.length && pattern){
-    variants = { warm: [
-      n=>`今晚請${n}當1分鐘小老師，教爸媽今天學的單字：${w}，還可以順便用「${pattern}」考考爸媽！`,
-      n=>`今晚讓${n}教爸媽${w}這幾個單字，再用「${pattern}」這句話考考爸媽！`,
-      n=>`睡前請${n}帶爸媽複習${w}，並用「${pattern}」互相問答一下！`,
-    ], precise: [
-      n=>`建議安排1–2分鐘，由${n}主動向家長示範本課字彙（${w}）與句型（${pattern}），完成一次完整的口說輸出。`,
-      n=>`建議由${n}向家長示範本課字彙（${w}）並以句型（${pattern}）進行簡短問答，完成口說輸出練習。`,
-      n=>`建議安排簡短時間，請${n}結合本課字彙（${w}）與句型（${pattern}）向家長進行口說展示。`,
-    ]};
-  } else if(words.length){
-    variants = { warm: [
-      n=>`今晚請${n}教爸媽今天學到的單字：${w}，說對就給個掌聲！`,
-      n=>`今晚讓${n}把${w}教給爸媽，考考爸媽記不記得住！`,
-      n=>`睡前花點時間，請${n}複習${w}給爸媽聽！`,
-    ], precise: [
-      n=>`建議由${n}向家長講解本課字彙（${w}），作為口說輸出練習。`,
-      n=>`建議安排${n}向家長複述本課字彙（${w}），強化口說輸出與記憶。`,
-      n=>`建議請${n}以口說方式向家長介紹本課字彙（${w}）。`,
-    ]};
-  } else {
-    variants = { warm: [
-      n=>`今晚可以請${n}分享今天上課學到的一件事，用自己的話說說看！`,
-      n=>`今晚讓${n}講一件今天上課印象最深的事情給爸媽聽！`,
-      n=>`睡前請${n}用英文或中文都可以，分享一個今天學到的新東西！`,
-    ], precise: [
-      n=>`建議請${n}以口語摘要今日課堂學習重點，作為表達與複習練習。`,
-      n=>`建議安排${n}向家長口頭摘要今日課堂重點，作為表達訓練。`,
-      n=>`建議請${n}簡述今日課堂學習內容，強化統整與表達能力。`,
-    ]};
-  }
-  return `【今晚無痛共學任務】\n${pick(variants[style])(name)}`;
-}
-
 // ═══ 全班批次模式 ═══════════════════════════════════════
 const BATCH_STORAGE_KEY = "iee_batch_v1";
 const TAG_LABEL = {};
@@ -1765,7 +1694,6 @@ function generateComment(style, nameArg, tagsArg){
   return [
     buildFocus(style, name, unit, cTags),
     buildHighlight(style, name, highlightTags),
-    buildTask(style, name, unit, cTags),
   ].join("\n\n");
 }
 
