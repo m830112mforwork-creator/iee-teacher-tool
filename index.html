@@ -122,17 +122,17 @@
   }
   .exam-date-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns:repeat(auto-fill, minmax(210px, 1fr));
     gap:10px;
   }
   .exam-date-row{
     display:flex;
-    align-items:center;
-    gap:8px;
+    flex-direction:column;
+    gap:6px;
     background:var(--surface);
     border:1px solid var(--line);
     border-radius:10px;
-    padding:8px 10px;
+    padding:10px 12px;
   }
   .exam-level-label{
     font-family:var(--mono);
@@ -142,18 +142,42 @@
     flex:none;
     white-space:nowrap;
   }
-  .exam-date-input{
+  .exam-field{
+    display:flex;
+    align-items:baseline;
+    gap:6px;
+  }
+  .exam-field-label{
+    font-size:11px;
+    color:var(--ink-soft);
+    flex:none;
+    white-space:nowrap;
+  }
+  .exam-date-input,
+  .exam-range-input{
     flex:1;
     min-width:0;
+    width:100%;
     border:none;
+    border-bottom:1px dashed transparent;
     background:transparent;
     font-family:var(--sans);
     font-size:13px;
     color:var(--ink);
     padding:2px 0;
+    text-overflow:ellipsis;
   }
-  .exam-date-input:focus{ outline:none; }
-  .exam-date-input:read-only{ color:var(--ink-faint); cursor:default; }
+  .exam-date-input:focus,
+  .exam-range-input:focus{
+    outline:none;
+    border-bottom-color:var(--accent);
+  }
+  .exam-date-input:not(:read-only),
+  .exam-range-input:not(:read-only){
+    border-bottom-color:var(--line);
+  }
+  .exam-date-input:read-only,
+  .exam-range-input:read-only{ color:var(--ink-faint); cursor:default; }
   .exam-head{
     display:flex;
     align-items:center;
@@ -733,11 +757,11 @@
     </form>
 
     <div class="exam-date-grid" id="examDateGrid">
-      <div class="exam-date-row" data-level="1"><span class="exam-level-label">Level 1</span><input type="text" class="exam-date-input" placeholder="尚未設定日期" readonly></div>
-      <div class="exam-date-row" data-level="2"><span class="exam-level-label">Level 2</span><input type="text" class="exam-date-input" placeholder="尚未設定日期" readonly></div>
-      <div class="exam-date-row" data-level="3"><span class="exam-level-label">Level 3</span><input type="text" class="exam-date-input" placeholder="尚未設定日期" readonly></div>
-      <div class="exam-date-row" data-level="4"><span class="exam-level-label">Level 4</span><input type="text" class="exam-date-input" placeholder="尚未設定日期" readonly></div>
-      <div class="exam-date-row" data-level="5"><span class="exam-level-label">Level 5</span><input type="text" class="exam-date-input" placeholder="尚未設定日期" readonly></div>
+      <div class="exam-date-row" data-level="1"><span class="exam-level-label">Level 1</span><label class="exam-field"><span class="exam-field-label">課程期間</span><input type="text" class="exam-range-input" placeholder="尚未設定" readonly></label><label class="exam-field"><span class="exam-field-label">階級考</span><input type="text" class="exam-date-input" placeholder="尚未設定" readonly></label></div>
+      <div class="exam-date-row" data-level="2"><span class="exam-level-label">Level 2</span><label class="exam-field"><span class="exam-field-label">課程期間</span><input type="text" class="exam-range-input" placeholder="尚未設定" readonly></label><label class="exam-field"><span class="exam-field-label">階級考</span><input type="text" class="exam-date-input" placeholder="尚未設定" readonly></label></div>
+      <div class="exam-date-row" data-level="3"><span class="exam-level-label">Level 3</span><label class="exam-field"><span class="exam-field-label">課程期間</span><input type="text" class="exam-range-input" placeholder="尚未設定" readonly></label><label class="exam-field"><span class="exam-field-label">階級考</span><input type="text" class="exam-date-input" placeholder="尚未設定" readonly></label></div>
+      <div class="exam-date-row" data-level="4"><span class="exam-level-label">Level 4</span><label class="exam-field"><span class="exam-field-label">課程期間</span><input type="text" class="exam-range-input" placeholder="尚未設定" readonly></label><label class="exam-field"><span class="exam-field-label">階級考</span><input type="text" class="exam-date-input" placeholder="尚未設定" readonly></label></div>
+      <div class="exam-date-row" data-level="5"><span class="exam-level-label">Level 5</span><label class="exam-field"><span class="exam-field-label">課程期間</span><input type="text" class="exam-range-input" placeholder="尚未設定" readonly></label><label class="exam-field"><span class="exam-field-label">階級考</span><input type="text" class="exam-date-input" placeholder="尚未設定" readonly></label></div>
     </div>
     <button class="ghost" id="logoutBtn" hidden style="margin-top:10px;">登出管理員</button>
   </section>
@@ -1514,6 +1538,13 @@ function getExamDate(levelNum){
   return row.querySelector(".exam-date-input").value.trim();
 }
 
+function getLevelRange(levelNum){
+  const rows = document.querySelectorAll("#examDateGrid .exam-date-row");
+  const row = rows[levelNum-1];
+  if(!row) return "";
+  return row.querySelector(".exam-range-input").value.trim();
+}
+
 function renderQuickView(u, code, lvlKey){
   const patterns = extractCorePatterns(u);
   const warnings = collectErrorWarnings(u, code, lvlKey);
@@ -1523,8 +1554,12 @@ function renderQuickView(u, code, lvlKey){
 
   if(typeof u.level === "number"){
     const examDate = getExamDate(u.level);
-    if(examDate){
-      html += `<div class="qv-block qv-exam">🗓️ 本 Level 階級考日期：<b>${escapeHtml(examDate)}</b></div>`;
+    const levelRange = getLevelRange(u.level);
+    if(examDate || levelRange){
+      const bits = [];
+      if(levelRange) bits.push(`課程期間：<b>${escapeHtml(levelRange)}</b>`);
+      if(examDate) bits.push(`階級考：<b>${escapeHtml(examDate)}</b>`);
+      html += `<div class="qv-block qv-exam">🗓️ 本 Level ${bits.join("　｜　")}</div>`;
     }
   }
 
@@ -1705,35 +1740,56 @@ const auth = firebase.auth();
 const examRows = Array.from(document.querySelectorAll(".exam-date-row")).map(row=>({
   level: row.dataset.level,
   input: row.querySelector(".exam-date-input"),
+  rangeInput: row.querySelector(".exam-range-input"),
 }));
 
-db.ref("examDates").on("value", snapshot=>{
-  const data = snapshot.val() || {};
-  examRows.forEach(({level, input})=>{
-    if(document.activeElement !== input){
-      input.value = data["level"+level] || "";
-    }
+// 兩個獨立的資料路徑：examDates = 階級考日期，levelRanges = 該 Level 的課程期間
+const FIELD_PATHS = [
+  { path: "examDates",   key: "input" },
+  { path: "levelRanges", key: "rangeInput" },
+];
+
+FIELD_PATHS.forEach(({path, key})=>{
+  db.ref(path).on("value", snapshot=>{
+    const data = snapshot.val() || {};
+    examRows.forEach(row=>{
+      const el = row[key];
+      if(document.activeElement !== el){
+        el.value = data["level"+row.level] || "";
+      }
+    });
+    if(state.tool === "prep") renderPrepTool();
+  }, err=>{
+    // 讀取失敗（通常是 Firebase Database Rules 尚未開放此路徑的公開讀取）
+    console.warn("無法讀取 " + path + "：" + err.message);
+    examRows.forEach(row=>{
+      row[key].placeholder = "讀取失敗（請檢查 Firebase 規則）";
+    });
   });
-  if(state.tool === "prep") renderPrepTool();
 });
 
 let isAdmin = false;
 auth.onAuthStateChanged(user=>{
   isAdmin = !!user;
-  examRows.forEach(({input})=>{ input.readOnly = !isAdmin; });
+  examRows.forEach(({input, rangeInput})=>{
+    input.readOnly = !isAdmin;
+    rangeInput.readOnly = !isAdmin;
+  });
   document.getElementById("adminToggleBtn").hidden = isAdmin;
   document.getElementById("logoutBtn").hidden = !isAdmin;
   document.getElementById("examHint").textContent = isAdmin
-    ? "管理員模式：直接修改下方日期即可即時儲存，所有人會立刻看到最新版本。"
+    ? "管理員模式：直接修改下方「課程期間」與「階級考」即可即時儲存，所有人會立刻看到最新版本。"
     : "目前為唯讀模式，如需編輯日期請點選「管理員登入」。";
   document.getElementById("loginForm").hidden = true;
   document.getElementById("loginError").textContent = "";
 });
 
-examRows.forEach(({level, input})=>{
-  input.addEventListener("change", ()=>{
-    if(!isAdmin) return;
-    db.ref("examDates/level"+level).set(input.value.trim());
+examRows.forEach(row=>{
+  FIELD_PATHS.forEach(({path, key})=>{
+    row[key].addEventListener("change", ()=>{
+      if(!isAdmin) return;
+      db.ref(path+"/level"+row.level).set(row[key].value.trim());
+    });
   });
 });
 
