@@ -178,6 +178,17 @@
   }
   .exam-date-input:read-only,
   .exam-range-input:read-only{ color:var(--ink-faint); cursor:default; }
+  .stale-notice{
+    background:var(--warn-bg, #FDF3E3);
+    border:1px solid var(--warn-line, #E0C089);
+    color:var(--warn-ink, #7A5A18);
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:13px;
+    line-height:1.6;
+    margin-bottom:12px;
+  }
+  .stale-notice span{ font-weight:700; }
   .course-row{
     display:flex;
     flex-wrap:wrap;
@@ -1217,7 +1228,7 @@ function renderLevels(){
     el.className = "level-chip" + (i===state.levelIdx ? " active":"");
     el.style.setProperty("--chip-hue", lv.hue);
     el.innerHTML = `<span class="code">${lv.code}</span><span class="zh">${lv.zh}</span>`;
-    el.onclick = ()=>{ state.levelIdx = i; state.unitIdx = 0; state.chapterIdx = 0; state.subKey = ALL_KEY; renderAll(); };
+    el.onclick = ()=>{ state.levelIdx = i; state.unitIdx = 0; state.chapterIdx = 0; state.subKey = ALL_KEY; renderAll(); refreshOutputStaleness(); };
     row.appendChild(el);
   });
 }
@@ -1235,7 +1246,7 @@ function renderUnits(){
     el.innerHTML = showTitle
       ? `<span class="u-num">${lv.levelUnit} ${u.level}</span><span class="u-body"><span class="u-title">${u.label}</span></span>`
       : `<span class="u-num-solo">${u.label}</span>`;
-    el.onclick = ()=>{ state.unitIdx = i; state.chapterIdx = 0; state.subKey = ALL_KEY; renderAll(); };
+    el.onclick = ()=>{ state.unitIdx = i; state.chapterIdx = 0; state.subKey = ALL_KEY; renderAll(); refreshOutputStaleness(); };
     list.appendChild(el);
   });
 }
@@ -1411,9 +1422,50 @@ function generateComment(style){
   ].join("\n\n");
 }
 
+// 記錄草稿產生當下的課程選擇，之後若選擇變動就提醒老師重新產生
+function selectionSignature(){
+  const lv = currentLevel(), u = currentUnit(), ch = currentChapter();
+  return `${lv.code}|${u.label}|${ch.label || ""}`;
+}
+
+function selectionDescription(){
+  const lv = currentLevel(), u = currentUnit(), ch = currentChapter();
+  const chPart = (ch.label && ch.label !== u.label) ? `‧${ch.label}` : "";
+  return `${lv.code}級 ${lv.en} ${u.label}${chPart}`;
+}
+
+let outputSignature = null;
+
+// 選擇有變動時，在既有草稿上方顯示提醒（不清空，避免老師正在複製的內容消失）
+function refreshOutputStaleness(){
+  const area = document.getElementById("outputArea");
+  const existing = area.querySelector(".output-card");
+  const banner = document.getElementById("staleNotice");
+  if(!existing || outputSignature === null){
+    if(banner) banner.remove();
+    return;
+  }
+  const stale = outputSignature !== selectionSignature();
+  if(!stale){
+    if(banner) banner.remove();
+    return;
+  }
+  if(banner){
+    banner.querySelector("span").textContent = selectionDescription();
+    return;
+  }
+  const el = document.createElement("div");
+  el.id = "staleNotice";
+  el.className = "stale-notice";
+  el.innerHTML = `⚠️ 課程選擇已變更為「<span>${escapeHtml(selectionDescription())}</span>」，`
+               + `下方草稿仍是舊的，請重新按「產生評語草稿」。`;
+  area.insertBefore(el, area.firstChild);
+}
+
 function renderOutput(){
   const area = document.getElementById("outputArea");
   area.innerHTML = "";
+  outputSignature = selectionSignature();
   [["warm","溫暖鼓勵型"],["precise","精準專業型"]].forEach(([style,label])=>{
     const text = generateComment(style);
     const card = document.createElement("div");
@@ -1837,7 +1889,7 @@ function renderChapterSection(){
       el.className = "chapter-chip" + (i===state.chapterIdx ? " active":"");
       el.style.setProperty("--chip-hue", lv.hue);
       el.textContent = s.label;
-      el.onclick = ()=>{ state.chapterIdx = i; renderChapterSection(); };
+      el.onclick = ()=>{ state.chapterIdx = i; renderChapterSection(); refreshOutputStaleness(); };
       row.appendChild(el);
     });
   } else {
@@ -2008,6 +2060,7 @@ document.getElementById("toolTabs").addEventListener("click", e=>{
   document.getElementById("panePrep").classList.toggle("active", state.tool==="prep");
   renderChapterSection();
   if(state.tool==="prep") renderPrepTool();
+  else refreshOutputStaleness();
 });
 
 document.getElementById("copyPrepBtn").addEventListener("click", ()=>copyText(prepPlainText()));
