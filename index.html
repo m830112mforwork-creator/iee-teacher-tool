@@ -1277,6 +1277,7 @@ const NO_TAG_HIGHLIGHT = {
 let state = {
   levelIdx: 0,
   unitIdx: 0,
+  uLevelIdx: 0,
   chapterIdx: 0,
   tool: "comment",
   selectedTags: new Set(),
@@ -1372,11 +1373,56 @@ function renderLevels(){
   });
 }
 
+// ═══ U 級（H.H.H.）Unit×Learn ↔ 學年 Level 對照 ═══════════
+// 由使用者提供的官方對照：Level1=U1L1–U2L1、Level2=U2L2–U3L2、Level3=U3L3–U4L3、
+// Level4=U5L1–U6L1、Level5=U6L2–U7L3。Unit 8 不屬於任何學年 Level。
+const U_LEVEL_RANGES = [
+  { level:"1", from:[1,1], to:[2,1] },
+  { level:"2", from:[2,2], to:[3,2] },
+  { level:"3", from:[3,3], to:[4,3] },
+  { level:"4", from:[5,1], to:[6,1] },
+  { level:"5", from:[6,2], to:[7,3] },
+];
+
+function uSlotKey(unitNum, learnNum){
+  const v = unitNum*10 + learnNum;
+  for(const r of U_LEVEL_RANGES){
+    const a = r.from[0]*10 + r.from[1], b = r.to[0]*10 + r.to[1];
+    if(v >= a && v <= b) return r.level;
+  }
+  return null;   // 例如 Unit 8，不在五個學年 Level 的範圍內
+}
+
+function uRangeLabel(r){
+  return `U${r.from[0]}L${r.from[1]}–U${r.to[0]}L${r.to[1]}`;
+}
+
+// U 級選了非「單字句型」的科目時，改以學年 Level 為軸（四科資料就是這樣編排的）
+function usesAcademicLevel(){
+  return currentLevel().code === "U" && activeCourse !== "vocsen";
+}
+
 function renderUnits(){
   const list = document.getElementById("unitList");
   list.innerHTML = "";
   const lv = currentLevel();
   list.classList.toggle("compact", !lv.noSeriesStructure);
+
+  // U 級 + 四科：顯示學年 Level 1–5，並標註對應的 H.H.H. 範圍
+  if(usesAcademicLevel()){
+    list.classList.remove("compact");
+    U_LEVEL_RANGES.forEach((r,i)=>{
+      const el = document.createElement("div");
+      el.className = "unit-item" + (i===state.uLevelIdx ? " active":"");
+      el.style.setProperty("--chip-hue", lv.hue);
+      el.innerHTML = `<span class="u-num">Level ${r.level}</span>`
+                   + `<span class="u-body"><span class="u-title">${uRangeLabel(r)}</span></span>`;
+      el.onclick = ()=>{ state.uLevelIdx = i; state.subKey = ALL_KEY; renderAll(); refreshOutputStaleness(); };
+      list.appendChild(el);
+    });
+    return;
+  }
+
   lv.levels.forEach((u,i)=>{
     const el = document.createElement("div");
     el.className = "unit-item" + (i===state.unitIdx ? " active":"");
@@ -2084,10 +2130,14 @@ function saveActiveCourse(){
 // 這個級數＋Level 底下，該科目有沒有實際資料
 function courseHasData(courseKey, lv, u){
   if(courseKey === "vocsen") return true;
-  if(lv.code === "U") return false;               // U 系列編號系統不同，四科無法對應
   if(lv.noSeriesStructure) return false;          // J 級沒有跨科目資料
   const entries = (PREP_DATA[courseKey] || {})[lv.code];
-  return !!(entries && entries[String(u.level)] && entries[String(u.level)].length);
+  if(!entries) return false;
+  if(lv.code === "U"){
+    const k = U_LEVEL_RANGES[state.uLevelIdx] && U_LEVEL_RANGES[state.uLevelIdx].level;
+    return !!(k && entries[k] && entries[k].length);
+  }
+  return !!(entries[String(u.level)] && entries[String(u.level)].length);
 }
 
 function renderCourseRow(){
@@ -2108,6 +2158,7 @@ function renderCourseRow(){
       state.subKey = ALL_KEY;
       saveActiveCourse();
       renderCourseRow();
+      renderUnits();          // U 級切換科目時，03 要在「Unit」與「學年 Level」兩種軸之間切換
       renderChapterSection();
       if(state.tool === "prep") renderPrepTool();
     };
@@ -2150,13 +2201,25 @@ function phonicsUnits(entry){
 }
 
 // 這一格（級數×Level×科目）底下可選的細項
+// 取得目前選擇下、某科目的 entry 陣列（U 級走學年 Level，其餘走該 Level 編號）
+function prepEntriesFor(courseKey){
+  const lv = currentLevel(), u = currentUnit();
+  const bySeries = (PREP_DATA[courseKey] || {})[lv.code];
+  if(!bySeries) return null;
+  if(lv.code === "U"){
+    const r = U_LEVEL_RANGES[state.uLevelIdx];
+    return r ? bySeries[r.level] : null;
+  }
+  return bySeries[String(u.level)];
+}
+
 function getSubUnits(){
   const lv = currentLevel(), u = currentUnit();
   if(state.tool === "comment" || activeCourse === "vocsen"){
     return (u.chapters || []).map((ch, i)=>({key:"ch"+i, label:ch.label, kind:"chapter", idx:i}));
   }
-  if(lv.code === "U" || lv.noSeriesStructure) return [];
-  const entries = (PREP_DATA[activeCourse] && PREP_DATA[activeCourse][lv.code] || {})[String(u.level)] || [];
+  if(lv.noSeriesStructure) return [];
+  const entries = prepEntriesFor(activeCourse) || [];
   if(!entries.length) return [];
   if(activeCourse === "phonics"){
     const units = phonicsUnits(entries[0]);
@@ -2230,7 +2293,10 @@ function renderChapterSection(){
 function renderPrepTool(){
   const lv = currentLevel();
   const u = currentUnit();
-  document.getElementById("prepLevelLabel").textContent = `${lv.code}級 ${lv.en} ${u.label} 備課摘要`;
+  const scopeLabel = usesAcademicLevel()
+    ? `Level ${U_LEVEL_RANGES[state.uLevelIdx].level}（${uRangeLabel(U_LEVEL_RANGES[state.uLevelIdx])}）`
+    : u.label;
+  document.getElementById("prepLevelLabel").textContent = `${lv.code}級 ${lv.en} ${scopeLabel} 備課摘要`;
   const content = document.getElementById("prepContent");
 
   if(lv.noSeriesStructure){
@@ -2245,8 +2311,6 @@ function renderPrepTool(){
 
   if(activeCourse === "vocsen"){
     html += renderVocSenPrepBlock(u, currentSubUnit());
-  } else if(code === "U"){
-    html += `<div class="prep-notice">Unlimited-Potential 書系的 ${escapeHtml(COURSE_SHORT[activeCourse])} 課綱是依「原始學年資料夾」（Level 1–5）分類，跟這裡 Voc+Sen 依 H.H.H. 教材單元（${escapeHtml(u.label)}）呈現的切法不是同一套編號，暫時無法精準對應，故不顯示，避免誤導。如需這一科的 U 書系內容，請直接查閱原始課綱。</div>`;
   } else {
     const NOTICES = {
       grammar: code==="S" ? "Success 書系沒有獨立文法課綱，文法教學沿用 Unlimited-Potential 教材內容。" : null,
@@ -2254,7 +2318,7 @@ function renderPrepTool(){
       speaking: PREP_DATA.speakingNotices[lvlKey] || null,
       reading: null,
     };
-    let entries = (PREP_DATA[activeCourse][code]||{})[lvlKey];
+    let entries = prepEntriesFor(activeCourse);
     const sub = currentSubUnit();
     if(sub && entries){
       if(sub.kind === "entry"){
@@ -2334,8 +2398,6 @@ function prepPlainText(){
       lines.push("  教學提醒：");
       u.notes.forEach(l=>lines.push("  ・" + l));
     }
-  } else if(code === "U"){
-    lines.push(`（Unlimited-Potential 書系的 ${COURSE_SHORT[activeCourse]} 因編號系統不同，暫不顯示，請查閱原始課綱。）`);
   } else {
     const NOTICES = {
       grammar: code==="S" ? "Success 書系沒有獨立文法課綱，沿用 Unlimited-Potential 教材。" : null,
@@ -2344,7 +2406,7 @@ function prepPlainText(){
       reading: null,
     };
     lines.push(`【${COURSE_META[activeCourse].label}】`);
-    let ents = (PREP_DATA[activeCourse][code]||{})[lvlKey];
+    let ents = prepEntriesFor(activeCourse);
     if(subSel && ents){
       if(subSel.kind === "entry") ents = [ents[subSel.idx]].filter(Boolean);
       else if(subSel.kind === "phonicsUnit") ents = ents.map(e=>filterPhonicsEntry(e, subSel.unit));
