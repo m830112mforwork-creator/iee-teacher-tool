@@ -1063,7 +1063,6 @@ const TAGS = {
     {id:"c2", label:"字彙記憶待加強"},
     {id:"c3", label:"發音待加強"},
     {id:"c4", label:"專注力待加強"},
-    {id:"c5", label:"作業未完成"},
     {id:"c6", label:"表現較上次退步"},
   ]},
   D: { label:"特殊亮點", dot:"#6B4E8E", items:[
@@ -1218,15 +1217,6 @@ const PHRASES = {
     n=>`${n}今日課堂專注力略有波動，建議家中作息與休息安排可再留意。`,
     n=>`${n}本次課堂持續專注時間較短，建議留意課前作息與睡眠品質。`,
     n=>`${n}今日專注力表現不如以往穩定，將持續觀察並適時調整教學互動方式。`,
-  ]},
-  c5:{warm:[
-    n=>`今天的作業${n}還沒有全部完成，麻煩爸爸媽媽幫忙留意一下進度喔！`,
-    n=>`${n}這次的作業還差一點點沒寫完，麻煩協助提醒一下！`,
-    n=>`${n}的作業部分還沒完成，請爸媽幫忙關心一下進度！`,
-  ], precise:[
-    n=>`${n}本次指定作業尚未全部完成，請家長協助確認並督促補齊。`,
-    n=>`${n}的作業完成度尚未達標，敬請家長協助追蹤並督促補交。`,
-    n=>`${n}本週指定作業有缺漏，請家長協助確認完成進度。`,
   ]},
   c6:{warm:[
     n=>`跟前幾週比起來，${n}今天的狀況比較不在狀態內，也許是最近比較累，我們會再多留意！`,
@@ -1878,11 +1868,6 @@ const FRAG = {
     "上課偶爾會分心" ],
     remedy:["老師會多留意他的狀態","把座位調整到老師好照顧的位置"],
     outlook:["注意力會慢慢拉回來","狀態應該會愈來愈穩定"] },
-  c5: { pos:"-", area:"作業", issue:[
-    "這次的作業還沒完成",
-    "作業有一部分沒交" ],
-    remedy:["請提醒他補上","下次上課前補齊"],
-    outlook:["就能跟上進度","進度就不會落下"] },
   c6: { pos:"-", area:"整體", issue:[
     "這次的狀況比上次稍微退了一些",
     "表現跟前幾次相比略有起伏" ],
@@ -1896,14 +1881,9 @@ const CONNECT_LAST = ["，", "，另外", "，"];
 const EMOJI_POOL   = ["✨","💪","😊","📚","👍","☺️","🌱","👏","✏️","🎯","🍎"];
 
 // 英文名字接中文時要空一格，符合樣本寫法（「Alvin 上課很專注」）
-function nm(name){
-  return /[A-Za-z0-9]$/.test(String(name)) ? name + " " : name;
-}
-// 夾在中文之間的英文名，前後都要空格
-function nmIn(name){
-  const s = String(name);
-  return /^[A-Za-z0-9]/.test(s) ? " " + nm(s) : nm(s);
-}
+// 姓名前後一律留空格，讓名字在中文句子裡看得清楚
+function nm(name){ return String(name) + " "; }
+function nmIn(name){ return " " + String(name) + " "; }
 
 function pickN(arr, n){
   const a = arr.slice();
@@ -2008,12 +1988,13 @@ function v2Concern(name, tagIds){
   let s = `${head}${subj}${issue}`;
   s += pick(["，不過只要", "，但只要", "，不過只要"]) + pick(f.remedy);
   s += pick(["，", "，相信"]) + pick(f.outlook);
-  // 第二個 C 標籤只補一句短的，避免整段變成缺點清單
+  s += "。" + maybeEmoji(0.48);
+  // 第二個待加強另起一段，避免同一段落變成缺點清單
   if(ids[1]){
     const g = FRAG[ids[1]];
-    s += `。另外，${pick(g.issue)}，我們也會一起留意`;
+    s += `\n\n${pick(g.issue)}的部分，我們也會在課堂上多留意${maybeEmoji(0.4)}`;
   }
-  return s + "。" + maybeEmoji(0.48);
+  return s;
 }
 
 // 收尾：邀請聯繫（樣本中很常見）
