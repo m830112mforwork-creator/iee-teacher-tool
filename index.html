@@ -229,6 +229,18 @@
   .batch-hint{ font-family:var(--sans); font-size:11px; font-weight:400; color:var(--ink-soft); }
   .batch-count{ font-family:var(--mono); font-size:11px; color:var(--accent); font-weight:700; }
   .batch-mini{ margin-left:auto; font-size:11px; padding:3px 9px; }
+  #ownNote{
+    width:100%; border:1px solid var(--line); border-radius:10px;
+    padding:9px 12px; font-family:var(--sans); font-size:13px; line-height:1.7;
+    background:var(--surface); color:var(--ink); resize:vertical;
+  }
+  #ownNote:focus{ outline:none; border-color:var(--accent); }
+  .roster-note{
+    width:100%; margin-top:8px; border:1px solid var(--line); border-radius:8px;
+    padding:7px 10px; font-family:var(--sans); font-size:12.5px;
+    background:var(--bg); color:var(--ink); resize:vertical;
+  }
+  .roster-note:focus{ outline:none; border-color:var(--accent); }
   #rosterInput{
     width:100%; border:1px solid var(--line); border-radius:10px;
     padding:10px 12px; font-family:var(--sans); font-size:13px;
@@ -965,8 +977,11 @@
     </div>
 
     <div id="singleMode">
-      <div style="margin-bottom:14px;">
+      <div style="margin-bottom:10px;">
         <input type="text" id="studentName" placeholder="學生姓名／暱稱（可留空）" maxlength="20">
+      </div>
+      <div style="margin-bottom:14px;">
+        <textarea id="ownNote" rows="2" placeholder="老師的個別觀察（可留空）—— 例：好勝心蠻強，寫錯會有點小挫折，但很快就調整回來"></textarea>
       </div>
 
       <div id="tagGroups"></div>
@@ -1638,7 +1653,7 @@ function loadBatch(){
     const d = JSON.parse(raw);
     if(d && Array.isArray(d.roster)){
       batch.roster = d.roster.filter(s=>s && typeof s.name === "string")
-        .map(s=>({ name:s.name, tags:Array.isArray(s.tags)?s.tags.filter(t=>TAG_LABEL[t]):[], touched:!!s.touched }));
+        .map(s=>({ name:s.name, tags:Array.isArray(s.tags)?s.tags.filter(t=>TAG_LABEL[t]):[], touched:!!s.touched, note:typeof s.note==="string"?s.note:"" }));
       batch.baseline = Array.isArray(d.baseline) ? d.baseline.filter(t=>TAG_LABEL[t]) : [];
     }
   }catch(e){}
@@ -1718,6 +1733,15 @@ function renderRoster(){
       saveBatch();
       renderRoster();
     });
+    const note = document.createElement("textarea");
+    note.className = "roster-note";
+    note.rows = 2;
+    note.placeholder = "這位學生的個別觀察（可留空）";
+    note.value = s.note || "";
+    note.onclick = e=>e.stopPropagation();
+    note.addEventListener("change", ()=>{ s.note = note.value; saveBatch(); });
+    ed.appendChild(note);
+
     if(s.touched){
       const reset = document.createElement("button");
       reset.className = "roster-reset";
@@ -1753,7 +1777,7 @@ function renderBatchOutput(){
   batchSignature = selectionSignature();
 
   const style = batchStyle();
-  const results = batch.roster.map(s=>({ name:s.name, text:generateComment(style, s.name, s.tags) }));
+  const results = batch.roster.map(s=>({ name:s.name, text:generateComment(style, s.name, s.tags, s.note || "") }));
 
   const head = document.createElement("div");
   head.className = "batch-out-head";
@@ -1998,15 +2022,15 @@ const TEACHING_NOTE = [
 // 對孩子整體的評價（語料：「真的是一個很活潑、很可愛的孩子！」）
 const OVERALL_IMPRESSION = {
   "+": [
-    "整體來說是個學習態度很好的孩子",
-    "真的是個很讓人放心的孩子",
-    "是個很願意嘗試的孩子",
-    "在班上是很正向的存在",
+    "整體的學習態度很穩定，也看得出來對英文是有興趣的",
+    "在班上的學習狀態很讓人放心，這份積極很值得肯定",
+    "願意嘗試、也願意開口，這對這個階段的孩子很重要",
+    "在班上是很正向的影響，也帶動了其他同學",
   ],
   "-": [
-    "整體來說學習態度是好的，只是還需要一點時間",
-    "孩子本身很願意學，這一點老師很肯定",
-    "是個肯努力的孩子，慢慢來就好",
+    "整體的學習態度是穩定的，只是在這部分需要多一點時間累積",
+    "孩子本身的學習意願很好，這一點老師很肯定",
+    "願意努力的態度是有的，接下來就是把熟悉度建立起來",
   ],
 };
 
@@ -2014,15 +2038,15 @@ const OVERALL_IMPRESSION = {
 // ① 老師一律以第三人稱「老師」自稱（語料中「我」出現 0 次、「老師」28 次）
 const TEACHER_VIEW = {
   "+": [
-    "老師看了也很替他開心",
-    "老師這邊觀察下來，狀態是穩定的",
-    "老師覺得這樣的節奏很好",
-    "看他這樣投入，老師也很有成就感",
+    "老師這邊觀察下來，學習狀態是穩定往上的",
+    "老師覺得目前的學習節奏很適合他",
+    "看到孩子這樣投入，老師也很替他開心",
+    "這樣的表現，老師會持續給予肯定與鼓勵",
   ],
   "-": [
-    "老師會多留意這一塊",
-    "老師這邊會再多帶著他練",
-    "接下來的課堂，老師會特別注意這部分",
+    "接下來的課堂，老師會特別留意這個部分",
+    "老師這邊會再多帶著他練習，慢慢把熟悉度建立起來",
+    "老師會在課堂上多給他一些練習與回饋的機會",
   ],
 };
 // ② 句尾語氣詞（語料：～12、喔4、耶4、唷3、囉3、呦2）
@@ -2063,7 +2087,7 @@ function pickN(arr, n){
 function endMark(exclChance){
   const r = Math.random();
   if(r < exclChance) return "！";
-  if(r < exclChance + 0.30) return "。";
+  if(r < exclChance + 0.22) return "。";
   return "";
 }
 let _usedEmoji = [];
@@ -2153,7 +2177,7 @@ function v2Praise(name, tagIds){
   if(picked[1]) s += midFor(picked[1]) + picked[1];
   // 一段最多一個驚嘆號，且只在有多個亮點時才用
   // 傳訊息時多半不打句號；語氣詞、標點、emoji 三者不會同時出現
-  const soft = softEnd(0.22);
+  const soft = softEnd(0.13);
   return s + soft + (soft ? "" : endMark(0.26)) + maybeEmoji(soft ? 0.2 : 0.32);
 }
 
@@ -2163,9 +2187,9 @@ function v2PraiseExtra(name, tagIds){
   const pos = tagIds.filter(id=>FRAG[id] && FRAG[id].pos === "+");
   if(pos.length < 3) return "";
   const f = pick(FRAG[pos[2]].core);
-  const lead = pick(["另外，", "而且", "還有一個地方老師覺得很不錯，"]);
-  const subj = lead === "而且" ? "" : pick(["他", ""]);
-  return lead + subj + f + softEnd(0.22) + endMark(0.25) + maybeEmoji(0.25);
+  const lead = pick(["另外，", "另外老師也觀察到，", "還有一個地方老師覺得很不錯，"]);
+  const subj = pick(["他", ""]);
+  return lead + subj + f + softEnd(0.13) + endMark(0.25) + maybeEmoji(0.25);
 }
 
 function v2Concern(name, tagIds){
@@ -2204,19 +2228,33 @@ function v2Closing(rawName){
     ]);
   }
   if(Math.random() < 0.22){
-    return pick(TO_PARENT).replace(/\$\{p\}/g, p) + softEnd(0.3) + maybeEmoji(0.4);
+    return pick(TO_PARENT).replace(/\$\{p\}/g, p) + softEnd(0.14) + maybeEmoji(0.4);
   }
   return pick([
-    `我們繼續一起加油${maybeEmoji(0.5)}`,
-    `下週見${maybeEmoji(0.6)}`,
-    `再一起陪著${nmIn(name)}往前${maybeEmoji(0.45)}`,
-    `謝謝${p}${maybeEmoji(0.5)}`,
-    `先跟${p}分享到這裡${maybeEmoji(0.4)}`,
-    "",                        // 有時就自然結束，不刻意收尾
+    `期待接下來繼續陪著${nmIn(name)}一起學習與成長${maybeEmoji(0.45)}`,
+    `會持續帶著${nmIn(name)}在課堂上累積，也謝謝${p}的支持${maybeEmoji(0.4)}`,
+    `謝謝${p}一直以來的配合，我們一起陪著孩子往前${maybeEmoji(0.4)}`,
+    `接下來的課程也會持續留意${nmIn(name)}的學習狀況${maybeEmoji(0.35)}`,
+    `我們下週課堂見${maybeEmoji(0.5)}`,
+    `先跟${p}分享到這裡${maybeEmoji(0.35)}`,
   ]);
 }
 
-function generateCommentV2(rawName, tags){
+// 把老師手寫的觀察接成自然的一段（不改寫內容，只補上引導語與標點）
+function v2OwnNote(note){
+  const s = String(note || "").trim();
+  if(!s) return "";
+  const lead = pick([
+    "另外也跟${p}分享一個老師觀察到的地方～",
+    "還有一件事想跟${p}說，",
+    "老師這邊也觀察到，",
+    "",
+  ]);
+  const body = /[。！？～]$/.test(s) ? s : s + endMark(0.2);
+  return (lead ? lead + "\n" : "") + body + maybeEmoji(0.3);
+}
+
+function generateCommentV2(rawName, tags, ownNote){
   const name = safeName(rawName);
   _usedEmoji = [];          // 每則訊息重置，避免同一則出現重複 emoji
   const p = teacher.parent, N = nm(name);
@@ -2239,28 +2277,36 @@ function generateCommentV2(rawName, tags){
 
   const concern = v2Concern(name, tags);
   if(concern) paras.push(concern);
+  // 老師手寫的個別觀察（語料中最生動的部分，無法自動生成）
+  const own = v2OwnNote(ownNote);
+  if(own) paras.push(own.replace(/\$\{p\}/g, p));
+
   // 老師的教學說明——解釋「我們是怎麼帶的」，讓家長安心
   if(Math.random() < (concern ? 0.72 : 0.42))
     paras.push(fill(pick(TEACHING_NOTE)) + endMark(0.25) + maybeEmoji(0.22));
 
   // 老師視角的一句話
   if(Math.random() < 0.4)
-    paras.push(pick(TEACHER_VIEW[concern ? "-" : "+"]) + softEnd(0.25) + maybeEmoji(0.28));
+    paras.push(pick(TEACHER_VIEW[concern ? "-" : "+"]) + softEnd(0.13) + maybeEmoji(0.28));
 
   // 對孩子整體的評價
   if(Math.random() < 0.45)
-    paras.push(pick(OVERALL_IMPRESSION[concern ? "-" : "+"]) + softEnd(0.3) + maybeEmoji(0.3));
+    paras.push(pick(OVERALL_IMPRESSION[concern ? "-" : "+"]) + softEnd(0.14) + maybeEmoji(0.3));
 
   paras.push(v2Closing(name));
   return paras.map(x=>String(x).trim()).filter(Boolean).join("\n\n");
 }
 
-function generateComment(style, nameArg, tagsArg){
+function generateComment(style, nameArg, tagsArg, noteArg){
   const rawName = (nameArg !== undefined) ? nameArg : document.getElementById("studentName").value;
   const name = (rawName || "這位同學").trim() || "這位同學";
   const unit = currentUnit();
   const allTags = (tagsArg !== undefined) ? Array.from(tagsArg) : Array.from(state.selectedTags);
-  if(style === "message") return generateCommentV2(name, allTags);
+  if(style === "message"){
+    const noteEl = document.getElementById("ownNote");
+    const note = (noteArg !== undefined) ? noteArg : (noteEl ? noteEl.value : "");
+    return generateCommentV2(name, allTags, note);
+  }
   const cTags = allTags.filter(id=>id[0]==="c");
   const highlightTags = allTags.filter(id=>id[0]!=="c");
   return [
@@ -3078,7 +3124,7 @@ document.getElementById("loadRosterBtn").addEventListener("click", ()=>{
   // 已存在的學生保留原本的標籤設定
   const prev = {};
   batch.roster.forEach(s=>{ prev[s.name] = s; });
-  batch.roster = names.map(n=> prev[n] || ({ name:n, tags:batch.baseline.slice(), touched:false }));
+  batch.roster = names.map(n=> prev[n] || ({ name:n, tags:batch.baseline.slice(), touched:false, note:"" }));
   hint.textContent = "";
   saveBatch();
   renderBaselineTags();
