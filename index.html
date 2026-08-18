@@ -1001,12 +1001,10 @@
           <div id="rosterList"></div>
         </div>
 
-        <div class="batch-block">
+        <div class="batch-block" hidden>
           <div class="batch-label">語氣</div>
           <div class="batch-style" id="batchStyleRow">
             <label><input type="radio" name="batchStyle" value="message" checked> 家長訊息版</label>
-            <label><input type="radio" name="batchStyle" value="warm"> 溫暖鼓勵型</label>
-            <label><input type="radio" name="batchStyle" value="precise"> 精準專業型</label>
           </div>
         </div>
 
@@ -1061,7 +1059,6 @@ const TAGS = {
     {id:"b5", label:"常規坐姿佳"},
     {id:"b6", label:"眼神專注跟隨"},
     {id:"b7", label:"課堂參與度高"},
-    {id:"b8", label:"能夠幫助同儕"},
     {id:"b9", label:"帶動班級英語氛圍"},
   ]},
   C: { label:"待加強／需觀察", dot:"#B65C3D", items:[
@@ -1081,7 +1078,6 @@ const TAGS = {
     {id:"d3", label:"自信心明顯提升"},
     {id:"d4", label:"主動提出問題"},
     {id:"d5", label:"喜愛英文學習環境"},
-    {id:"d6", label:"班級的好幫手"},
     {id:"d7", label:"班級學習的帶領者"},
     {id:"d8", label:"明顯比上週進步"},
     {id:"d9", label:"樂於團隊合作"},
@@ -1846,14 +1842,17 @@ const FRAG = {
   b4: { pos:"+", area:"互動", core:[
     "會主動幫忙旁邊的同學",
     "看到同學卡住會主動去幫忙",
-    "很願意照顧同學，是很暖心的孩子" ]},
+    "很願意照顧同學，是很暖心的孩子",
+    "很願意照顧班上的同學",
+    "是老師在班上很得力的小幫手",
+    "課堂上很多事情都會主動幫忙" ]},
   b5: { pos:"+", area:"常規", core:[
     "課堂常規很好，坐姿也很端正",
     "上課的規矩掌握得很好",
     "課堂表現很穩定，不用老師特別提醒" ]},
   b6: { pos:"+", area:"專注", core:[
     "眼神一直跟著老師走",
-    "老師講到哪、寫到哪，視線都會跟過去",
+    "視線會跟著老師講到哪、寫到哪",
     "上課的投入度很高，眼神很專注" ]},
 
   d1: { pos:"+", area:"信心", core:[
@@ -1890,27 +1889,19 @@ const FRAG = {
     "整堂課的參與度很高",
     "每個活動都很投入",
     "課堂活動幾乎都有跟上，參與度很高" ]},
-  b8: { pos:"+", area:"互動", core:[
-    "會主動幫旁邊的同學",
-    "同學卡住的時候會過去幫忙",
-    "很願意照顧班上的同學" ]},
   b9: { pos:"+", area:"氛圍", core:[
     "帶動了班上開口說英文的氣氛",
     "會影響旁邊的同學一起用英文",
-    "讓整個班的英語氣氛變得很好" ]},
+    "把整個班的英語氣氛都帶起來了" ]},
 
   d5: { pos:"+", area:"態度", core:[
     "看得出來很喜歡上英文課",
     "每次來上課的狀態都很好",
     "對英文課的期待感很明顯" ]},
-  d6: { pos:"+", area:"互動", core:[
-    "是老師在班上很得力的小幫手",
-    "課堂上很多事情都會主動幫忙",
-    "會主動幫老師處理課堂上的事" ]},
   d7: { pos:"+", area:"氛圍", core:[
     "在班上有帶頭的作用",
     "常常是第一個開口、帶著大家一起做的人",
-    "同學會跟著他的節奏走" ]},
+    "很自然地就帶著同學跟上節奏" ]},
   d8: { pos:"+", area:"進步", core:[
     "跟上週比起來進步很明顯",
     "這週的狀態比上週好很多",
@@ -1947,7 +1938,7 @@ const FRAG = {
   c4: { pos:"-", area:"專注", issue:[
     "專注力比較容易分散",
     "上課偶爾會分心" ],
-    remedy:["老師會多留意他的狀態","把座位調整到老師好照顧的位置"],
+    remedy:["老師多留意他的狀態","把座位調整到老師好照顧的位置"],
     outlook:["注意力會慢慢拉回來","狀態應該會愈來愈穩定"] },
   c7: { pos:"-", area:"口說", issue:[
     "比較少主動用英文回答，還是習慣先講中文",
@@ -1967,12 +1958,12 @@ const FRAG = {
   c10: { pos:"-", area:"適應", issue:[
     "對全英文的課堂環境還在適應",
     "還在習慣全英語的上課方式" ],
-    remedy:["老師會放慢速度、多用手勢輔助","先從聽懂指令開始建立熟悉感"],
+    remedy:["老師放慢速度、多用手勢輔助","先從聽懂指令開始建立熟悉感"],
     outlook:["適應之後就會輕鬆很多","慢慢就會習慣這個節奏"] },
   c6: { pos:"-", area:"整體", issue:[
     "這次的狀況比上次稍微退了一些",
     "表現跟前幾次相比略有起伏" ],
-    remedy:["老師會多觀察一下","我們一起留意看看"],
+    remedy:["老師多觀察一下","我們一起留意看看"],
     outlook:["調整回來應該不難","很快就會回到原本的節奏"] },
 };
 
@@ -1997,6 +1988,13 @@ function pickN(arr, n){
   while(a.length && out.length < n) out.push(a.splice(Math.floor(Math.random()*a.length),1)[0]);
   return out;
 }
+// 段尾標點：多數留白（像傳訊息），少數用句號或驚嘆號
+function endMark(exclChance){
+  const r = Math.random();
+  if(r < exclChance) return "！";
+  if(r < exclChance + 0.30) return "。";
+  return "";
+}
 let _usedEmoji = [];
 function maybeEmoji(chance){
   if(Math.random() >= chance) return "";
@@ -2010,22 +2008,23 @@ function maybeEmoji(chance){
 function v2Opening(rawName){
   const name = safeName(rawName);
   const p = teacher.parent;
-  const t = teacher.name ? `我是 ${teacher.name}` : "我是他的英文老師";
-  const N = nm(name);          // 英文名後補空格，中文名不補
-  const intro = pick([
-    `${N}${p}好～${t}`,
-    `Hello ${N}${p}👋🏻 ${t}`,
-    `${N}${p}您好～${t}`,
+  const N = nm(name);
+  // 老師每週都在傳訊息，不會每次重新自我介紹——只有偶爾（約 1/4）才附上署名
+  const withIntro = teacher.name && Math.random() < 0.25;
+  if(withIntro){
+    return pick([
+      `${N}${p}好～我是 ${teacher.name}`,
+      `Hello ${N}${p}👋🏻 我是 ${teacher.name}`,
+    ]);
+  }
+  return pick([
+    `${N}${p}好～`,
+    `${N}${p}好`,
+    `Hi ${N}${p}～`,
+    `${p}好～`,
+    "",                       // 有時直接進入正題
   ]);
-  const share = pick([
-    `\n想跟${p}分享一下${nmIn(name)}這次上課的狀況`,
-    `\n跟${p}分享${nmIn(name)}今天的學習情況`,
-    "",
-  ]);
-  const tail = share && Math.random() < 0.35 ? "！" : "";
-  return intro + share + tail + maybeEmoji(0.45);
 }
-
 // 這堂課上了什麼：不吐 topic 原文，改用自然說法
 function v2Lesson(){
   const words = firstWords(chapterVocab(), 3);
@@ -2079,8 +2078,8 @@ function v2Praise(name, tagIds){
   if(picked[1]) s += midFor(picked[1]) + picked[1];
   if(picked[2]) s += pick(CONNECT_LAST) + picked[2];
   // 一段最多一個驚嘆號，且只在有多個亮點時才用
-  const excited = Math.random() < 0.42;
-  return s + (excited ? "！" : "。") + maybeEmoji(0.5);
+  // 傳訊息時多半不打句號，段尾留白或用「～」更自然
+  return s + endMark(0.28) + maybeEmoji(0.34);
 }
 
 // 需留意段落：承認 → 轉折 → 條件 → 預期
@@ -2099,22 +2098,33 @@ function v2Concern(name, tagIds){
   let s = `${head}${subj}${issue}`;
   s += pick(["，不過只要", "，但只要", "，不過只要"]) + pick(f.remedy);
   s += pick(["，", "，相信"]) + pick(f.outlook);
-  s += "。" + maybeEmoji(0.48);
+  s += endMark(0.2) + maybeEmoji(0.3);
   // 第二個待加強另起一段，避免同一段落變成缺點清單
   if(ids[1]){
     const g = FRAG[ids[1]];
-    s += `\n\n${pick(g.issue)}的部分，我們也會在課堂上多留意${maybeEmoji(0.4)}`;
+    s += `\n\n${pick(g.issue)}的部分，我們也會在課堂上多留意${maybeEmoji(0.28)}`;
   }
   return s;
 }
 
 // 收尾：邀請聯繫（樣本中很常見）
-function v2Closing(name){
+function v2Closing(rawName){
+  const name = safeName(rawName);
   const p = teacher.parent;
+  // 「有問題歡迎聯繫」這種客服語只保留少數比例，避免每則都像罐頭回覆
+  if(Math.random() < 0.18){
+    return pick([
+      `之後有任何學習上的問題都可以跟老師說`,
+      `有需要再跟老師聊聊${maybeEmoji(0.4)}`,
+    ]);
+  }
   return pick([
-    `之後有任何英語學習上的問題，都歡迎${p}隨時跟老師聯繫${maybeEmoji(0.62)}`,
-    `如果${p}有任何想了解的地方，都可以直接跟老師說～${maybeEmoji(0.5)}`,
-    `期待繼續陪著${nmIn(name)}一起進步${maybeEmoji(0.45)}`,
+    `我們繼續一起加油${maybeEmoji(0.5)}`,
+    `下週見${maybeEmoji(0.6)}`,
+    `再一起陪著${nmIn(name)}往前${maybeEmoji(0.45)}`,
+    `謝謝${p}${maybeEmoji(0.5)}`,
+    `先跟${p}分享到這裡${maybeEmoji(0.4)}`,
+    "",                        // 有時就自然結束，不刻意收尾
   ]);
 }
 
@@ -2125,12 +2135,12 @@ function generateCommentV2(rawName, tags){
   paras.push(v2Opening(name));
   const lesson = v2Lesson();
   const praise = v2Praise(name, tags);
-  if(lesson) paras.push(lesson + "。" + maybeEmoji(0.4));
+  if(lesson) paras.push(lesson + endMark(0.3) + maybeEmoji(0.26));
   paras.push(praise);
   const concern = v2Concern(name, tags);
   if(concern) paras.push(concern);
   paras.push(v2Closing(name));
-  return paras.join("\n\n");
+  return paras.map(p=>String(p).trim()).filter(Boolean).join("\n\n");
 }
 
 function generateComment(style, nameArg, tagsArg){
@@ -2196,7 +2206,7 @@ function renderOutput(){
   const area = document.getElementById("outputArea");
   area.innerHTML = "";
   outputSignature = selectionSignature();
-  [["message","家長訊息版"],["warm","溫暖鼓勵型"],["precise","精準專業型"]].forEach(([style,label])=>{
+  [["message","家長訊息版"]].forEach(([style,label])=>{
     const text = generateComment(style);
     const card = document.createElement("div");
     card.className = "output-card";
