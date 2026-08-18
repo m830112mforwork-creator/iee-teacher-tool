@@ -1,0 +1,1762 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IEE 教師工作台</title>
+<style>
+  :root{
+    --bg:#f1f2ee;
+    --surface:#ffffff;
+    --surface-2:#e9eae4;
+    --ink:#22262a;
+    --ink-soft:#5c6560;
+    --ink-faint:#8a9089;
+    --line:#d7d9d0;
+    --accent:#2a3f73;
+    --accent-ink:#ffffff;
+    --accent-soft:#e4e8f3;
+    --warn-bg:#f7e9df;
+    --warn-ink:#7a3f1f;
+    --good-bg:#e6efe4;
+    --good-ink:#2f5232;
+    --shadow: 0 1px 2px rgba(30,32,20,0.06), 0 6px 20px rgba(30,32,20,0.06);
+    --serif: Georgia, "Noto Serif TC", "Songti TC", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Heiti TC", "Segoe UI", sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1b1d1f;
+      --surface:#242729;
+      --surface-2:#2c2f31;
+      --ink:#ece9e2;
+      --ink-soft:#b3b6ae;
+      --ink-faint:#7d8079;
+      --line:#3a3d3a;
+      --accent:#8ea0d4;
+      --accent-ink:#171a2c;
+      --accent-soft:#2b3350;
+      --warn-bg:#3a2c1f;
+      --warn-ink:#e8b98c;
+      --good-bg:#233225;
+      --good-ink:#a9d0ab;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1b1d1f;
+    --surface:#242729;
+    --surface-2:#2c2f31;
+    --ink:#ece9e2;
+    --ink-soft:#b3b6ae;
+    --ink-faint:#7d8079;
+    --line:#3a3d3a;
+    --accent:#8ea0d4;
+    --accent-ink:#171a2c;
+    --accent-soft:#2b3350;
+    --warn-bg:#3a2c1f;
+    --warn-ink:#e8b98c;
+    --good-bg:#233225;
+    --good-ink:#a9d0ab;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:720px;
+    margin:0 auto;
+    padding:20px 12px 64px;
+  }
+  @media (min-width:420px){
+    .wrap{ padding:20px 16px 64px; }
+  }
+  header.app{
+    padding:6px 2px 22px;
+  }
+  header.app .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+  header.app h1{
+    font-family:var(--serif);
+    font-weight:700;
+    font-size:26px;
+    margin:4px 0 6px;
+    text-wrap:balance;
+  }
+  header.app p{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:14px;
+    max-width:60ch;
+  }
+
+  section.card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    box-shadow:var(--shadow);
+    padding:18px;
+    margin-bottom:16px;
+  }
+  .exam-card{
+    border-color:var(--accent);
+    background:var(--accent-soft);
+  }
+  .exam-hint{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin:0 0 12px;
+  }
+  .exam-date-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+    gap:10px;
+  }
+  .exam-date-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:8px 10px;
+  }
+  .exam-level-label{
+    font-family:var(--mono);
+    font-size:12px;
+    font-weight:700;
+    color:var(--accent);
+    flex:none;
+    white-space:nowrap;
+  }
+  .exam-date-input{
+    flex:1;
+    min-width:0;
+    border:none;
+    background:transparent;
+    font-family:var(--sans);
+    font-size:13px;
+    color:var(--ink);
+    padding:2px 0;
+  }
+  .exam-date-input:focus{ outline:none; }
+  .exam-date-input:read-only{ color:var(--ink-faint); cursor:default; }
+  .exam-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:4px;
+  }
+  .exam-head .section-title{ margin-bottom:0; }
+  .login-form[hidden]{ display:none; }
+  .login-form{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px;
+    margin-bottom:12px;
+  }
+  .login-form input{
+    flex:1;
+    min-width:120px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:7px 10px;
+    font-size:13px;
+    font-family:var(--sans);
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .login-error{
+    width:100%;
+    font-size:12px;
+    color:var(--warn-ink);
+  }
+  h2.section-title{
+    font-family:var(--serif);
+    font-size:15px;
+    font-weight:700;
+    margin:0 0 12px;
+    color:var(--ink);
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+  h2.section-title .num{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-faint);
+  }
+
+  /* level picker */
+  .level-row{
+    display:grid;
+    grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:6px;
+  }
+  .level-chip{
+    position:relative;
+    min-width:0;
+    border:1.5px solid var(--line);
+    background:var(--surface);
+    border-radius:10px;
+    padding:9px 2px 7px;
+    text-align:center;
+    cursor:pointer;
+    font-family:var(--mono);
+    color:var(--ink);
+    transition:border-color .12s, transform .12s;
+  }
+  .level-chip:hover{ transform:translateY(-1px); }
+  .level-chip .code{
+    font-size:19px;
+    font-weight:700;
+    display:block;
+    line-height:1.1;
+  }
+  .level-chip .zh{
+    font-family:var(--sans);
+    font-size:9.5px;
+    color:var(--ink-soft);
+    display:block;
+    margin-top:2px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:100%;
+  }
+  .level-chip.active{
+    border-color:var(--chip-hue, var(--accent));
+    background:color-mix(in srgb, var(--chip-hue, var(--accent)) 14%, var(--surface));
+  }
+  .level-chip.active .code{ color:var(--chip-hue, var(--accent)); }
+
+  /* unit picker */
+  .unit-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .unit-list.compact{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(84px, 1fr));
+    gap:8px;
+  }
+  .unit-list.compact .unit-item{
+    justify-content:center;
+    padding:14px 8px;
+  }
+  .unit-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:10px 12px;
+    cursor:pointer;
+    background:var(--surface);
+    text-align:left;
+  }
+  .unit-item .u-num{
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:13px;
+    color:var(--ink-faint);
+    width:2.4em;
+    flex:none;
+  }
+  .unit-item .u-body{
+    flex:1;
+    min-width:0;
+  }
+  .unit-item .u-title{
+    font-size:13.5px;
+    color:var(--ink);
+  }
+  .unit-item .u-brand{
+    display:inline-block;
+    font-family:var(--mono);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.03em;
+    margin-bottom:3px;
+    color:var(--chip-hue, var(--ink-faint));
+  }
+  .unit-item .u-num-solo{
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:15px;
+    color:var(--ink);
+  }
+  .unit-item.active .u-num-solo{ color:var(--chip-hue, var(--accent)); }
+  .unit-item.active{
+    border-color:var(--chip-hue, var(--accent));
+    background:color-mix(in srgb, var(--chip-hue, var(--accent)) 10%, var(--surface));
+  }
+  .unit-item.active .u-num{ color:var(--chip-hue, var(--accent)); }
+
+  /* chapter picker */
+  .chapter-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .chapter-chip{
+    border:1.5px solid var(--line);
+    background:var(--surface);
+    border-radius:10px;
+    padding:8px 13px;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink-soft);
+    font-family:var(--sans);
+  }
+  .chapter-chip.active{
+    border-color:var(--chip-hue, var(--accent));
+    background:var(--chip-hue, var(--accent));
+    color:#fff;
+  }
+
+  /* tool tabs */
+  .tool-tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:16px;
+    background:var(--surface-2);
+    padding:4px;
+    border-radius:12px;
+  }
+  .tool-tab{
+    flex:1;
+    text-align:center;
+    padding:9px 8px;
+    border-radius:9px;
+    cursor:pointer;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    border:none;
+    background:transparent;
+    font-family:var(--sans);
+  }
+  .tool-tab.active{
+    background:var(--surface);
+    color:var(--accent);
+    box-shadow:var(--shadow);
+  }
+
+  .tool-pane{ display:none; }
+  .tool-pane.active{ display:block; }
+
+  /* vocab tool */
+  .toggle-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:4px;
+  }
+  .switch{
+    display:inline-flex;
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .switch button{
+    border:none;
+    background:var(--surface);
+    color:var(--ink-soft);
+    font-family:var(--sans);
+    font-size:12px;
+    padding:6px 10px;
+    cursor:pointer;
+  }
+  .switch button.active{
+    background:var(--accent);
+    color:var(--accent-ink);
+  }
+  .content-block{
+    margin-top:14px;
+  }
+  .content-block h3{
+    font-size:12px;
+    font-family:var(--mono);
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin:0 0 8px;
+  }
+  .content-block ul{
+    margin:0;
+    padding-left:1.1em;
+    font-size:13.5px;
+  }
+  .content-block li{ margin-bottom:6px; }
+  .content-block li:last-child{ margin-bottom:0; }
+  .empty-note{
+    font-size:12.5px;
+    color:var(--ink-faint);
+    font-style:italic;
+  }
+
+  /* prep tool */
+  .prep-course{
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:12px;
+    background:var(--surface);
+  }
+  .prep-course-head{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:2px;
+  }
+  .prep-course-head .dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--course-hue, var(--accent));
+    flex:none;
+  }
+  .prep-course-head h3{
+    font-family:var(--serif);
+    font-size:15px;
+    font-weight:700;
+    margin:0;
+    color:var(--ink);
+  }
+  .prep-entry{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px solid var(--line);
+  }
+  .prep-entry:first-of-type{
+    border-top:none;
+    padding-top:6px;
+  }
+  .prep-entry .entry-label{
+    font-size:13px;
+    font-weight:700;
+    color:var(--course-hue, var(--accent));
+    margin-bottom:6px;
+    display:flex;
+    align-items:center;
+    gap:5px;
+  }
+  .prep-entry.collapsible .entry-label{ cursor:pointer; }
+  .prep-entry .chevron{
+    display:inline-block;
+    font-size:11px;
+    transition:transform .15s;
+    color:var(--ink-faint);
+  }
+  .prep-entry.expanded .chevron{ transform:rotate(90deg); }
+  .prep-entry .entry-note{
+    font-size:11.5px;
+    color:var(--ink-faint);
+    font-style:italic;
+    margin:-3px 0 8px;
+  }
+  .prep-entry.collapsible .entry-body{ display:none; }
+  .prep-entry.collapsible.expanded .entry-body{ display:block; }
+  .prep-field{ margin-bottom:8px; }
+  .prep-field:last-child{ margin-bottom:0; }
+  .prep-field .field-name{
+    font-size:11px;
+    font-family:var(--mono);
+    color:var(--ink-faint);
+    letter-spacing:.03em;
+    margin-bottom:3px;
+  }
+  .prep-field ul{
+    margin:0;
+    padding-left:1.1em;
+    font-size:13px;
+    color:var(--ink);
+  }
+  .prep-field li{ margin-bottom:4px; }
+  .prep-field li:last-child{ margin-bottom:0; }
+  .prep-notice{
+    font-size:12.5px;
+    color:var(--warn-ink);
+    background:var(--warn-bg);
+    border-radius:8px;
+    padding:8px 10px;
+  }
+
+  /* quick view (教學快覽) */
+  .quick-view{
+    border:1.5px solid var(--accent);
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:14px;
+    background:var(--accent-soft);
+  }
+  .qv-block{ margin-bottom:16px; }
+  .qv-block:last-child{ margin-bottom:0; }
+  .qv-exam{
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    background:var(--surface);
+    border:1px solid var(--accent);
+    border-radius:8px;
+    padding:8px 12px;
+  }
+  .qv-exam b{ color:var(--accent); }
+  .qv-block h4{
+    font-family:var(--serif);
+    font-size:14px;
+    font-weight:700;
+    margin:0 0 8px;
+    color:var(--ink);
+  }
+  .qv-block ul{
+    margin:0;
+    padding-left:1.2em;
+    font-size:13px;
+    color:var(--ink);
+  }
+  .qv-block li{ margin-bottom:5px; }
+  .qv-block li:last-child{ margin-bottom:0; }
+  .warn-src{
+    font-weight:700;
+    color:var(--warn-ink);
+  }
+  .flow-stage{ margin-bottom:10px; }
+  .flow-stage:last-of-type{ margin-bottom:6px; }
+  .flow-stage .stage-tag{
+    display:inline-block;
+    font-family:var(--mono);
+    font-size:11px;
+    font-weight:700;
+    padding:2px 9px;
+    border-radius:999px;
+    background:var(--accent);
+    color:var(--accent-ink);
+    margin-bottom:5px;
+  }
+  .flow-stage ul{ margin-top:4px; }
+  .flow-source{
+    font-size:11px;
+    color:var(--ink-faint);
+    font-style:italic;
+    margin-top:6px;
+  }
+
+  button.primary{
+    background:var(--accent);
+    color:var(--accent-ink);
+    border:none;
+    border-radius:10px;
+    padding:11px 16px;
+    font-size:14px;
+    font-weight:700;
+    font-family:var(--sans);
+    cursor:pointer;
+    width:100%;
+  }
+  button.primary:active{ transform:translateY(1px); }
+  button.ghost{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    border-radius:8px;
+    padding:6px 10px;
+    font-size:12px;
+    cursor:pointer;
+    font-family:var(--sans);
+  }
+  button.ghost:hover{ color:var(--ink); border-color:var(--ink-faint); }
+
+  input[type="text"]{
+    width:100%;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:14px;
+    font-family:var(--sans);
+    background:var(--surface);
+    color:var(--ink);
+  }
+  input[type="text"]:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+
+  .tag-group{ margin-bottom:14px; }
+  .tag-group-label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:12px;
+    font-weight:700;
+    margin-bottom:8px;
+  }
+  .tag-group-label .dot{
+    width:8px; height:8px; border-radius:50%;
+    background:var(--dot,var(--accent));
+  }
+  .tag-chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .tag-chip{
+    border:1.3px solid var(--line);
+    background:var(--surface);
+    color:var(--ink-soft);
+    padding:6px 11px;
+    border-radius:999px;
+    font-size:12.5px;
+    cursor:pointer;
+    font-family:var(--sans);
+    user-select:none;
+  }
+  .tag-chip.selected{
+    background:var(--dot,var(--accent));
+    border-color:var(--dot,var(--accent));
+    color:#fff;
+  }
+
+  .output-card{
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    padding:14px;
+    margin-top:12px;
+    background:var(--surface-2);
+  }
+  .output-card .out-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .output-card .out-head .style-name{
+    font-family:var(--serif);
+    font-weight:700;
+    font-size:14px;
+  }
+  .output-card pre{
+    white-space:pre-wrap;
+    word-break:break-word;
+    font-family:var(--sans);
+    font-size:13.5px;
+    line-height:1.75;
+    margin:0;
+    color:var(--ink);
+  }
+  .output-card pre b{ color:var(--accent); }
+
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:22px;
+    transform:translateX(-50%) translateY(8px);
+    background:var(--ink);
+    color:var(--bg);
+    padding:9px 16px;
+    border-radius:999px;
+    font-size:12.5px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .18s, transform .18s;
+    z-index:10;
+  }
+  .toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+
+  footer.app{
+    margin-top:22px;
+    padding-top:16px;
+    border-top:1px solid var(--line);
+    font-size:11.5px;
+    color:var(--ink-faint);
+    line-height:1.7;
+  }
+
+  .disclaimer{
+    display:flex;
+    gap:8px;
+    background:var(--warn-bg);
+    color:var(--warn-ink);
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:12px;
+    margin-bottom:14px;
+    align-items:flex-start;
+  }
+
+  @media (min-width:560px){
+    .level-row{ grid-template-columns:repeat(6,1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="app">
+    <div class="eyebrow">IEE · A–P–L–U–S–J</div>
+    <h1>教師工作台</h1>
+    <p>選級數、選 Level、選課次，依課堂表現產出觀察記錄與聯絡簿評語草稿，並整合四科備課摘要與教學活動建議。</p>
+  </header>
+
+  <section class="card exam-card">
+    <div class="exam-head">
+      <h2 class="section-title">🗓️ 階級考日期</h2>
+      <button class="ghost" id="adminToggleBtn">管理員登入</button>
+    </div>
+    <p class="exam-hint" id="examHint">目前為唯讀模式，如需編輯日期請點選「管理員登入」。</p>
+
+    <form id="loginForm" class="login-form" hidden>
+      <input type="email" id="loginEmail" placeholder="管理員 Email" autocomplete="username">
+      <input type="password" id="loginPassword" placeholder="密碼" autocomplete="current-password">
+      <button type="submit" class="ghost">登入</button>
+      <button type="button" class="ghost" id="loginCancelBtn">取消</button>
+      <span class="login-error" id="loginError"></span>
+    </form>
+
+    <div class="exam-date-grid" id="examDateGrid">
+      <div class="exam-date-row" data-level="1"><span class="exam-level-label">Level 1</span><input type="text" class="exam-date-input" placeholder="尚未設定日期" readonly></div>
+      <div class="exam-date-row" data-level="2"><span class="exam-level-label">Level 2</span><input type="text" class="exam-date-input" placeholder="尚未設定日期" readonly></div>
+      <div class="exam-date-row" data-level="3"><span class="exam-level-label">Level 3</span><input type="text" class="exam-date-input" placeholder="尚未設定日期" readonly></div>
+      <div class="exam-date-row" data-level="4"><span class="exam-level-label">Level 4</span><input type="text" class="exam-date-input" placeholder="尚未設定日期" readonly></div>
+      <div class="exam-date-row" data-level="5"><span class="exam-level-label">Level 5</span><input type="text" class="exam-date-input" placeholder="尚未設定日期" readonly></div>
+    </div>
+    <button class="ghost" id="logoutBtn" hidden style="margin-top:10px;">登出管理員</button>
+  </section>
+
+  <section class="card">
+    <h2 class="section-title"><span class="num">01</span> 級數</h2>
+    <div class="level-row" id="levelRow"></div>
+  </section>
+
+  <section class="card">
+    <h2 class="section-title"><span class="num">02</span> Level</h2>
+    <div class="unit-list" id="unitList"></div>
+  </section>
+
+  <section class="card" id="chapterSection">
+    <h2 class="section-title"><span class="num">03</span> 課次</h2>
+    <div class="chapter-row" id="chapterRow"></div>
+  </section>
+
+  <div class="tool-tabs" id="toolTabs">
+    <button class="tool-tab active" data-tool="comment">觀察記錄與評語</button>
+    <button class="tool-tab" data-tool="prep">備課小幫手</button>
+  </div>
+
+  <!-- COMMENT TOOL -->
+  <section class="card tool-pane active" id="paneComment">
+    <h2 class="section-title"><span class="num">04</span> 學生與課堂表現</h2>
+
+    <div style="margin-bottom:14px;">
+      <input type="text" id="studentName" placeholder="學生姓名／暱稱（可留空）" maxlength="20">
+    </div>
+
+    <div id="tagGroups"></div>
+
+    <button class="primary" id="genBtn">產生評語草稿</button>
+
+    <div id="outputArea"></div>
+  </section>
+
+  <!-- PREP TOOL -->
+  <section class="card tool-pane" id="panePrep">
+    <h2 class="section-title"><span class="num">04</span> <span id="prepLevelLabel">備課摘要</span></h2>
+    <div id="prepContent"></div>
+    <div style="margin-top:14px;">
+      <button class="ghost" id="copyPrepBtn">複製整份備課摘要</button>
+    </div>
+  </section>
+
+  <footer class="app">
+    內容依 IEE 各級數官方課綱（Voc&amp;Sen／Grammar 課綱）整理，句型與字彙不超出所選課次範圍。Level J 因原始教案未逐字列出單字／句型，僅提供教材進度範圍供備課參考。所有草稿請老師確認後再送出聯絡簿。
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script>
+const CURRICULUM = [{"code":"A","en":"Adventures","zh":"探險家","hue":"#B65C3D","levelUnit":"Level","chapterUnit":"Chapter","levels":[{"level":1,"label":"Level 1","topic":"a book、a pen、a bat、a cat","chapters":[{"id":"ch1","label":"Ch1","vocab":["Ch1: a book, a pen, a bag（可以搭配實體物品教學，加深體感英文）"],"sentences":["Ch1: What 代表『問什麼』。學生需明白 this（這個）/ that（那個），可用手指比出遠近；熟悉後可融入 What is this? / What is that? What is 縮寫為 What's；It is 縮寫為 It's。注意 s 尾音，發音要明確：\"is\" 發音為 /Iz/；What's 的 s 發 /s/；It's 的 s 發 /s/"]},{"id":"ch2","label":"Ch2","vocab":["Ch2: a bat, a cat, a dog, a duck","相反詞：Hot ↔ cold；well 健康 ↔ sick；Happy ↔ sad；fine 很好 ↔ hurt","動物寶寶補充：小貓 a kitten，小狗 a puppy，小鳥/小雞 a chick，公雞 a rooster，母雞 a hen"],"sentences":["Ch2: 熟悉以 It 為主詞的 Yes/No 問答。否定句補充回答：No, it is not. It is a ____.（例：Is it a cat? No, it is not. It is a dog.）It is not 縮寫為 It isn't"]},{"id":"ch3","label":"Ch3","vocab":["Ch3: hot, happy, sad, sick（教學時需帶入相反詞觀念）"],"sentences":["Ch3: 熟悉以 you / I 為主詞的 Yes/No 問答。否定句補充回答：No, I am not. I am ______.（例：Are you hurt? No, I am not. I am fine.）I am 縮寫為 I'm，注意 m 尾音要閉上嘴巴"]},{"id":"review","label":"總複習 Review","vocab":[],"sentences":["Review 1: 學生需將 Ch1 和 Ch2 的單字，融會貫通在 Ch1 和 Ch2 的句型中"]}],"notes":["教學單字時記得請學生在 APO 上標音節，並寫下中文","常見錯誤練習：Ex: It is a bird? No, it is not. → 正確應為 Is it a bird? No, it is not.（讓學生找出句子中的錯誤並訂正）","Quiz 形式：老師寫中文學生拼字，或老師寫英文學生寫英+中；教材上畫底線單字考拼字，未畫底線單字考認讀"]},{"level":2,"label":"Level 2","topic":"angry、in a good mood、tall、short","chapters":[{"id":"ch1","label":"Ch1","vocab":["Ch1: angry, in a good mood, hungry, full, bored, excited, scared, fine, thirsty（相反詞概念，複習時學生手要能指著圖片唸出單字）"],"sentences":["Ch1: be verb 移到句首造問句，搭配 Yes/No 的回答（主詞重點：He/She/It）。is not 縮寫是 isn't（He is = He's / She is = She's / It is = It's）。否定句補充回答：No, he is not. He is ______.（例：Is he scared? No, he is not. He is fine.）可運用 Level 1 Ch3 的單字造句"]},{"id":"ch2","label":"Ch2","vocab":["Ch2: tall, short, big, small, young, old, fast, slow（相反詞概念）"],"sentences":["Ch2: 主詞搭配 Be 動詞的運用：I am, you are, he is, she is, it is, we are, you are, they are，並練習縮寫方式。教導形容詞 adjective 觀念並帶入句子 I am tall. She is old…可運用 Level 1 Ch3 + Level 2 Ch1 的單字造句，如 I am hot. She is in a good mood…"]},{"id":"ch3","label":"Ch3","vocab":["Ch3: cake(s), gift(s), card(s)","desk（有抽屜的書桌）與 table（沒有抽屜的桌子）的差異","唸法：one cake / two cakes；one gift / three gifts…","需帶著學生複習 0–20 的英文唸法"],"sentences":["Ch3: How many _____ are there? 有多少（問句以複數形式呈現）。熟悉詢問數量並用 There is / There are 表示那裡有…（例：How many gifts are there? There is 1 gift. / There are 3 gifts.）"]},{"id":"review","label":"總複習 Review","vocab":[],"sentences":["Review 1: 學生需將 Ch1 和 Ch2 的單字，融會貫通在 Ch1 和 Ch2 的句型中"]}],"notes":["⬆️ 學生要清楚 APO 上每個單字對應的圖片","Quiz：拼字認讀（畫底線單字考拼字，未畫底線考認讀）"]},{"level":3,"label":"Level 3","topic":"an ant、a bee、caterpillar 毛毛蟲長大會變成 butterfly 蝴蝶、加入 -y + ies 的觀念","chapters":[{"id":"ch1","label":"Ch1","vocab":["Ch1: an ant(s), a bee(s), a gecko(s), a spider(s)","caterpillar 毛毛蟲長大會變成 butterfly(ies) 蝴蝶，加入 -y + ies 的觀念"],"sentences":["Ch1: What are these / those? 並回答 They are _____s.（可帶入 this is 這個、that is 那個、these are 這些、those are 那些的比較，加入手勢）注意 s 尾音，發音要明確"]},{"id":"ch2","label":"Ch2","vocab":["Ch2: a frog(s), a cow(s), a goat(s)","tadpole(s) 蝌蚪長大會變成 frog(s) 青蛙；特別教學 \"cow\" 的 \"ow\" 發音嘴型","比較 sheep 綿羊 與 goat(s) 山羊的不同，sheep 為單複數同型不加 s","比較 turtle(s) 烏龜 與 tortoise(s) 陸龜的不同"],"sentences":["Ch2: Are they frogs? Yes, they are. / No, they are not. They are____.（注意問句尾音需要上揚）"]},{"id":"ch3","label":"Ch3","vocab":["Ch3: the train(s), the tram, trucks, bus(es), taxi(es)","比較 scooter 機車 與 motorcycle 重型機車的差異","說明台灣捷運為 MRT，世界各地稱捷運為 metro"],"sentences":["Ch3: Look at this/that bus. It is small / big.（可代入不同形容詞或顏色）Look at these/those buses. They are small / big. 清楚單複數的運用"]},{"id":"review","label":"總複習 Review","vocab":[],"sentences":["Review: 學生需要學會將 Ch1~Ch3 的單字，融會貫通在 Ch1~Ch3 的句型中"]}],"notes":["⬆️ 學生要清楚 APO 上每個單字對應的圖片","Quiz：拼字認讀（畫底線考拼字，未畫底線考認讀）"]},{"level":4,"label":"Level 4","topic":"a spoon、a fork、sing、rap","chapters":[{"id":"ch1","label":"Ch1","vocab":["Ch1: a spoon, a fork, a plate, a knife（單複數口訣：a spoon, two spoons / a fork, two forks…；可帶入 phonics 口訣 or, oo, a_e；chopsticks 會以複數型態呈現）"],"sentences":["Ch1: Where is the ______? / It is _______. Where are the _____? / They are ____.（學生需知道 Where 是問在哪裡，配合 Grammar U9 位置介系詞練習；注意單複數在句子中的變換。Grammar Chant: in 在裡面, on 在上面, under 在下面, behind 在後面, in front of 在前面, next to 在旁邊, between 在中間, above 在上方）"]},{"id":"ch2","label":"Ch2","vocab":["Ch2: sing, rap, act, draw（需讓學生知道動詞 action verb 的觀念，可透過帶動作幫助理解）"],"sentences":["Ch2: What can you/he/she/it/name do? I/He/She/It can _____.（can 表示可以/能夠/會）"]},{"id":"ch3","label":"Ch3","vocab":["Ch3: jump, run, swim, ride a bike, skate, dance（可帶入 phonics 口訣 i_e, a_e, ce=s；教學時可帶入動作增加記憶點）"],"sentences":["Ch3: Can you/he/she/it/name swim? A: Yes, ____can. / No, ___ can't. ___ can ____.（需知道如何把 Can 移到最前面造問句；can't 是 cannot 的縮寫；可運用 Ch2 單字造句）"]},{"id":"review","label":"總複習 Review","vocab":[],"sentences":["Review: 學生需要學會將 Ch1~Ch3 的單字，融會貫通在 Ch1~Ch3 的句型中"]}],"notes":["⬆️ 學生要清楚 APO 上每個單字對應的圖片","Quiz：拼字認讀"]},{"level":5,"label":"Level 5","topic":"banana、apple、帶入 countable nouns 可數名詞、uncountable nouns 不可數名詞觀念","chapters":[{"id":"ch1","label":"Ch1","vocab":["Ch1: banana(s), apple(s), kiwi(s), grape(s), pineapple","帶入 countable nouns 可數名詞、uncountable nouns 不可數名詞觀念","orange(s) 是柳橙，tangerine(s) 是橘子","pineapple, melon, watermelon 整顆是 countable nouns，但若切開來吃就會變成不可數 uncountable nouns"],"sentences":["Ch1: Do you like ______(s)? A: Yes, I do. / No, I do not. I like ______(s).（Do 開頭的句子，介紹它是 Helping Verb，只會幫助 action verbs；do not 縮寫是 don't；用 Do 問的問題就要用 do 來回答）"]},{"id":"ch2","label":"Ch2","vocab":["Ch2: rice, juice, water, coke, milk, tea, pork, duck, fish","Staple food 主食 / Beverage 飲料 / Meat 肉類","fish, duck, goat, chicken 如果表示動物本身可數，如果是要吃的肉則不可數；fish 是單複數同型；noodles 因為有很多條麵，所以需要+s"],"sentences":["Ch2: How is the _____? It is_____. Q: How are the _____s? They are _____.（How 是問如何，注意句子中單複數的變換；學習形容食物味道，靈活替換教材提供在 word bank 裡的形容詞；同時融合 Chapter 1 Fruits 的單字一同練習）"]},{"id":"ch3","label":"Ch3","vocab":["Ch3: white, pink, black（可複習 IEE Binder 教材中學到的文具、食物、玩具，以及 A.P.O. 所學的食物）"],"sentences":["Ch3: Q: What is your favorite __________? A: I like ________.（熟悉句型後可將教材提供的名詞融入句子替換，例：What is your favorite toy? What is your favorite food?…目的是讓學生充分利用整體 A 級所學內容，融入句型讓句型有不同變化）"]},{"id":"review","label":"總複習 Review","vocab":[],"sentences":["Review: 學生需要學會將 Ch1~Ch3 的單字，融會貫通在 Ch1~Ch3 的句型中"]}],"notes":["⬆️ 學生要清楚 APO 上每個單字對應的圖片","Quiz：拼字認讀"]}]},{"code":"P","en":"Pacesetters","zh":"標兵","hue":"#9A7B2F","levelUnit":"Level","chapterUnit":"Chapter","levels":[{"level":1,"label":"Level 1","topic":"數字、金額、文具","chapters":[{"id":"ch1","label":"Ch1","vocab":["Ch1: 所有數字（Teaching Step 1: 1–9；Step 2: 10, 20, 30, 40, 50, 60, 70, 80, 90 需會拼寫；Step 3: 1–99）"],"sentences":["Ch1: What is 20 plus 10? 20 plus 10 equals 30. / What is 20 minus 10? 20 minus 10 equals 10.（注意 s 的發音需要清楚明確）What is 縮寫 What's；It is 縮寫 It's；\"is\" 發音為 /Iz/"]},{"id":"ch2","label":"Ch2","vocab":["Ch2: one hundred NT dollars, one thousand NT dollars（NT 的意思是新台幣）"],"sentences":["Ch2: 詢問價格句型 How much 問多少，能辨別單複數名詞搭配的 Be Verb 句型。It is 縮寫 It's；They are 縮寫 They're"]},{"id":"ch3","label":"Ch3","vocab":["Ch3: a colored pencil, a pencil case, a pencil sharpener（可先熟悉 pencil 的拼法）"],"sentences":["Ch3: 複習 What 問什麼；want + N. 想要….；He/She/It/Name*1 verb + s 觀念（wants）；do/does 是助動詞（helping verb/auxiliary verb），後方動詞為原形動詞；主詞變換需更換動詞形式：I/You/We/They + Verb(want)；He/She/It/Name*1 verb+s (wants)"]},{"id":"review","label":"總複習 Review","vocab":[],"sentences":["Review 1: 寫句子時需要留意標點符號"]}],"notes":["Quiz：老師寫中文學生拼字/老師寫英文學生寫英+中；未畫底線單字考認讀"]},{"level":2,"label":"Level 2","topic":"清潔用品、個性形容詞、介系詞","chapters":[{"id":"ch1","label":"Ch1","vocab":["Ch1: a mop, a bucket, a broom, a dustpan","a trash can（美式用法）/ a rubbish bin（英式用法）","a sponge 一個海棉（補充：a melamine sponge 科技海綿；圖片是一般海綿）","補充列出：brave, shy（此組非相反詞）, kind, mean, generous"],"sentences":["Ch1: need / needs 需要。複習 do/does 後方動詞為原形動詞（Regular verb: need）。Q: What do/does S. need? A: S.need(s) a ________.（複習 he, she, it, name*1 verb+s (needs)）Q: Do/Does S. need a _______? A: Yes, S.need(s) a ________. / No, S don't/doesn't. S.need(s) a ________.（簡答後詳答）"]},{"id":"ch2","label":"Ch2","vocab":["Ch2: brave, shy, kind, mean, greedy, lazy（相反詞概念；教師可展示 Line 貼圖對應情緒表達）"],"sentences":["Ch2: my 我的 / is, am, are + adjective。可帶入各種家庭稱謂並用形容詞描述性格，例：This is my uncle, Sam. He is shy. This is my pet. It is brave."]},{"id":"ch3","label":"Ch3","vocab":["Ch3: all voc.（除上述外）","介系詞 Grammar chant：in 在裡面，on 在上面，under 在下面，behind 在後面，in front of 在前面，next to 在旁邊，between 在中間，above 在上方","可搭配句型教學：The mop is ___ the bucket. / The mop is between the buckets."],"sentences":["Ch3: Be Verbs 單複數切換，並搭配正確的 preposition（教學時可搭配圖示）。可運用 Level 1 Ch3 + Level 2 Ch1 的單字造句"]},{"id":"review","label":"總複習 Review","vocab":[],"sentences":["Review 1: 寫句子時需要留意標點符號"]}],"notes":["⬆️ 學生要清楚 APO 上每個單字對應的圖片","Quiz：Question & Answer（結合單字考試），例：What do you need? 我需要一支拖把。＿＿＿＿＿＿＿＿＿."]},{"level":3,"label":"Level 3","topic":"3C 用品、所有格、身體病痛","chapters":[{"id":"ch1","label":"Ch1","vocab":["Ch1: a computer, a laptop, a speaker(s), a Bluetooth mouse","所有格：I–my, You–your, He–his, She–her, It–its, We–our, You–your, They–their","補充 laptop 也可稱為 notebook"],"sentences":["Ch1: Is there____? / Are there _____? Be Verbs 單複數切換（可代入學過的介系詞+名詞；可善用真實物品教學）"]},{"id":"ch2","label":"Ch2","vocab":["Ch2: all vocab.（教學時需教學每個人稱對應的所有格）"],"sentences":["Ch2: Whose 誰的 / Be Verbs 單複數切換（重複複習 this, that, these, those 以及各人稱所有格，例：my pencil case, your computer, his laptop）"]},{"id":"ch3","label":"Ch3","vocab":["Ch3: all voc.（except 各種病痛）","學生需要知道 foot 的複數為 feet；學生需要識讀身體感冒症狀的單字"],"sentences":["Ch3: Q: What's wrong? A: My ＿＿＿ hurt(s). / I have a cold.（身體部位單數 hurt+s，複數 hurt 不必+s；主詞為 he, she, it, name 時，have 變成 has，不是 haves）"]}],"notes":["⬆️ 學生要清楚 APO 上每個單字對應的圖片","Quiz：Question & Answer（例：Whose pencil case is this? 這是我的鉛筆盒。＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿.）"]},{"level":4,"label":"Level 4","topic":"形容詞、玩具運動用品、現在進行式","chapters":[{"id":"ch1","label":"Ch1","vocab":["Ch1: cute, ugly, expensive, cheap, popular（學生需要明白 Adjectives 的概念；可搭配反義詞教學；popular 熱門的、collectible 可收集的這兩個單字非反義詞）"],"sentences":["Ch1: Is this/that ＿＿＿＿＿＿?  Yes, it is. / No, it isn't. It's＿＿. Are these/those ＿＿s ＿＿＿＿? Yes, they are. No, they aren't. They are____.（靈活運用 Be Verbs 單複數切換；複習 this/that/these/those 觀念，搭配手指比出遠近；需注意名詞單複數；可善用真實物品教學）"]},{"id":"ch2","label":"Ch2","vocab":["Ch2: a jump rope, in-line skates, a skateboard, a baseball, a basketball（教學時需比較 basketball, skateboard, baseball 的 a / a_e 短母音及長母音發音的差別；in-line skates 為直排輪）"],"sentences":["Ch2: have/has 擁有（比較 there is & have 的差別：there is 是「有」，have 是「人擁有」；he/she/it/name*1: have 要變成 has；助動詞 do/does 後方動詞需用原型動詞 have）"]},{"id":"ch3","label":"Ch3","vocab":["Ch3: writing, drinking, reading, eating, thinking, waiting, sleeping（現在進行式表示正在…，action verb + ing；特別注意 write + ing 需要 minus \"e\" + ing；補充 wait for + 人的用法）"],"sentences":["Ch3: What are you/they doing? I am/They are ____ing. What is she/he doing? She/He is ____ing.（現在進行式 be verb + Ving 表示正在進行某動作；Chant is, am, are Verb+ing；需注意主詞和 Be Verb 如何正確搭配）"]}],"notes":["⬆️ 學生要清楚 APO 上每個單字對應的圖片","Quiz：Sentence（問句和答句的測驗）"]},{"level":5,"label":"Level 5","topic":"休閒活動、衣物、教室場所","chapters":[{"id":"ch1","label":"Ch1","vocab":["Ch1: watching, watch TV, listening, listen to music, listen to my English homework, playing, play video games（課程中複習 Level 4 Ch.3 be Verb + Ving 的觀念：am, is, are）"],"sentences":["Ch1: Q: Are you ____? A: Yes, I am. / No, I'm not. I'm ____. Q: Is he/she ______? A: Yes, he/she is. No, he/she isn't. He is/She is _____.（先寫出直述句，再教如何把 be Verb 移到句首造問句並回答；高頻率使用 Grammar chant: is/am/are Ving）"]},{"id":"ch2","label":"Ch2","vocab":["Ch2: shorts, a skirt, a T-shirt, a shirt, pants, leggings, a dress, overalls, a coat, a jacket","overalls 是吊帶褲；a hoodie 是帽 T；a zip hoodie 連帽棉外套；leggings 是緊身褲","搭配 Level 5 speaking material 一起練習","shorts, pants, overalls 都是褲子種類，一定要加 s","學生需要靈活運用衣物的單複數（one dress, two dresses…）"],"sentences":["Ch2: Q: What are you/they wearing? A: I'm/We're/They're wearing a ______. / _______s. Q: What is he/she wearing? A: He's/She's wearing a _______. / ______s.（What 是問什麼，wear 是 action verb 穿著的意思）"]},{"id":"ch3","label":"Ch3","vocab":["Ch3: English class, math class, music class, PE class, the gym, the bathroom, the bedroom, the living room, the dining room, the English classroom, our classroom（Curriculum 課程 / Locations 地點）"],"sentences":["Ch3: Q: Where are you/they going? A: I'm/We're/They're going to the ____. Q: Are you/they going to the ____? A: Yes, I am. / We are. / They are. No, I'm not. / We aren't. / They aren't. I'm/We're/They're going to the ____（Where 是問哪裡，go to + the _______ 記得要加 the；需訓練 P 級學生靈活運用不同的主詞在句型中）"]}],"notes":["⬆️ 學生要清楚 APO 上每個單字對應的圖片","Quiz：Sentence（問句和答句的測驗）"]}]},{"code":"L","en":"Letter-Perfect","zh":"完美學習家","hue":"#4C7A5E","levelUnit":"Level","chapterUnit":"Chapter","levels":[{"level":1,"label":"Level 1","topic":"教室指令、文具用品","chapters":[{"id":"ch1","label":"Ch1","vocab":["Ch1: text my friend, scan this QR code, call my mom, review my grammar"],"sentences":["Ch1: 複習 What 問什麼。句型：want + to Verb. 想要做某事….want to 後面加上原形動詞；He/She/It/Name*1 verb+s (wants to) 觀念；do/does 是助動詞，後方動詞為原形動詞；主詞變換需更換動詞形式：I/You/We/They + Verb(want to)；He/She/It/Name*1 verb+s (wants to)；複習所有格 possessive nouns (my, your, our, their, his, her)，需注意跟著主詞做變化"]},{"id":"ch2","label":"Ch2","vocab":["Ch2: chat with us, trade cards, help the teacher, play tag, play hide and seek"],"sentences":["Ch2: Do you want to ____? 你想要＿＿嗎？可搭配 3 種口語化回答：some/Yes、any/No(not)、?"]},{"id":"ch3","label":"Ch3","vocab":["Ch3: ink, tape, binder clips, paper, glue, string","需讓學生清楚可數 countable 及不可數 uncountable 觀念，課本可數名詞標 C、不可數名詞標 U","補充：binder clips 是長尾夾；paper clips 是迴紋針","補充：paper [ˋpepɚ] 和 pepper [ˋpɛpɚ] 的唸法，長短母音唸錯會讓人誤會意思"],"sentences":["Ch3: any/some 的問答：疑問句及否定句用 any，直述和肯定答句則用 some。\"Some\" may also be used for a question（若預期答案為 Yes 時）。例：Do you want some water?"]}],"notes":["作業含 Ch1-Ch3 Q&A、每個單元出 2–3 題翻譯題","Quiz：拼字認讀 + Sentence Q&A（白板寫問題，學生寫答句）+ Sentence translation（白板寫中文，學生翻譯成英文）"]},{"level":2,"label":"Level 2","topic":"星期、月份、日期","chapters":[{"id":"ch1","label":"Ch1","vocab":["Ch1: Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday"],"sentences":["Ch1: 描述星期幾 week。複習 What 問什麼 / When 問何時 / your 你的。day 表示問星期幾：on + day，例 on Monday, on Tuesday…"]},{"id":"ch2","label":"Ch2","vocab":["Ch2: January ~ December（月份縮寫 Jan., Feb.…，可搭配 Month song 學習）"],"sentences":["Ch2: 描述月份 month。複習 What 問什麼"]},{"id":"ch3","label":"Ch3","vocab":["Ch3: first ~ twenty-first（日期縮寫 1st, 2nd, 3rd, 4th, 5th…，有時間可補充 twenty-second ~ thirty-first）"],"sentences":["Ch3: 描述日期 date。複習 What 問什麼 / When 問何時；複習 my 我的 / your 你的 / his 他的 / her 她的 / its 它的（牠的）。on + date，例 on January 1st / on February 2nd…"]}],"notes":["⬆️ 學生要清楚 APO 上每個單字對應的圖片","每個單元出 2–3 題翻譯題或問答；Quiz 含 Sentence translation（白板寫中文，學生翻譯成英文）"]},{"level":3,"label":"Level 3","topic":"頻率副詞、日常活動、作息時間","chapters":[{"id":"ch1","label":"Ch1","vocab":["Ch1: always, usually, sometimes, seldom, never（頻率副詞 frequency adverb）"],"sentences":["Ch1: Q: How often do/does S. sweep the floor? A: S. ＿＿＿ sweep(s) the floor.（usually 頻率副詞用來表達生活習慣；How often 問頻率/多久一次）"]},{"id":"ch2","label":"Ch2","vocab":["Ch2: go camping, go hiking, go shopping, feed my cat, walk my dog, tidy my school bag（需靈活替換畫底線的人稱所有格代名詞）"],"sentences":["Ch2: What do/does S. do on weekends? S. usually/sometimes ________.（on weekends 表示每週末，可用 on Mondays, on Tuesdays 替換；weekend 指 Saturday and Sunday，weekday 指 Monday to Friday）"]},{"id":"ch3","label":"Ch3","vocab":["Ch3: brush my teeth, have breakfast, have lunch, have dinner, take a shower","take a shower 沖澡 與 take a bath 泡澡的差異","需靈活替換畫底線的人稱所有格代名詞"],"sentences":["Ch3: 描述時間/和行程。複習 What 問什麼 / When 問何時；表示幾點幾分用 \"at ____\"，特定日期用 \"on ____\"；複習 usually 頻率副詞"]}],"notes":["⬆️ 學生要清楚 APO 上每個單字對應的圖片","每個單元出 2–3 題翻譯題；Quiz 含 Sentence translation"]},{"level":4,"label":"Level 4","topic":"場所、樂器、過去式 Be 動詞","chapters":[{"id":"ch1","label":"Ch1","vocab":["Ch1: on the shelf, on the floor, on the 3rd floor, on the stairs, behind the door（搭配 Grammar U8 複習 Ordinal numbers 序數，需知道如何表達各樓層）"],"sentences":["Ch1: Where was he/she/it? He/She/It was _______. Where were you/they? I was _______. We/They were _______.（Where 是問在哪裡；需明白 Be Verbs 過去式觀念並熟記變化，搭配 Grammar U10 複習；特別注意 I was，有些學生容易搞混成 I were）"]},{"id":"ch2","label":"Ch2","vocab":["Ch2: hospital (clinic), restaurant, airport, bank, MRT station, library（hospital 醫院、clinic 診所的差別：小感冒去 clinic，較嚴重疾病去 hospital；補充 ENT clinic = Ear, Nose and Throat clinic 耳鼻喉科診所）"],"sentences":["Ch2: was & were 為首的句型問答搭配地點練習（需知道如何把過去式 be verb 移到最前面造問句，並用 Yes/No 回答；yesterday 是昨天的意思，因為已經過去了所以用過去式；was not 縮寫是 wasn't，were not 縮寫是 weren't）"]},{"id":"ch3","label":"Ch3","vocab":["Ch3: drums, recorder, piano, keyboard, bass guitar, guitar","guitar 是吉他類別的總稱，分類有：bass guitar 低音吉他, electric guitar 電吉他, acoustic guitar 木吉他","piano 是鋼琴，keyboard 是電子琴"],"sentences":["Ch3: What 問什麼 / 以 Can 為首的問答（特別提醒句中彈奏樂器需要加 the；學生需知道 instrument 是樂器，並以「你會彈奏什麼樂器」句型問與答）"]}],"notes":["⬆️ 學生要清楚 APO 上每個單字對應的圖片","每個單元出 2–3 題翻譯題；Quiz 含 Sentence translation"]},{"level":5,"label":"Level 5","topic":"三餐食物、衣物、家中擺設","chapters":[{"id":"ch1","label":"Ch1","vocab":["Ch1: toast, bacon, jam, yogurt, cereal, cheese, fried rice, soup, salad, sushi, hot pot, dumplings, pasta","複習 Level 3 Ch.3 學過的 breakfast 早餐, lunch 午餐, dinner 晚餐；單字主軸呈現三餐會吃的食物","補充 spaghetti 是細麵條, fettuccine 寬扁平麵, lasagne 千層麵, macaroni 通心麵, ravioli 義大利麵餃, rotini 螺旋麵","搭配 Level 5 Reading material"],"sentences":["Ch1: Q: What do you/they have for breakfast/lunch/dinner? A: I/We/They always have ________. Q: What does he/she have for breakfast/lunch/dinner? A: He/She always has ________.（靈活運用 breakfast/lunch/dinner 以及 always/usually/sometimes）"]},{"id":"ch2","label":"Ch2","vocab":["Ch2: sweater, raincoat, uniform, jeans, socks, gloves, hair tie, tie, hat, cap","學生需要知道各個衣物為單數或複數名詞呈現；jeans, socks, gloves 都需要以複數呈現","hair tie 是髮帶，tie 是領帶；hat 是有邊緣的帽子，cap 是鴨舌帽"],"sentences":["Ch2: Q: What are you/they looking for? A: I am/They are looking for Jake's ______. Q: What is he/she looking for? A: He is/She is looking for Jake's ______. Q: Is this/that your ______? A: Yes, it is. / No, it isn't. Q: Are these/those your ______s? A: Yes, they are. / No, they aren't.（靈活替換所有格 your, his, her 以及 this/that/these/those）"]},{"id":"ch3","label":"Ch3","vocab":["Ch3: rug, mat, carpet, sink, bathtub, toilet, sofa, closet, fan","a rug 是小地毯，a carpet 是大地毯，a mat 是草蓆","a closet 是衣櫥，a bookshelf 是書架，a shelf 是架子","a sofa 是沙發，a couch 是長沙發","AC 是 an air conditioner 的簡稱"],"sentences":["Ch3: Q: How many ______s can you/he/she/they see in the living room? A: I/We/They/He/She can see one ____. / two ____(s). Q: What else can you/he/she/they see? A: I/We/They/He/She can see a/an _____. / two ____(s).（How many 後面需要加上複數名詞；else 是其他的意思）"]}],"notes":["每個單元出 2–3 題翻譯題；Quiz 含 Sentence translation"]}]},{"code":"U","en":"Unlimited-Potential","zh":"無限潛能王","hue":"#3E6E8E","levelUnit":"Unit","chapterUnit":"Learn","levels":[{"level":"U1","label":"Unit 1","topic":"H.H.H. 補充教材","chapters":[{"id":"learn1","label":"Learn 1","vocab":[],"sentences":["U1 Learn 1: 複習 What 問什麼 / because 因為。句型：I like _____ because I can _____. 我喜歡＿＿因為我可以＿＿；熟悉動名詞 go + Ving 表示進行的運動"]},{"id":"learn2","label":"Learn 2","vocab":[],"sentences":["U1 Learn 2: S + be going to + 原型動詞，某人即將要做某事（Future tense）；主詞變換需更換 Be Verb 形式及縮寫方式"]},{"id":"learn3","label":"Learn 3","vocab":[],"sentences":["U1 Learn 3: 使用 would 表示禮貌用法；主詞+would 的縮寫方式"]}],"sharedVocab":["Verb list U1–U2（fall–clean）：需讀、認、知道中文意思（不需拼寫），並在每個過去式動詞旁標上原型動詞","本單元詳細單字未在文件中逐字列出，僅以 Verb list 頁碼範圍與教材頁次標示（H.H.H. U1 Learn1 – U2 Learn1）"],"notes":[]},{"level":"U2","label":"Unit 2","topic":"H.H.H. 補充教材","chapters":[{"id":"learn1","label":"Learn 1","vocab":[],"sentences":["U2 Learn 1: have to + 原型動詞 / has to + 原型動詞，have to 代表『必須要』；He/She/It/Name*1 verb+s (has to)；do/does 是助動詞，後方動詞為原形動詞；主詞變換：I/You/We/They+Verb(have to)；He/She/It/Name*1 verb+s (has to)"]},{"id":"learn2","label":"Learn 2","vocab":[],"sentences":["U2 Learn 2: 複習 Do/Does 為首的句子要以 \"Yes\"/\"No\" 回答。複習 do/does 後方動詞為原形動詞（Regular verb: have）。複習 have to + 原形 V 必須要…的用法；He/She/It/Name*1 verb+s (has to)；複習所有格用法 (my, your, his, her, its, our, your, their)"]},{"id":"learn3","label":"Learn 3","vocab":[],"sentences":["U2 Learn 3: 正確表達地址和電話。複習 Where 問在哪裡 / What 問什麼；活用主格 (I, You, We, They, He, She, It) 和所有格 (my, your, his, her, its, our, your, their)"]}],"sharedVocab":["Verb list U1–U2（fall–clean）：需讀、認、知道中文意思（不需拼寫），並在每個過去式動詞旁標上原型動詞","本單元詳細單字未在文件中逐字列出，僅以 Verb list 頁碼範圍與教材頁次標示（H.H.H. U1 Learn1 – U2 Learn1）","Verb list U2–U3（take–go）：學生不需拼寫，但需說出正確過去式和過去分詞（不看課本）；需完全熟記 Verb list，奠定過去式、完成式和被動式的文法底子","特別提醒：Skip U2 Learn3 voc. #4 court（用法有錯）"],"notes":[]},{"level":"U3","label":"Unit 3","topic":"H.H.H. 補充教材","chapters":[{"id":"learn1","label":"Learn 1","vocab":[],"sentences":["U3 Learn 1: am/is/are 的過去式是 was/were；Do/Does 的過去式動詞是 Did。熟悉 did 後方動詞為原形動詞（Regular verb）。比較 Simple Present（搭配過去時間）和 Simple Past：I play in the park. v.s. I played in the park."]},{"id":"learn2","label":"Learn 2","vocab":[],"sentences":["U3 Learn 2: 熟悉 Did 為首的 Yes/No 問句，並知道 didn't 為 did not 縮寫"]},{"id":"learn3","label":"Learn 3","vocab":[],"sentences":["U3 Learn 3: 複習 some & any 的用法"]}],"sharedVocab":["Verb list U2–U3（take–go）：學生不需拼寫，但需說出正確過去式和過去分詞（不看課本）；需完全熟記 Verb list，奠定過去式、完成式和被動式的文法底子","特別提醒：Skip U2 Learn3 voc. #4 court（用法有錯）","本單元詳細單字未逐字列出；備註 Skip U3 Learn3 voc. #6 fasteners（用法太老舊不實用）","進行 U3L3 教學前可複習之前學過的文具；學生需熟悉 U4L1 的單位量詞"],"notes":[]},{"level":"U4","label":"Unit 4","topic":"H.H.H. 補充教材","chapters":[{"id":"learn1","label":"Learn 1","vocab":[],"sentences":["U4 Learn 1: 複習 Is there / Are there 表示那裡有…嗎？學生需知道用 Would 來表示禮貌用法（英文點餐也很常用）"]}],"sharedVocab":["本單元詳細單字未逐字列出；備註 Skip U3 Learn3 voc. #6 fasteners（用法太老舊不實用）","進行 U3L3 教學前可複習之前學過的文具；學生需熟悉 U4L1 的單位量詞"],"notes":[]},{"level":"U5","label":"Unit 5","topic":"H.H.H. 補充教材","chapters":[{"id":"learn1","label":"Learn 1","vocab":[],"sentences":["U5 Learn 1: Who 搭配 Comparative adjectives。比較級的問答：誰比較強壯？我比 Austin 強壯，誰比誰…用 than（學生還沒學過受格代名詞，答句先用人名做例句；Who 後面接續的 Be verb 要以單數型態呈現）"]},{"id":"learn2","label":"Learn 2","vocab":[],"sentences":["U5 Learn 2: Which 搭配 Comparative adjectives / 以 Be verb 為首的比較級運用（老師教學前先將所有單字加上一個形容詞，方便學生配合形容詞造句練習）"]},{"id":"learn3","label":"Learn 3","vocab":[],"sentences":["U5 Learn 3: 學生熟悉受格的擺放位置（例：I love you. you 是接受動作的，受詞需被擺放在動詞後面；可畫出主詞和受詞的表格）"]}],"sharedVocab":["U5 Learn 2 形容詞例：blue, yellow, big, small, long, short, sharp, dull, thin, thick, new, old, red, orange, clean, dirty","Verb List：U6 verb list（學生不需拼寫，但需正確說出每個動詞的過去式和過去分詞，不看課本）"],"notes":[]},{"level":"U6","label":"Unit 6","topic":"H.H.H. 補充教材","chapters":[{"id":"learn1","label":"Learn 1","vocab":[],"sentences":["U6 Learn 1: How 詢問用什麼方法抵達指定地點（需在單字旁標示出原型動詞；複習看到 \"did\" 表示過去式句型）"]},{"id":"learn2","label":"Learn 2","vocab":[],"sentences":["U6 Learn 2: Q: What happened? A: I/We/They/He/She ________.（發生什麼事情？因為事情已經發生，所以用過去式）"]},{"id":"learn3","label":"Learn 3","vocab":[],"sentences":["U6 Learn 3: Q: Whose old bike is this/that? A: It is mine. Q: Whose new skateboard are these/those? A: They are ours.（老師教學前先將所有單字加上 keywords，方便學生配合造句練習）"]}],"sharedVocab":["U5 Learn 2 形容詞例：blue, yellow, big, small, long, short, sharp, dull, thin, thick, new, old, red, orange, clean, dirty","Verb List：U6 verb list（學生不需拼寫，但需正確說出每個動詞的過去式和過去分詞，不看課本）","U6 Learn 3 keywords 例：old bike, orange book, blue car, small eraser, new skateboards, new shoes","Verb List：Teach U6 + Extra verb list（不需拼寫，需正確說出過去式和過去分詞）"],"notes":[]},{"level":"U7","label":"Unit 7","topic":"H.H.H. 補充教材","chapters":[{"id":"learn1","label":"Learn 1","vocab":[],"sentences":["U7 Learn 1: Q: Which way do I go? A: Go to the corner and turn left.（靈活運用課本中報路的句型，反覆練習，可搭配 Google Map）"]},{"id":"learn2","label":"Learn 2","vocab":[],"sentences":["U7 Learn 2: Q: How do I get to the ______?（熟悉單字句型後可融入 U7 Learn 1 句型，反覆做 Q/A 及翻譯練習）"]},{"id":"learn3","label":"Learn 3","vocab":[],"sentences":["U7 Learn 3: Q: What do we do now? 我們該怎麼辦？ A: We _________."]}],"sharedVocab":["U6 Learn 3 keywords 例：old bike, orange book, blue car, small eraser, new skateboards, new shoes","Verb List：Teach U6 + Extra verb list（不需拼寫，需正確說出過去式和過去分詞）"],"notes":[]}]},{"code":"S","en":"Success","zh":"成功者","hue":"#6B4E8E","levelUnit":"Level","chapterUnit":"資源","levels":[{"level":1,"label":"Level 1","topic":"閱讀文章與延伸單字","chapters":[{"id":"res1","label":"Making the Cut","vocab":["Making the Cut：barber (n.) 理髮師, charge (n.) 收費, braid (n.) 編織, be interested in (phr.) 對…感興趣, course (n.) 課程, intimidated (adj.) 感到威脅的, instructor (n.) 教授, hesitate (v.) 遲疑, afraid (adj.) 害怕的, talkative (adj.) 健談的, focus (v.) 專注, safety (n.) 安全, protect (v.) 保護, client (n.) 客戶, opportunity (n.) 機會, homeless (n.) 流浪漢, regulation (n.) 規則, blessing (n.) 祝福"],"sentences":[]},{"id":"res2","label":"Working and Learning from Home During the COVID-19 Outbreak","vocab":["Working and Learning from Home During the COVID-19 Outbreak：work from home (phr.) 在家上班, social distancing (n.) 社交距離, prevent (v.) 預防, participate (v.) 參與, routine (n.) 例行公事, structure (n.) 架構, inconvenience (n.) 不便"],"sentences":[]},{"id":"res3","label":"Phrases 1–18","vocab":["Phrases 1–18（使用教材：Phrases，會一路用到小六畢業，此文件未逐條列出）"],"sentences":[]},{"id":"res4","label":"Voc Pg.1(a)–24(bell)","vocab":["Voc Pg.1(a)–24(bell)（使用教材：國中小英語單字書 1200 字，約每週 15 個單字，未逐條列出）"],"sentences":[]}],"notes":["記得解釋 Part of speech 詞性：(n.)=noun 名詞 / (v.)=verb 動詞 / (adj.)=adjective 形容詞 / (pron.)=pronoun / (conj.)=conjunction 連接詞 / (prep.)=preposition 介系詞 / (adv.)=adverb 副詞 / (phr.)=phrases 片語","單字筆記：學生記錄英文/詞性/中文/例句出處，並完成 Self-evaluation（安排小老師驗收發音拼字）","Quiz：一次考 5 個單字（老師寫中文，學生寫英文和詞性）+ 3 個片語（老師寫英文，學生寫中文）",""]},{"level":2,"label":"Level 2","topic":"閱讀文章與延伸單字","chapters":[{"id":"res1","label":"Social Media","vocab":["Social Media：social media (n.) 社交媒體, user (n.) 使用者, service (n.) 服務, different (adj.) 不同的, create (v.) 創造, content (n.) 內容, company (n.) 公司, information (n.) 資訊, ad (n.) 廣告=advertisement, example (n.) 範例, popular (adj.) 受歡迎的"],"sentences":[]},{"id":"res2","label":"The New Design of Tokyo 2020 Olympics Medals","vocab":["The New Design of Tokyo 2020 Olympics Medals：Olympics (n.) 奧運, medal (n.) 獎牌, recycled electronics (n.) 回收的電子產品, director (n.) 總監, various (adj.) 各式各樣的, athlete (n.) 運動員, sustainable (adj.) 永續的, resources (n.) 資源, friendly (adj.) 友善的, environment (n.) 環境, achieve (v.) 達成, challenge (n.) 挑戰, device (n.) 設備, gather (v.) 聚集"],"sentences":[]},{"id":"res3","label":"Phrases 19–36","vocab":["Phrases 19–36（未逐條列出）"],"sentences":[]},{"id":"res4","label":"Voc Pg.25(belong)–45(cheap)","vocab":["Voc Pg.25(belong)–45(cheap)（未逐條列出）"],"sentences":[]}],"notes":["記得解釋 Part of speech 詞性（同上：n./v./adj./pron./conj./prep./adv./phr.）","單字筆記 + Self-evaluation；Quiz：5 單字（中文→英文+詞性）+ 3 片語（英文→中文）",""]},{"level":3,"label":"Level 3","topic":"閱讀文章與延伸單字","chapters":[{"id":"res1","label":"Wildlife Photographer of the Year Awards","vocab":["Wildlife Photographer of the Year Awards：contest (n.) 比賽, capture (v.) 捕捉, marmot (n.) 土撥鼠, judge (v.) 評論, dive (n.) 潛, spot (v.) 識別, seem (v.) 似乎, stripe (n.) 條紋, manage to (phr.) 想盡辦法…, cliff edge (n.) 懸崖邊緣, wildlife (n.) 野生生活, photographer (n.) 攝影師, develop (v.) 發展, produce (v.) 生產"],"sentences":[]},{"id":"res2","label":"Creative E-mails","vocab":["Creative E-mails：creative (adj.) 有創意的, college (n.) 大學, fantastic (adj.) 極好的, semester (n.) 學期, interesting (adj.) 有趣的, considerate (adj.) 體貼的, patient (adj.) 有耐心的, unfortunately (adv.) 不幸地, allowance (n.) 零用錢, intelligent (adj.) 聰明的, signal (n.) 信號, enormous (adj.) 巨大的, happiness (n.) 幸福感, reunion (n.) 團聚, without (adv.) 沒有, laughter (n.) 笑聲, receive (v.) 收到"],"sentences":[]},{"id":"res3","label":"Phrases 37–54","vocab":["Phrases 37–54（未逐條列出）"],"sentences":[]},{"id":"res4","label":"Voc Pg.46(cheat)–71(dot)","vocab":["Voc Pg.46(cheat)–71(dot)（未逐條列出）"],"sentences":[]}],"notes":["記得解釋 Part of speech 詞性（同上）","單字筆記 + Self-evaluation；Quiz：5 單字（中文→英文+詞性）+ 3 片語（英文→中文）",""]},{"level":4,"label":"Level 4","topic":"閱讀文章與延伸單字","chapters":[{"id":"res1","label":"4 Extreme Sports That Have to Be Seen to Be Believed","vocab":["4 Extreme Sports That Have to Be Seen to Be Believed：assistance (n.) 協助, harness (n.) 繫帶, secure (adj.) 安全的, acronym (n.) 首字名詞組合, illegal (adj.) 非法的, circuit (n.) 環道, originate (v.) 起源, cave (n.) 洞穴, technical (adj.) 技術的, require (v.) 要求, mitigate (v.) 減輕"],"sentences":[]},{"id":"res2","label":"What will I Be When I Grow up","vocab":["What will I Be When I Grow up：grow up (phr.) 長大, yet (conj.) 還沒, vet (n.) 獸醫, look after (phr.) 照顧, scary (adj.) 可怕的, scientist (adj.) 科學家〔原文詞性標註如此〕, rare (adj.) 特殊的, clever (adj.) 聰明的, even (adv.) 甚至, groomer (n.) 美容師, once (adv.) 一次, style (v.) 設計, poodle (n.) 貴賓狗, train (v.) 訓練, choose (v.) 選擇"],"sentences":[]},{"id":"res3","label":"Phrases 55–72","vocab":["Phrases 55–72（未逐條列出）"],"sentences":[]},{"id":"res4","label":"Voc Pg.72(down)–94(find)","vocab":["Voc Pg.72(down)–94(find)（未逐條列出）"],"sentences":[]}],"notes":["記得解釋 Part of speech 詞性（同上）","單字筆記 + Self-evaluation；Quiz：5 單字（中文→英文+詞性）+ 3 片語（英文→中文）",""]},{"level":5,"label":"Level 5","topic":"閱讀文章與延伸單字","chapters":[{"id":"res1","label":"Girls Skate!","vocab":["Girls Skate!：chance (n.) 機會, physical (adj.) 生理上的, mental (adj.) 心理上的, male-dominated (adj.) 男性主導的, provide (v.) 提供, community (n.) 社區, take place (phr.) 舉辦, diverse (adj.) 多樣性的, mentor (v.) 指導, popularize (v.) 使普及, according to (phr.) 根據…, stereotype (n.) 刻板印象, donate (v.) 捐贈, cofounder (n.) 共同創辦人"],"sentences":[]},{"id":"res2","label":"My Secret Team","vocab":["My Secret Team：secret (n.) 秘密, support (v.) 支持, team (n.) 隊伍, hard (adj.) 困難的, be good at (phr.) 擅長於…, pretend (v.) 假裝, cheer (v.) 歡呼, score (v.) 得分, celebrate (v.) 慶祝, alone (adj.) 孤單的, wardrobe (n.) 衣櫃, terrible (adj.) 糟糕的, billionaire (n.) 億萬富翁, united (adj.) 聯合的, match (n.) 比賽"],"sentences":[]},{"id":"res3","label":"Phrases 73–90","vocab":["Phrases 73–90（未逐條列出）"],"sentences":[]},{"id":"res4","label":"Voc Pg.73(dream)–118(handsome)","vocab":["Voc Pg.73(dream)–118(handsome)（未逐條列出）"],"sentences":[]}],"notes":["記得解釋 Part of speech 詞性（同上）","單字筆記 + Self-evaluation；Quiz：5 單字（中文→英文+詞性）+ 3 片語（英文→中文）"]}]},{"code":"J","en":"Junior","zh":"青年領袖／檢定銜接","hue":"#2A3F73","levelUnit":"類別","chapterUnit":"內容","noSeriesStructure":true,"levels":[{"level":1,"label":"文法 Grammar（The Best Grammar Plus Book 2）","topic":"","chapters":[{"id":"main","label":"文法 Grammar（The Best Grammar Plus Book 2）","vocab":["文件未逐字列出單字，字表位於 Student Book 2 課本後方 (pg.98-102)；進度：上學期 Unit 1-10，下學期 Unit 11-20（每次 2 個 Unit）"],"sentences":["句型存在於教材本身，教案未轉錄具體句型公式"]}],"notes":[]},{"level":2,"label":"原文小說 Extensive Reading","topic":"","chapters":[{"id":"main","label":"原文小說 Extensive Reading","vocab":["J6：Adventure at Haydon Point（頁碼進度 Pg.6-61）","JE6：The Last Sherlock Holmes Story（頁碼進度 P.6-73）"],"sentences":["原文小說無獨立句型公式，教學方式為引導理解文意"]}],"notes":[]},{"level":3,"label":"聽力 Listening","topic":"","chapters":[{"id":"main","label":"聽力 Listening","vocab":["J6：Spotlight Listening（上學期 U1-9／下學期 U10-16）","JE6：Listening with Speaking 6（含 Workbook 頁碼對照）"],"sentences":["文件未提供具體句型內容"]}],"notes":[]},{"level":4,"label":"閱讀理解 Reading with Joy（會考導向）","topic":"","chapters":[{"id":"main","label":"閱讀理解 Reading with Joy（會考導向）","vocab":["J6/JE6 共用；上學期 U1–U30，下學期 U31–U63"],"sentences":["著重解題技巧，非句型教學"]}],"notes":[]},{"level":5,"label":"單字書 國中小英語 1200 單字","topic":"","chapters":[{"id":"main","label":"單字書 國中小英語 1200 單字","vocab":["依月份分冊：Vocabulary-H/I~K/L/M/N~O（上學期）、P/Q~R/S（下學期），每週約 15–20 字（JE6 列為 Optional）"],"sentences":["文件未提供具體句型內容"]}],"notes":[]}]}];
+
+const PREP_DATA = {"grammar":{"A":{"1":[{"label":"U1：冠詞 a / an / the","fields":{"文法教學點":["冠詞 a / an 用於「不指定」情況（例：This is an apple.）","a / an 的選擇規則：後面名詞發音以 short vowels「a, e, i, o, u」開頭用 an，其餘子音開頭用 a（特殊字如 an hour 先不提）","the 用於「特定」情況（例：The dog is cute. 指眼前這隻特定的狗）"],"教學順序/步驟":["Exercise A（圈出冠詞、底線名詞）：老師先在白板寫例句帶學生理解文法概念，再讓學生翻開 binder 做練習，最後把句子再讀一次","Exercise B（看圖填 a/an）：先找出單字字首是否為 a,e,i,o,u，再完成空格","More activities：寫 20 個隨機單字在白板，分隊接力寫上 a/an/the（此活動也可用於 U2）"],"教學提醒／常見錯誤":["文件未特別列出常見錯誤，僅提醒特殊字（an hour 等）先不用教"],"練習/評量方式":["Exercise A/B 為課堂或家庭作業練習，非強制正式評量"]},"note":""},{"label":"U2：複數名詞 +s 與單數 a/an","fields":{"文法教學點":["知道「+s（複數）」與「a/an（單數）」的意義與轉換","Grammar Chant 口訣：Singular noun means 1 / Plural noun means more than 2"],"教學順序/步驟":["Exercise A：搭配口訣看圖勾選正確答案","Exercise B：填 a, an, s 或 x","Exercise C：訂正句子（僅需訂正 Q1-2，非全部）","More activities：可沿用 U1 的活動"],"教學提醒／常見錯誤":["Exercise C 特別註明「並非所有題目都需要訂正」，僅 Q1-2，避免老師誤判"],"練習/評量方式":["完成練習後要求學生重讀句子"]},"note":""},{"label":"U3：形容詞（Adjective）","fields":{"文法教學點":["了解 adjective 需放在 noun 之前","adjective 加入句子後，前面的冠詞 a/an 可能需要跟著改變（例：a bird → an angry bird）"],"教學順序/步驟":["Exercise A（圈形容詞、底線名詞）：老師先帶讀句子並解釋中文意思，再做題","Exercise B（加入形容詞到句子）：找出名詞、畫箭頭把形容詞放到名詞前，特別提醒 Q7、Q9 要連帶修改冠詞"],"教學提醒／常見錯誤":["Q7、Q9 特別提醒學生容易忘記：加入形容詞後冠詞（a/an）也要跟著改變"],"練習/評量方式":["完成練習前需完成 learning practice；Learning sheet 需家長簽名"]},"note":""}],"2":[{"label":"U4：主詞代名詞（複習＋強化）","fields":{"文法教學點":["清楚了解各個 Subject pronoun 的中文意思，並記憶其固定位置：永遠在句子最前面"],"教學順序/步驟":["Exercise A（連連看）、B（圈出正確代名詞）、C（圈出底線字的代名詞）：依口訣帶學生理解每題主詞意義並配對/圈選"],"教學提醒／常見錯誤":["文件未提供具體常見錯誤說明"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U5：Be Verbs（am/is/are）","fields":{"文法教學點":["Be Verbs 家族有 3 個成員（am, is, are），需搭配主詞正確使用"],"教學順序/步驟":["Exercise A：圈出 be verbs","Exercise B：閱讀圈選","Exercise C：填 am/is/are；先底線主詞代名詞，再圈/填正確 be verb，最後重讀句子"],"教學提醒／常見錯誤":["文件未提供具體常見錯誤說明"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U6：Be Verb 縮寫（Contractions）","fields":{"文法教學點":["學習縮寫（Contractions）的唸法與寫法：母音被省略","進階學生可額外記憶：縮寫英文為 Contraction，撇點符號英文為 apostrophe"],"教學順序/步驟":["教學技巧故事：「媽媽（母音 a, e, i, o, u）升到天空照顧大家」幫助記憶去母音規則","Exercise A：依教學技巧完成縮寫練習","Exercise B：老師唸句子，學生判斷並勾選正確句子，再重讀","Exercise C：底線主詞與 be verb 後縮寫，再重讀句子"],"教學提醒／常見錯誤":["**特別提醒錯誤縮寫：this is ≠ this's；am not ≠ amn't（這兩種縮寫不存在）**"],"練習/評量方式":["完成後需完成 learning practice 才進行評量；Learning sheet 需家長簽名"]},"note":""}],"3":[{"label":"U7：Be動詞否定句","fields":{"文法教學點":["學習把 \"not\" 放在 Be V. 後面表達否定句","完整型態：I am / you are / he is / she is / it is / we are / you are / they are + not"],"教學順序/步驟":["Exercise A：加 not 到句子中","Exercise B：圈出 be verb、劃掉 not 並朗讀","依口訣帶學生完成每個練習"],"教學提醒／常見錯誤":["文件未提供具體常見錯誤說明"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U8：Be動詞問句與回答","fields":{"文法教學點":["將 Be V. 移到句首可構成問句（此為手寫題）","回答原則：怎麼問就怎麼答","**特別提醒：用 you 問要用 I 答／用 I 問要用 you 答**"],"教學順序/步驟":["Exercise A：把 be verb 移到句首、主詞改小寫、加上問號；記憶策略：把 Be V. 像足球一樣「踢」到最前面","Exercise B：閱讀圈選","Exercise C：回答問題，**特別提醒 Are you…? / Am I…? 這類問句的回答方式需特別留意**"],"教學提醒／常見錯誤":["**人稱代換（you↔I）是本單元核心易錯點，尤其 Are you…?/Am I…? 需特別提醒**","看到 No，要想到 not（否定句規則連動）"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U9：介系詞（方位詞）","fields":{"文法教學點":["認識介系詞：in / on / under / behind / in front of / next to / between / above 的用法"],"教學順序/步驟":["Grammar Chant：搭配手勢（一手握拳一手揮動）唸出英文方位字彙與中文意思，可作為課前破冰活動","Exercise A：看圖填 on/under/above/next to","Exercise B、C：填空；教師可先示範一句，帶學生討論完成後續句子"],"教學提醒／常見錯誤":["文件未提供具體常見錯誤說明"],"練習/評量方式":["完成後需完成 learning practice；上課時老師可另外出題讓學生寫在 writing book 加強練習"]},"note":""}],"4":[{"label":"U10：There is / There are 句型與 How many 問句","fields":{"文法教學點":["\"How many ___s are there?\"（問句固定用複數型態）","There is + 單數名詞；There are + 複數名詞","There is → There's（縮寫）","複習自 A.P.O. Level 2 Ch3"],"教學順序/步驟":["Exercise A：底線名詞、圈答案","Exercise B：圈數量、填 there is/there are 並回答","Exercise C：訂正句子（**可作為小考**）"],"教學提醒／常見錯誤":["問句固定用複數形態（How many ___s）是常見混淆點"],"練習/評量方式":["Exercise C 可作為 quiz"]},"note":""},{"label":"U11：There is / There are 問句","fields":{"文法教學點":["\"Is there + 單數名詞…?\" → Yes, there is. / No, there isn't.","\"Are there + 複數名詞…?\" → Yes, there are. / No, there aren't.","記憶法：把 Be V. 像足球一樣踢到最前面構成問句"],"教學順序/步驟":["Exercise A：直述句改問句","Exercise B：畫記問句前兩字，判斷回答方式","Exercise C：回答問題（**可作為小考**）"],"教學提醒／常見錯誤":["用什麼問、就用什麼答的原則需反覆提醒"],"練習/評量方式":["Exercise C 可作為 quiz"]},"note":""},{"label":"U12：可數名詞 vs 不可數名詞","fields":{"文法教學點":["可數名詞：a/an + 名詞（單數）；名詞+s（複數）","不可數名詞：不可加 a/an/s/數字（例：water, soda, rice, fish, bread, juice, milk）","**常見中式英文錯誤示例：I want a water. / I want a rice.（誤把不可數名詞當可數使用）**——此例出現在本區塊的情境引導文字中，提醒教師特別留意"],"教學順序/步驟":["建議展示 A.P.O. Voc. 讓學生用中文解釋來分辨可數/不可數名詞","Exercise A：填 C（可數）或 UC（不可數）（**可作為 quiz 或課堂練習**）","Exercise B：填 a/an/X（**可作為 quiz 或課堂練習**）","Exercise C：自由造句"],"教學提醒／常見錯誤":["**\"I want a water/a rice\" 是本單元明確點出的典型學生錯誤，需特別澄清不可數名詞不可加 a/an**"],"練習/評量方式":["Exercise A、B 可作為 quiz 或課堂練習；Exercise C 讓學生自行造句"]},"note":""}],"5":[{"label":"U13：可數名詞與不可數名詞（Part 2）","fields":{"文法教學點":["複習加深：清楚區分 countable nouns / uncountable nouns","列舉 A.P.O. 已學過的單字讓學生練習判別","不可數名詞不能加 a/an/s/數字"],"教學順序/步驟":["記憶法：Only one: a/an+可數名詞；More than one: 可數名詞+s；不可數名詞不加 a/an/s/數字（例：water, soda, rice, fish, bread, juice, milk）","建議展示 A.P.O. Voc. 用中文解釋協助辨識，特別是不可數名詞","Exercise A：閱讀勾選","Exercise B：填空","Exercise C：圈出錯誤並訂正（**可作為小考**）"],"教學提醒／常見錯誤":["不可數名詞誤加 a/an/s 為常見錯誤（與 Level4 Adventurers U12 呼應）"],"練習/評量方式":["Exercise C 可作為 quiz"]},"note":""},{"label":"U14：This / That / These / Those","fields":{"文法教學點":["學習 This/That/These/Those 搭配單複數句型與問答句","複習銜接 A.P.O. Level 1 Ch1 & Level 3 Ch1 句型","Wh- 問答句型：","單數：What is this/that? → It is a/an ___.","複數：What are these/those? → They are ___s."],"教學順序/步驟":["Exercise A：圈正確答案（需觀察箭頭遠近判斷 this/that 或 these/those）","Exercise B：配對正確回應","Exercise C：填 this/that/these/those（需觀察箭頭遠近）（**可作為小考**）","教學技巧：中英文口訣搭配手勢引導記憶 this is「這個是」/ that is「那個是」/ these are「這些是」/ those are「那些是」"],"教學提醒／常見錯誤":["需依「箭頭遠近（距離）」正確判斷用 this/that 或 these/those，是本單元操作上的重點提醒"],"練習/評量方式":["Exercise C 可作為 quiz"]},"note":""},{"label":"U15：There are vs. They are","fields":{"文法教學點":["區分 \"There are\"（那裡有）與 \"They are\"（他們是）的句型與問答句","複習銜接 A.P.O. Level 2 Ch3 & Level 3 Ch2 句型","完整問答句型：What are they? / Are they ___s? / Are there ___s? / How many ___s are there?"],"教學順序/步驟":["Exercise A：填 they 或 there（可先圈出關鍵字）","Exercise B：配對（可先圈出關鍵字）","Exercise C：回答問題（可先圈出關鍵字）（**可作為小考**）"],"教學提醒／常見錯誤":["there are / they are 混淆，與 Level4 Pacesetters U10 呼應，為跨級重複強調的重點"],"練習/評量方式":["Exercise C 可作為 quiz；完成後需完成 learning practice；老師可另出題加強練習"]},"note":""}]},"P":{"1":[{"label":"U1：主詞代名詞單複數（Subject Pronouns）","fields":{"文法教學點":["理解單數與複數主詞：I/you/he/she/it/we/you/they","Grammar Chant 搭配手勢記憶"],"教學順序/步驟":["Exercise A（寫 S/P）：搭配口訣分辨單複數","Exercise B（圈主詞、勾選 S/P）：先讀句子、圈主詞、勾選單複數，再解說中文意思，最後重讀句子","Exercise C（填 S/P）"],"教學提醒／常見錯誤":["未特別列出錯誤提醒"],"練習/評量方式":["部分練習可指定課堂或回家完成"]},"note":""},{"label":"U2：Be Verbs vs. Action Verbs","fields":{"文法教學點":["區分 Be Verbs（am/is/are）與 Action Verbs","**核心規則：Be Verbs 與 Action Verbs 不能同時出現在句子中（\"天生是彼此的敵人，不能放在一起\"）**"],"教學順序/步驟":["Exercise A（訂正 be verbs）：搭配口訣找出主詞、圈出 be verb 並訂正，最後重讀句子","Exercise B（圈動詞、勾選正確方框）：圈出 be verb 或 action verb 並勾選正確答案","Exercise C（填 am/is/are 或圈 action verb）"],"教學提醒／常見錯誤":["**最重要的常見錯誤提醒：學生容易把 Be Verb 和 Action Verb 一起使用，老師需特別強調兩者互斥**"],"練習/評量方式":["Exercise C「也可以當作小考，測試學生理解程度」"]},"note":""},{"label":"U3：第三人稱單數動詞變化","fields":{"文法教學點":["He/She/It/專有名詞（第三人稱單數）+ 動詞需加 s","不規則變化：have→has, do→does, go→goes"],"教學順序/步驟":["Exercise A（圈正確答案）：搭配口訣找主詞、圈出正確動詞","Exercise B（訂正錯誤）：帶學生扮演老師角色，用紅筆幫 David（故事角色）訂正","Exercise C（底線主詞、訂正句子）"],"教學提醒／常見錯誤":["**have→has、do→does、go→goes 為特別強調的不規則變化，需提醒學生留意，且\"s\"發音要清楚**"],"練習/評量方式":["Exercise C「也可以當作小考」"]},"note":""}],"2":[{"label":"U4：Do / Does 問句","fields":{"文法教學點":["學習用 Do/Does 提問","口訣：I/you/we/you/they → do；he/she/it/專有名詞 → does","**規則：Action verb 遇到 helping verb（Do/Does）需還原成原形（去掉 s）**（文件用「照妖鏡」比喻）"],"教學順序/步驟":["Exercise A：底線主詞、依口訣寫 Do 或 Does","Exercise B：完成對話中的 Do/Does 問句與回答；老師需提醒學生助動詞後面要接原形動詞"],"教學提醒／常見錯誤":["**核心提醒：動詞在 helping verb 之後必須還原為原形，是本單元最容易出錯的地方**"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U5：否定句 don't / doesn't","fields":{"文法教學點":["學習加上 do not（don't）/ does not（doesn't）構成否定句","縮寫規則同樣沿用「媽媽升到天空」去母音口訣"],"教學順序/步驟":["Exercise A：畫記主詞，依口訣填 don't/doesn't","Exercise B：底線主詞，加上 don't/doesn't 並訂正動詞（特別提到 has→have 的訂正）","Exercise C：底線主詞，訂正助動詞與一般動詞"],"教學提醒／常見錯誤":["**特別強調的常見錯誤：has 需訂正為 have（否定句中動詞需還原）**"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U6：Be Verbs vs. Do & Does 綜合比較","fields":{"文法教學點":["區分 Be Verbs 與 Do/Does 的差異","再次強調 Be Verbs 與 Action Verbs 不能同時共存","沿用 U5、U6 口訣做綜合練習"],"教學順序/步驟":["Exercise A：畫記主詞與關鍵字，依口訣圈選 don't/doesn't/aren't/isn't","Exercise B：找出動詞、名詞或形容詞，填入 Am/Is/Are/Do/Does 並回答問題"],"教學提醒／常見錯誤":["延續 Be Verb 與 Action Verb 互斥的核心提醒"],"練習/評量方式":["完成後需完成 learning practice 才進行評量；Learning sheet 需家長簽名"]},"note":""}],"3":[{"label":"U7：所有格形容詞 vs 代名詞（Possessive Adjectives）","fields":{"文法教學點":["區分 possessive adjectives 與 pronouns 的差異（如 she vs. her）及句中用法","完整拼寫：my, your, his, her, its, our, your, their"],"教學順序/步驟":["Grammar Chant：I→my, you→your, he→his, she→her, it→its, we→our, you→your, they→their（教師唸主詞、學生答所有格）","Exercise A：圈選","Exercise B：完成句子","Exercise C：填 my/your/his/its/our/their；先辨識句中主詞代名詞再作答"],"教學提醒／常見錯誤":["文件未提供具體常見錯誤說明"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U8：單複數所有格名詞（Possessive Nouns）","fields":{"文法教學點":["學習單複數所有格名詞規則：單數名詞 + 's；複數名詞（已是複數s結尾）只加 '"],"教學順序/步驟":["記憶法故事：「英語是唱歌的語言，不會有 girls's（\"s\"二重奏）」","Exercise A：圈選","Exercise B：寫出所有格名詞（**特別提醒 Exercise B 第6題 Thomas→Thomas'**）","Exercise C：訂正句子"],"教學提醒／常見錯誤":["**核心錯誤提醒：不會出現雙重 's（girls's 是錯的）**","**Thomas 等已以 s 結尾的專有名詞，所有格只加 '，不加 's**（Exercise B-6 特別點名）"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U9：綜合比較各種 \"s\" 用法","fields":{"文法教學點":["綜合比較所有與 \"s\" 相關的文法：複數名詞（PL）、所有格名詞（PO）、第三人稱單數動詞（3rd）、縮寫（CON）"],"教學順序/步驟":["複習口訣：PL=more than one +s；PO=girls's故事（不重複s）；3rd=he/she/it/Name+Verb+s；CON=去母音（媽媽升空故事）","教學技巧補充：可將以上口訣以「春聯式」寫在白板上幫助學生隨時複習（來自 Ms. Kimberley Bott 提供的教學法）","Exercise A、B：填空格","Exercise C：訂正句子"],"教學提醒／常見錯誤":["綜合性單元，容易混淆四種 \"s\" 用法，需要透過口訣區分"],"練習/評量方式":["完成後需完成 learning practice；上課時老師可另外出題加強練習"]},"note":""}],"4":[{"label":"U10：This/That/These/Those vs. They are/There are","fields":{"文法教學點":["比較容易混淆的「th」開頭字：they are（他們是）、there are（有）、this（這個）、that（那個）、these（這些）、those（那些）","**特別提醒：they are 與 there are 發音相似但意思不同**"],"教學順序/步驟":["Grammar Chant 對照：They are/There are；This is a/That is a；These are/Those are","Exercise A：填 this/that/these/those","Exercise B：填 they are/there are","Exercise C：圈出錯誤並訂正（**可作為小考**）"],"教學提醒／常見錯誤":["**they are 與 there are 的發音混淆是本單元核心提醒**"],"練習/評量方式":["Exercise C 可作為 quiz"]},"note":""},{"label":"U11：Can 的用法","fields":{"文法教學點":["學習 can 的意義及在句子/問句中的位置","Can（助動詞）+ 原形動詞","問句：Can + you/I + 原形動詞…?（can 移到句首）","回答原則：用 can 問、用 can 答；用什麼問、用什麼答；用 I/we 問則用 you 答，反之亦然","縮寫：cannot → can't（沿用「媽媽升空去母音」記憶法）"],"教學順序/步驟":["Exercise A：圈正確答案並完成句子","Exercise B：閱讀圈選","Exercise C：回答問題（**可作為小考**）"],"教學提醒／常見錯誤":["can 後面動詞須用原形，是常見忘記的地方"],"練習/評量方式":["Exercise C 可作為 quiz"]},"note":""},{"label":"U12：祈使句（Imperatives）","fields":{"文法教學點":["解釋 \"You, come here!\" 與 \"Come here\" 意義相同","此句型只適用於 \"you\"，不適用其他人稱","對照中文意思理解","Be Verbs（am, is, are）在祈使句中需變回原形 be","否定祈使句：句首加 Don't"],"教學順序/步驟":["記憶法：原形動詞放句首，動作直接來；Be Verb→be；否定 Don't+原形動詞","Exercise A：閱讀圈選","Exercise B：底線動詞、填空","Exercise C：用 Don't 造句"],"教學提醒／常見錯誤":["學生容易忘記祈使句中 be 動詞需變回原形"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""}],"5":[{"label":"U13：現在進行式（Present Continuous Tense）第一部分","fields":{"文法教學點":["現在進行式規則：is/am/are + V-ing","V-ing 變化規則：Rule1 一般+ing；Rule2 去e+ing；Rule3 一母音一子音需重複字尾子音+ing","Be V. + V-ing 對照表：I-am；you-are；he/she/it-is；we/you/they-are","複習銜接 A.P.O. Level4 Ch3 + Level5 Ch1 單字句型"],"教學順序/步驟":["Exercise A：寫出動詞現在進行式","Exercise B：改寫句子為現在進行式","Exercise C：用現在進行式改寫句子（**可作為小考**）"],"教學提醒／常見錯誤":["V-ing 三種變化規則需清楚分辨（尤其一母音一子音需重複字尾）"],"練習/評量方式":["Exercise C 可作為 quiz"]},"note":""},{"label":"U14：現在進行式問答句","fields":{"文法教學點":["Be V. + V-ing 問句與回答","問句四步驟：1.找出 Be V. 2.把 Be V. 移到句首 3.首字母大寫、原大寫改小寫 4.加問號","完整問答對照表（Am I…?/Are you…?/Is he,she,it…?/Are we,you,they…?）","回答原則：用 I/we 問則用 you 答，反之亦然；看到 No 想到 not"],"教學順序/步驟":["Exercise A：直述句改問句","Exercise B：回答 Exercise A 的問題","Exercise C：訂正句子（**可作為小考**）"],"教學提醒／常見錯誤":["人稱代換原則反覆出現，仍為本單元重點提醒"],"練習/評量方式":["Exercise C 可作為 quiz"]},"note":""},{"label":"U15：現在簡單式 vs. 現在進行式","fields":{"文法教學點":["區分 Simple Present（規律發生的事）與 Present Continuous（現在正在發生）","Simple Present：every day / on ___s；肯定句 I/You/We/They+動詞原形，He/She/It/Name+動詞+s；否定句用 don't/doesn't","Present Continuous：now；is/am/are + V-ing","兩時態句型可互相替換"],"教學順序/步驟":["Exercise A：閱讀勾選","Exercise B：改寫為現在進行式","Exercise C：改寫為現在簡單式（**部分題目可作為小考或回家作業**）"],"教學提醒／常見錯誤":["兩時態的語意差異（規律習慣 vs. 當下正在做）需清楚區分教學"],"練習/評量方式":["部分題目可作為 quiz 或 homework；完成後需完成 learning practice；老師可另出題加強練習"]},"note":""}]},"L":{"1":[{"label":"U1：Wh- 問句（一）：What / Who / Where / How","fields":{"文法教學點":["學習 Unit1&2 共 8 個疑問詞關鍵字及其對應回答","What「問是什麼」、Who「問是誰」、Where「問在哪裡」、How「問如何」"],"教學順序/步驟":["Exercise A：底線關鍵字、圈出正確 wh- word、重讀句子","Exercise B：填入 Who/Where/What/How","Exercise C：自由回答（答案可不一）","More activities（U1+U2 合併）：老師問學生週末活動，學生用 wh- 問句互相練習（範例對話附上）"],"教學提醒／常見錯誤":["**強調「答非所問」的常見錯誤：例如被問「你想吃什麼」不能答「對，我喜歡藍色／不，我不喜歡大象」（用什麼問、用什麼答）**"],"練習/評量方式":["文件未明確指定正式評量，Exercise C 答案可能多元"]},"note":""},{"label":"U2：Wh- 問句（二）：When / Why / Which / Whose","fields":{"文法教學點":["When「問何時」、Why「問為什麼」、Which「問哪個」、Whose「問誰的」"],"教學順序/步驟":["Exercise A/B/C 與 U1 教法相同（底線關鍵字 → 圈/填正確 wh- word → 配對答案）","More activities：可沿用 U1 活動"],"教學提醒／常見錯誤":["承接 U1 的「用什麼問，用什麼答」原則"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U3：Wh- 問句的回答（be動詞/助動詞選用）","fields":{"文法教學點":["依問句選用正確的 is/are/do/does/can 來回答"],"教學順序/步驟":["Exercise A：圈出關鍵字，寫入正確 be verb 或助動詞","Exercise B&C：底線 be verb/助動詞與主詞，寫下答案（Exercise C 答案可能多元）"],"教學提醒／常見錯誤":["**特別提醒人稱代換：問句用 \"you\" 時，回答需用 \"I\"（反之亦然）**"],"練習/評量方式":["完成練習後需完成 learning practice 才進行評量；Learning sheet 需家長簽名"]},"note":""}],"2":[{"label":"U4：可數名詞 vs 不可數名詞","fields":{"文法教學點":["區分 Countable Nouns 與 Uncountable Nouns","可數名詞：a/an + 字首為母音的名詞；some + 名詞+s","不可數名詞：不可加 a, an 或 s（例：Water, milk, tea, coffee）"],"教學順序/步驟":["Exercise A：底線關鍵字，填 some/a/an","Exercise B：填 a/an/s 或 X","Exercise C：先底線可數/不可數名詞，再找出錯誤並訂正"],"教學提醒／常見錯誤":["文件未特別列出常見錯誤，重點在區分可數/不可數概念本身"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U5：some / any","fields":{"文法教學點":["複習可數/不可數名詞辨識","some 用於肯定句（Yes）、any 用於否定句（No/not）與疑問句"],"教學順序/步驟":["Exercise A：搭配口訣圈選正確答案（文件特別註解句2答案：Do you want to have \"some\" ice cream? 代表提問者手中已有該食物，詢問對方需求，可特別向學生解釋此語境差異）","Exercise B：填 some/any","Exercise C：訂正句子"],"教學提醒／常見錯誤":["**特別提醒 some/any 語境差異：某句情境下即使是問句仍用 some（因提問者手中已持有該物品）**"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U6：第三人稱單數動詞變化規則","fields":{"文法教學點":["動詞第三人稱單數變化規則（含例外 plays, buys）","Rule 1：一般 +s；Rule 2：字尾 -o,-x,-s,-z,-sh,-ch +es；Rule 3：字尾去 y +ies","提醒：Noun 放在 action verb 之後；Verb 放在 subject pronoun 之前"],"教學順序/步驟":["Exercise A：找主詞，依規則圈選正確動詞","Exercise B：將動詞改為第三人稱單數形式","Exercise C：辨識句中 \"s\"/\"es\" 結尾單字的詞性"],"教學提醒／常見錯誤":["提醒學生留意 Noun 與 Verb 在句中位置容易混淆"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U7：複數名詞變化規則","fields":{"文法教學點":["複數名詞完整變化規則：Rule1 +s；Rule2 字尾 -sh,-ch,-s,-x +es；Rule3 去y+ies；Rule4 去f/fe+ves；Rule5 不規則複數（foot→feet, man→men, woman→women, child→children, person→people）"],"教學順序/步驟":["Exercise A：依規則圈選正確答案","Exercise B：填空","Exercise C：填複數名詞（需同時寫出中文意思）"],"教學提醒／常見錯誤":["**不規則複數變化為重點提醒：man→men、woman→women 特別註明要注意發音**","Exercise C 特別要求「Part B Exercise 出現 1 person→2 people」"],"練習/評量方式":["完成後需完成 learning practice 才進行評量；Learning sheet 需家長簽名"]},"note":""}],"3":[{"label":"U8：序數（Ordinal Numbers）","fields":{"文法教學點":["區分一般數字與序數的差異","學習序數前需加 \"the\" 的重要性","序數對照：1st-10th 及對應 the first ~ the tenth","補充參照 A.P.O. Level 2 Chapter 3 Voc."],"教學順序/步驟":["記憶法：教師唸「第一」，學生答 \"the first\"...","Exercise A：填空","Exercise B：閱讀圈選（部分題目可指定課堂或回家完成）","Exercise C：填 the 或 X"],"教學提醒／常見錯誤":["**強調句中出現 the 代表所指事物是「特定的、大家都知道不會混淆的」，是理解 the 用法的核心提醒**"],"練習/評量方式":["**Exercise C「也可以當作小考，測試學生理解程度」**"]},"note":""},{"label":"U9：頻率副詞（Frequency Adverbs）","fields":{"文法教學點":["學習頻率副詞：always(100%), usually(90-99%), normally(80-89%), often(70-79%), sometimes(31-69%), seldom(11-30%), rarely(1-10%), never(0%)","補充內容來自 Mr. Jamie Lewis，可請學生額外寫在 Grammar Binder 上"],"教學順序/步驟":["Exercise A：圈出頻率副詞並估計發生頻率","Exercise B：填入 always/usually/sometimes/seldom/never","Exercise C：用頻率副詞自由造句（答案可能多元）"],"教學提醒／常見錯誤":["文件未提供具體常見錯誤說明，重點在於精確理解各副詞對應的頻率區間"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U10：現在式 be動詞 vs 過去式 be動詞","fields":{"文法教學點":["區分 is/am/are（現在式）與 was/were（過去式）","現在式與過去式句子的互換","時間關鍵字判斷：now→現在式；before, yesterday, this morning→過去式","**特別提醒：this morning 容易誤判為現在，但其實屬於過去式時態**"],"教學順序/步驟":["Grammar Chant 對照表：I-am/was, you-are/were, he-is/was, she-is/was, it-is/was, we-are/were, you-are/were, they-are/were","Exercise A：圈出 be verbs","Exercise B：閱讀圈選","Exercise C：填 is/am/are/was/were"],"教學提醒／常見錯誤":["**this morning 誤判為現在式是本單元重點提醒的常見錯誤**"],"練習/評量方式":["**Exercise C「也可以當作小考」**","完成後需完成 learning practice；老師可另出題加強練習"]},"note":""}],"4":[{"label":"U11：過去式 be動詞否定句","fields":{"文法教學點":["Simple Past Tense 否定句","學習辨識代表過去式的關鍵字","縮寫：wasn't/weren't"],"教學順序/步驟":["Grammar Chant：I was/you were/he was/she was/it was/we were/you were/they were + not","Exercise A：加 not 到句子","Exercise B：圈 wasn't 或 weren't（**可作為 quiz 或課堂練習**）","Exercise C：填 wasn't 或 weren't（**可作為 quiz 或課堂練習**）"],"教學提醒／常見錯誤":["文件未提供具體常見錯誤說明"],"練習/評量方式":["Exercise B、C 可作為 quiz 或課堂練習"]},"note":""},{"label":"U12：現在式 vs 過去式 be動詞辨識","fields":{"文法教學點":["辨識 Simple Past 與 Simple Present","比較 is/am/are 問句 vs. was/were 問句","時間關鍵字：now, today, every Saturday→現在式；before, yesterday, last year, this morning, this afternoon→過去式","**特別提醒：this morning/this afternoon 容易誤判為現在式，實為過去式**"],"教學順序/步驟":["Grammar Chant 對照表（同 L3-U10）","Exercise A：圈 be verbs、勾選正確答案","Exercise B：圈正確答案、底線關鍵字","Exercise C：寫出正確 be verb，畫記關鍵字（now, yesterday等）（**可作為小考**）"],"教學提醒／常見錯誤":["this morning/this afternoon 誤判時態，反覆出現在多個 Level 的重點提醒"],"練習/評量方式":["Exercise C 可作為 quiz"]},"note":""},{"label":"U13：過去式問句","fields":{"文法教學點":["學習用過去式構成問句","複習過去式 be 動詞 was/were 的句子應用"],"教學順序/步驟":["記憶法：把 Be V. 像足球一樣踢到最前面構成問句；用 I/we 問則用 you 答（反之亦然）；看到 No 想到 not","Exercise A：底線 be verb、圈正確答案","Exercise B：移動 be verb，將直述句改為問句","Exercise C：回答問題，畫記關鍵字（Was your sister, Was the dog…）"],"教學提醒／常見錯誤":["人稱代換（I/we↔you）原則需反覆強調"],"練習/評量方式":["完成後需完成 learning practice；老師可另出題加強練習"]},"note":""}],"5":[{"label":"U14：服飾類名詞單複數（Clothing Nouns）","fields":{"文法教學點":["區分服飾類名詞的單數與複數形式","**特別提醒：某些服飾固定為複數（如 pants），某些可單可複（T-shirt, shirt），某些通常為單數（如 a hat）**","搭配 This is/That is/These are/Those are 句型","搭配正確 be verb 使用"],"教學順序/步驟":["記憶法：Singular Form: a + T-shirt, jacket, shirt, sweater, skirt, sweatshirt, dress, tie；This/That is a+adj.+___→It is+adj.","Plural Form: jeans, pajamas, pants, socks, shoes, shorts, slippers, sneakers；These/Those are+adj.+___s→They are+adj.","Exercise A：填 this 或 these","Exercise B：填正確 be verb","Exercise C：訂正句子（**部分題目可作為小考或回家作業**）"],"教學提醒／常見錯誤":["**固定複數服飾名詞（pants等）是本單元核心易錯點，需特別列舉說明**"],"練習/評量方式":["部分題目可作為 quiz 或 homework"]},"note":""},{"label":"U15：One / Ones 的用法","fields":{"文法教學點":["學習用 \"one\" 和 \"ones\" 替代句中重複出現的名詞","One = 單數名詞代換；Ones = 複數名詞代換","搭配正確 be verb","複習銜接 U12 文法（現在式/過去式 be動詞：now/today/every Saturday→現在式；before/yesterday/last year/this morning/this afternoon→過去式，**再次提醒 this morning/this afternoon 容易誤判**）"],"教學順序/步驟":["Exercise A：填空","Exercise B：寫 one 或 ones","Exercise C：寫 is/are/was/were（**部分題目可作為小考或回家作業**）"],"教學提醒／常見錯誤":["this morning/this afternoon 時態誤判再次被提及，為跨單元反覆強調的重點錯誤"],"練習/評量方式":["部分題目可作為 quiz 或 homework"]},"note":""},{"label":"U16：There was/were vs. There is/are","fields":{"文法教學點":["辨識 There was/There were（過去式）與 There is/There are（現在式）的用法","需搭配正確單複數名詞","完整肯定句對照：現在式 There is a/some(不可數) / There are ___s；過去式 There was a/some(不可數) / There were ___s","完整問答句對照：Is there…?/Are there…?（現在式）；Was there…?/Were there…?（過去式）"],"教學順序/步驟":["Exercise A：圈正確答案","Exercise B：填空","Exercise C：回答問題（**部分題目可作為小考或回家作業**）","複習銜接 U12 文法"],"教學提醒／常見錯誤":["現在式與過去式的 there is/are/was/were 四種型態容易混淆，需要用對照表反覆練習"],"練習/評量方式":["部分題目可作為 quiz 或 homework"]},"note":""},{"label":"U17：感官動詞（Linking Verb）","fields":{"文法教學點":["學習 Linking Verb（look(s), smell(s), taste(s), sound(s), feel(s)）+ 形容詞的句型","對應五官：look（眼）、smell（鼻）、taste（口）、sound（耳）、feel（皮膚）","第三人稱單數需加 s（he/she/it/Name → Verb+s）"],"教學順序/步驟":["Exercise A：圈出 linking verb、底線形容詞","Exercise B：填空","Exercise C：重組單字（**部分題目可作為小考或回家作業**）"],"教學提醒／常見錯誤":["第三人稱單數的動詞變化（look→looks等）需注意"],"練習/評量方式":["部分題目可作為 quiz 或 homework；完成後需完成 learning practice；老師可另出題加強練習"]},"note":""}]},"U":{"1":[{"label":"U3（Simply Grammar 4）：Go to a place vs. Go V-ing","fields":{"文法教學點":["區分「去某地方（go to + 地點）」與「去做某活動（go + V-ing）」的用法差異"],"教學順序/步驟":["Exercise A：分類並寫下","Exercise B：判斷是否需要 to，不需要則劃掉","Exercise C：把 to 加到正確位置","完成 B、C 後重讀所有句子"],"教學提醒／常見錯誤":["文件未提供具體常見錯誤說明"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U4：Be going to V（未來式）","fields":{"文法教學點":["Simple present（現在式）vs. be going to（未來式）","強調主詞與動詞的搭配","結構：be going to（介係詞）+ VR（原形動詞）"],"教學順序/步驟":["Exercise A：圈出 be going to，底線其後動詞","Exercise B：閱讀圈選","Exercise C：用 be going to 完成句子","完成 A~C 後重讀所有句子"],"教學提醒／常見錯誤":["文件未提供具體常見錯誤說明，僅強調主詞動詞搭配"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U5：Be going to 問句","fields":{"文法教學點":["如何把 be going to 的句子改成問句：Are they going to…?","規則：圈出 be verb，移到句首"],"教學順序/步驟":["Exercise A：移動 be verb、寫出問句","Exercise B：回答問題","Exercise C：訂正句子","完成 A~C 後重讀所有句子"],"教學提醒／常見錯誤":["文件未提供具體常見錯誤說明"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U6：複習 Months & Dates 的時態表達","fields":{"文法教學點":["複習先前於 Letter-Perfect A.P.O Level2 Ch2&3 學過的 months & dates","學習用不同英文時態表達幾月幾號"],"教學順序/步驟":["文件未提供具體練習步驟，僅列出待完成事項：Review 1 P.15 Exercise C&D + Review 2 Part A"],"教學提醒／常見錯誤":["文件未提供具體常見錯誤說明"],"練習/評量方式":["完成後需完成 learning practice 才進行評量；完成後可貼於 Writing book 中複習，需家長簽名"]},"note":""}],"2":[{"label":"U1（Simply Grammar 4）：比較級形容詞（Comparative Adjectives）","fields":{"文法教學點":["比較級用於強調「2者之間」的比較，需搭配 than","變化規則：Rule1 +er；Rule2 去y+ier；Rule3 子音+母音+子音需重複字尾+er；Rule4 不規則變化（good→better, bad→worse）；Rule5 三音節以上形容詞用 more + adj."],"教學順序/步驟":["Exercise A：分類並寫下","Exercise B、C：填空","完成練習後重讀每個句子"],"教學提醒／常見錯誤":["不規則變化（good-better, bad-worse）需特別強調記憶"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U2：比較級造句練習","fields":{"文法教學點":["能用比較級形容詞造句","複習比較級搭配 than 的用法"],"教學順序/步驟":["Exercise A：配對","Exercise B：排序","Exercise C：用比較級造句","完成後重讀每個句子"],"教學提醒／常見錯誤":["文件未提供具體常見錯誤說明"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U14：最高級形容詞（Superlative Adjectives）","fields":{"文法教學點":["最高級用於「3者以上」，結合先前所學比較級概念做綜合造句","強調最高級具唯一性，必須搭配 \"the\"","變化規則：Rule1 +est；Rule2 去y+iest；Rule3 子音+母音+子音重複字尾+est；Rule4 不規則（good-the best, bad-the worst）；Rule5 三音節以上用 the most + adj."],"教學順序/步驟":["Exercise A：配對","Exercise B：填空（**文件特別註明「學生需要熟唸這個大題，也需要安排小考」**）","Exercise C：用完整句子回答問題","完成後重讀每個句子"],"教學提醒／常見錯誤":["強調最高級句型必須加 the，是易漏掉的重點"],"練習/評量方式":["**Exercise B 明確要求安排小考（quiz）**","完成後需完成 learning practice；建議：Review 1 P.14 Exercise A-B + P.37 Exercise D；完成後可貼於 Writing book 複習"]},"note":""}],"3":[{"label":"U7（Simply Grammar 4）：規則動詞過去式 +ed","fields":{"文法教學點":["+ed 規則變化：Rule1 一般+ed；Rule2 字尾e只+d；Rule3 子音+去y+ied；Rule4 母音+重複字尾子音+ed（**特別提醒例外：母音+y+ed 不重複，如 stay→stayed**）"],"教學順序/步驟":["記憶法：「y是間諜，模仿前面的母音+ed」","Exercise A、B：寫出過去式動詞","Exercise C：造句描述 Andy 昨天做的事"],"教學提醒／常見錯誤":["**stay→stayed 是易錯的例外情況（母音+y+ed 不需要把 y 改成 ied），特別用「間諜」比喻幫助記憶**"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U8：不規則動詞過去式","fields":{"文法教學點":["記憶所有不規則動詞（irregular verbs）"],"教學順序/步驟":["Exercise A：閱讀圈選","Exercise B：填空","Exercise C：訂正句子"],"教學提醒／常見錯誤":["文件未提供具體常見錯誤說明，僅強調需熟記不規則動詞表"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U9.10（合併單元）：過去式否定句與問句","fields":{"文法教學點":["結合 H.H.H. U3 Learn1 & U4 Learn3 句型做綜合練習","例句：We saw a crab. → We didn't see a crab.（否定句，動詞需還原原形）","例句：She practiced calligraphy. → Did she practice calligraphy?（問句，動詞需還原原形）"],"教學順序/步驟":["Exercise A：配對","Exercise B：加 didn't 並訂正動詞／閱讀編號","Exercise C：訂正句子／寫出問句或答句"],"教學提醒／常見錯誤":["**否定句與問句中動詞需還原為原形（didn't + 原形動詞），是本單元核心易錯點**"],"練習/評量方式":["待完成事項：Review 2 P.26 Exercise B + P.27 Exercise C+D","完成後需完成 learning practice；老師可另出題加強練習"]},"note":""}],"4":[{"label":"U11（Simply Grammar 4）：should / want to / like to / have to 比較（總課程重點涵蓋 U11.12.16.17）","fields":{"文法教學點":["區分 should（應該要）、want(s) to（想要）、like to（喜歡）、have/has to（必須）四者意義與用法","四者後面必接原形動詞","否定用法示例齊全（她不應該/不想要/不喜歡/不需要做餅乾）","縮寫：should not → shouldn't"],"教學順序/步驟":["Exercise A：閱讀圈選","Exercise B：填 should 或 shouldn't","Exercise C：訂正句子"],"教學提醒／常見錯誤":["四個動詞片語（should/want to/like to/have to）意義相近但用法有別，容易混淆"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U12：want to 句型","fields":{"文法教學點":["肯定句：I/you/we/they + want to；he/she/it/Name + wants to","否定句：don't/doesn't want to + 原形動詞","Wh-疑問詞（What/Where/Who）+ do you want to + 原形動詞…? 開放式問答","延伸複習：S + want/wants + a/an/some ___(s)"],"教學順序/步驟":["Exercise A：圈出 want(s) to，底線其後動詞","Exercise B：加入 want(s) 並做正確變化","Exercise C：回答問題"],"教學提醒／常見錯誤":["第三人稱單數需注意 want→wants 的變化"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U16.17（合併單元）：like to / have to 句型","fields":{"文法教學點":["肯定句：I/you/we/they + like to／have to；he/she/it/Name + likes to／has to","否定句：don't/doesn't like to + 原形動詞；don't/doesn't have to + 原形動詞","延伸複習：S + like/likes + ___(s)；S + have/has + a/an/some ___(s)"],"教學順序/步驟":["Exercise A：圈出 like(s) to，底線其後動詞／閱讀圈選","Exercise B：改寫句子（用 like(s) to）／加入 have/has to 並做正確變化","Exercise C：訂正句子／用 have/has to 或 like(s) to 造句"],"教學提醒／常見錯誤":["第三人稱單數變化（like→likes, have→has）是重複出現的易錯點"],"練習/評量方式":["待完成事項：Review 3 P.36-37 Exercise A-D + P.46 Exercise B + P.47 Exercise C","完成後需完成 learning practice；**特別註明「U級的 Practice 需以 A4 彩印，練習後貼在 writing book 上」**；老師可另出題加強練習"]},"note":""}],"5":[{"label":"U13（Simply Grammar 4）：動詞轉名詞（總課程重點涵蓋 U13.15.18）","fields":{"文法教學點":["動詞轉名詞規則：+ -er / + -r / + -or / 重複字尾子音 + -er"],"教學順序/步驟":["Exercise A：配對","Exercise B：寫出名詞","Exercise C：填空"],"教學提醒／常見錯誤":["文件未提供具體常見錯誤說明"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U15：形容詞片語（Adjective Phrases）","fields":{"文法教學點":["形容詞片語：with + hair/eyes；in + clothing"],"教學順序/步驟":["Exercise A：底線形容詞片語、圈出其描述的名詞","Exercise B：閱讀編號","Exercise C：回答問題"],"教學提醒／常見錯誤":["文件未提供具體常見錯誤說明"],"練習/評量方式":["文件未提供具體評量方式"]},"note":""},{"label":"U18：時態總複習（Tense Review）","fields":{"文法教學點":["複習三大時態：Simple Past / Simple Present / Future (be going to)","練習方式：圈出時間關鍵字、底線動詞"],"教學順序/步驟":["Exercise A：閱讀勾選","Exercise B：閱讀圈選","Exercise C：造句"],"教學提醒／常見錯誤":["綜合性複習單元，重點在辨識時間關鍵字以正確判斷時態"],"練習/評量方式":["待完成事項：Review 3 P.37 Exercise C + P.46 Exercise A.B + P.47 Exercise D","完成後需完成 learning practice；老師可另出題加強練習","## 附錄：跨 Level 反覆出現的常見錯誤／教學重點（供快速檢索）","整理自上述 5 個 Level 的內容，以下錯誤/提醒在多個 Level、多個單元中被重複強調，值得「備課小幫手」特別標記給老師：","1. **Be Verb 與 Action Verb 不可共存**（Level1 Pacesetters U2；Level2 Pacesetters U6）","2. **問句與回答的人稱代換**：用 you 問要用 I 答，反之亦然；用 I/we 問要用 you 答，反之亦然；「看到 No，想到 not」（Level1 Letter-Perfect U3；Level3 Adventurers U8；Level4 Pacesetters U11、Letter-Perfect U13；Level5 Pacesetters U14）","3. **助動詞/助動詞式否定句後動詞需還原原形**：Do/Does、don't/doesn't 後接原形動詞，has 需訂正為 have（Level2 Pacesetters U4、U5；Level3 Unlimited-Potential U9.10）","4. **this morning / this afternoon 容易誤判為現在式，實為過去式**（Level3 Adventurers U10；Level4 Letter-Perfect U12；Level5 Letter-Perfect U15、U16）","5. **不可數名詞誤加 a/an/s（中式英文常見錯誤，如 \"I want a water\"）**（Level4 Adventurers U12；Level5 Adventurers U13）","6. **they are（他們是）與 there are（那裡有）發音相似但意義不同，容易混淆**（Level4 Pacesetters U10；Level5 Adventurers U15）","7. **所有格名詞不會出現雙重 's（girls's 是錯的）**（Level3 Pacesetters U8、U9）","8. **不規則變化需特別強調記憶**：動詞第三人稱單數（have→has, do→does, go→goes）、複數名詞（man→men, woman→women, child→children, person→people）、比較級/最高級（good-better-best, bad-worse-worst）、V-ing/ed 拼字例外（stay→stayed 而非 staied）","9. 各 Level 文件皆使用「Grammar Chant（口訣）」與「Useful Memorial Strategy（記憶法）」作為固定教學鷹架，常搭配手勢、故事（如「媽媽升到空中去母音」比喻縮寫規則）幫助學生記憶","10. Exercise C 在多數單元中被文件明確標註「可作為小考（quiz）」，是各 Level 共通的評量安排模式"]},"note":""}]}},"phonics":{"A":{"1":[{"label":"Adventurers（Unit 1~4，2023版）","fields":{"發音教學重點":["教學重點是 26 個字母的辨識與發音，尚未進入自然發音規則分類，屬於「看字母發音」的基礎階段。","學生需要熟悉 A~Z 字母的發音規則，且能準確唸出字母本身讀音（特別提醒 F, H, L, M, N, W, X 這幾個字母的發音要注意）。","聽到「A-A-A」的重複發音提示，學生要能直接反應出 [æ]。","範例單字：pen, bag, dog, bat, hot, sad, rabbit"],"教學口訣／技巧":["教學步驟：先聽 Phonics 歌曲並跟唱，再帶字母發音，最後用 A Plus Original 課本延伸單字練習。","文件未提供其他明確教學口訣。"],"常見錯誤":["F, H, L, M, N, W, X 這幾個字母的發音是老師需要特別留意糾正的地方（文件明文列出）。","學生應達到「看到小寫字母不需老師提醒就能馬上讀出發音」、「聽到發音能馬上寫出大小寫字母」的程度，尚未達成即為需加強對象。"],"KK音標相關":["此小節為自然發音（26字母發音）教學，文件未提及 KK 音標符號。"],"評量／作業形式":["小考：Listen and circle、Listen and write；Write Aa–Zz in order（需寫在正確格線上）","回家作業：Trace the letters ×5、Phonics Listening Homework #1（需家長簽名）"]},"note":""}],"2":[{"label":"Adventurers（Unit 5~8，2023版）","fields":{"發音教學重點":["短母音 a, e, i, o（Learning Goals 僅列 a,e,i,o，但 Teaching steps 提到「綜合 a, e, i, o, u 的短音發音做分析」，故實際涵蓋 5 個短母音）","範例單字（依 Unit）：unit5 – cap, bat, bag／unit6 – pet, jet, bed／unit7 – big, dig, sit／unit8 – fox, pot, top","聽音辨字母配對練習：[k]-[æ]-[p]-cap、[b]-[ɛ]-[d]-bed、[t]-[ɪ]-[m]-tim、[d]-[a]-[t]-dot（拆音再合併成單字的練習）"],"教學口訣／技巧":["💡「o 和 u 發音的差別要特別講解」：兩者都是類似中文「Y」的短母音，但 **o 是嘴巴上下張開（像合唱團唱歌一樣）**，**u 是嘴巴左右張開（像 duck 一樣左右扁扁的）**——文件明確標記為重要提醒（原文帶 💡 圖示）。"],"常見錯誤":["o 與 u 短母音發音混淆，是文件特別點名要老師講解清楚的地方。"],"KK音標相關":["有搭配 KK 符號做拆音練習（如 [k]-[æ]-[p]-cap），但屬於自然發音的輔助工具，非獨立 KK 音標單元。"],"評量／作業形式":["Listen and circle、Listen and unscramble；Quiz 為 Listen and write（單字聽寫）","回家作業：Phonics Listening Homework #5–#8"]},"note":""}],"3":[{"label":"Adventurers（Unit 9~12，2023版）","fields":{"發音教學重點":["長母音發音，並與短母音對比：a_e, e_e, i_e","需熟悉 a/e/i/o/u 的正確嘴型","對比範例：cap／cape（a vs a_e）、pet／Pete（e vs e_e）、kit／kite（i vs i_e）","特例單字：she, he, me（e 發長音但非 e_e 拼法的特殊情況）","範例單字（依 Unit）：unit10 – cake, name／unit11 – bee, eve, Pete／unit12 – five, like, bike","延伸活動：讓學生想出以各母音開頭的單字，如 apple vs. April／egg vs. ear／it vs. I"],"教學口訣／技巧":["Pop quiz 可用「板書挖空、全班一起回答」的方式進行（教學技巧，非發音口訣）。"],"常見錯誤":["短母音與長母音配對容易混淆（cap/cape、pet/Pete、kit/kite），文件特別提醒「需更聚焦在 a_e/a/e、ea/ee/e_e/e/i 的發音上」。","she, he, me 屬於特殊發音例外，需額外教。"],"KK音標相關":["文件未提供 KK 音標符號教學。"],"評量／作業形式":["Listen and circle、Listen and unscramble；Quiz 為 Listen and write + Listen and unscramble","回家作業：Phonics Listening Homework #9–#12"]},"note":""}],"4":[{"label":"Adventurers（Unit 13~16，2025版）","fields":{"發音教學重點":["長母音 o_e, u_e；並複習短母音 a/e/i 與長母音 a_e/e_e,ee,ea/i_e","k 與 qu 發音辨識","ch 與 sh 發音辨識","對比範例：rose／box（o_e vs o）、cut／cute（u vs u_e）","u_e 的另一種發音 /u/（如 flute, rule），與一般 /ju/（如 tube）的差異；特別點名 **YouTube 的正確發音需為 /u/**（常見錯誤示範單字）","範例單字（依 Unit）：Unit15 – King, kid, queen, quit；Unit16 – cheese, chair, cherry, chips, shirt, dish, fish"],"教學口訣／技巧":["「口訣：Q最喜歡跟U黏在一起」——教 qu 規則時的記憶口訣（q 後面一定接 u）。","「口訣：當你看到ch / sh，就嘟嘴裝可愛」——教 ch/sh 發音嘴型時的記憶口訣（嘟嘴裝可愛）。","明確提醒：「學生需要能精準的發出短母音和長母音的不同（e.g. a_e的長音需要夠長，a的短音需要短而到位）」。","骰子單字遊戲：用擲骰子 App 讓學生依數字拼字、寫在白板上再自己唸出來（練習活動）。"],"常見錯誤":["cut／cute 等短長母音配對容易混淆。","YouTube 常被學生唸錯（應為 /u/ 而非 /ju/），文件特別點名要糾正。","q 沒有搭配 u 的拼寫錯誤（用口訣提醒 q 一定要接 u）。","ch/sh 發音時嘴型要一致，喉嚨不應震動（兩者皆無聲子音）。"],"KK音標相關":["文件未提供獨立 KK 音標符號教學（此小節仍屬自然發音 Adventurers 系列）。"],"評量／作業形式":["Listen and circle、Listen and unscramble；Quiz 為 Listen and write，並附「Phonics Answer key」","回家作業：Phonics Listening Homework #13–#16"]},"note":""}],"5":[{"label":"Adventurers（Unit 17~20，2023版）","fields":{"發音教學重點":["th 發音：[θ]（無聲）與 [ð]（有聲）兩種","ph 發音：與 f 相同發音 [f]","複習短母音 a/e/i/o/u 與長母音 a_e/e_e/i_e/o_e/u_e 的完整對照（五組短長母音全部複習）","th 範例：無聲 [θ] – thank, think, third；有聲 [ð] – those, weather, that","ph 範例：elephant, phonics, phone","短長母音對比總表：","a／a_e: cap/cape, can/cane, tap/tape, man/mane, mat/mate","e／e_e／ea／ee: pet/Pete, crep/creep, bed/bead, met/meat, wep/weep","i／i_e: kit/kite, bit/bite, pin/pine, win/wine, rid/ride","o／o_e: con/cone, not/note, dot/dote, box/rose, hole/coke","u／u_e: cut/cute, cub/cube, tub/tube, duck/duke, luck/Luke"],"教學口訣／技巧":["th 發音技巧：舌頭放在牙齒之間輕輕吹氣；可讓學生把手放在嘴巴前感受氣流（甚至聽得到氣流聲）來確認發音正確。","「特別注意o&u的發音嘴形，o是嘴巴上下開，u是左右開」——與 Level 2 相同的 o/u 嘴型提醒，在 Level 5 又再次強調。","「長短母音的建立非常重要，可以透過有趣的活動幫助學生熟悉識讀或拼字」（教學理念提示，非具體口訣）。","「學生聽到規則的發音，需要能反應怎麼拼，例如：學生聽到[θ] & [ð]就要馬上講出\"th\"」——訓練音轉字的反應力。"],"常見錯誤":["o 與 u 嘴型混淆（反覆出現在多個 Level 的常見問題）。","th 的有聲/無聲兩種發音容易搞混，需特別練習無聲 th（thank, think, third）。"],"KK音標相關":["用 [θ]／[ð] 標示 th 的兩種發音，屬於自然發音規則搭配音標輔助說明，非獨立 KK 教學單元。"],"評量／作業形式":["Listen and circle、Listen and unscramble；Quiz 為 Listen and write + Listen and unscramble","回家作業：Phonics Listening Homework #17–#20"]},"note":""}]},"P":{"1":[{"label":"Pacesetters（Unit 1~4，2021版）","fields":{"發音教學重點":["長母音與雙母音規則：a, ay, ai, a_e／e, ea, ee, e_e, -y／i_e, ie, igh, -y／o, o_e, oa, ow, oe","需能分辨短母音、長母音、雙母音三者的差異。","y 的兩種發音規則：","y 發 /i/：因為單字有 2 個以上音節（例：happy, angry, sunny）","y 發 /aɪ/：因為單字只有 1 個音節（例：sky, fly, cry）","範例單字：case, correction tape, highlighter, pencil leads"],"教學口訣／技巧":["用拍手數音節的方式幫學生分辨 y 的發音：2 個音節的字拍手 2 下（对应 /i/），1 個音節的字拍手 1 下（对应 /aɪ/）。","老師授課前需先聽過 Kimberley 錄製的音檔，掌握正確發音和語調（教師備課提醒，非教學生的口訣）。"],"常見錯誤":["學生需要「看到字母就能馬上讀出發音（老師不提醒）」，例如看到 ea, ee, e_e, -y 要能唸對；以及「聽到發音就能馬上講出字母」，例如聽到 /e/ 要能講出對應的 ea, ee, e_e, -y 拼法——這是文件列為評量重點的能力，隱含學生容易在這裡卡關。"],"KK音標相關":["文件未提供 KK 音標符號教學，僅用國際音標記號如 /e/ 說明目標發音。"],"評量／作業形式":["Listen and circle、Listen and unscramble；Quiz 為 Listen and write（單字聽寫）","回家作業：Phonics Listening Homework #1–#4（需家長簽名）"]},"note":""}],"2":[{"label":"Pacesetters（Unit 5~8，2023版）","fields":{"發音教學重點":["雙母音，以及與 l、r 混合的子音群（blends with l / blends with r）：bl, pl, cl, gl／br, pr, cr, gr, fr, tr, dr 等","範例單字（依 Unit）：unit5 – blue, glue, suit, flute／unit6 – blender, plant, plug, clock, globe／unit7 – brain, price, grass, grape／unit8 – dress, drum, train, truck, frog, frame"],"教學口訣／技巧":["文件未提供具體教學口訣，僅提示複習先前學過的短母音、長母音、雙母音。"],"常見錯誤":["學生需能分辨「與 l 混合」跟「與 r 混合」的子音群發音差異（文件列為評量與學習目標重點，隱含容易混淆）。"],"KK音標相關":["文件未提供 KK 音標符號教學。"],"評量／作業形式":["Listen and circle、Listen and unscramble；Quiz 為 Listen and write","回家作業：Phonics Listening Homework #5–#8"]},"note":""}],"3":[{"label":"Pacesetters（Unit 9~12，2023版）","fields":{"發音教學重點":["子音群：sp, st, sk, sm, sn, sw","雙母音：ou, ow／au, aw","子音群濁化規則：sp→[sb]（如 speaker, spider）、st→[sd]（如 stand, stone）、sk→[sg]（如 skin, skirt）","ou/ow 範例：mouse, mouth"],"教學口訣／技巧":["「記憶法：ou的u是人見人愛的美麗校花，在u上畫美麗臉，校花u被躲避球打到大叫發出ou的音！」——原文提供的具體教學口訣/故事聯想法，把字母 u 畫成「校花」被躲避球打到大叫的畫面，幫助記憶 ou 的發音。"],"常見錯誤":["sp, st, sk, sm, sn 的發音「聲音要連在一起唸，不能分開唸」——文件對 sp/st/sk（1-1）與 sm/sn/sw（2-1）都各自強調一次，顯示這是學生常犯的錯誤（把子音群拆開唸）。"],"KK音標相關":["文件未提供 KK 音標符號教學。"],"評量／作業形式":["Listen and circle、Listen and unscramble；Quiz 為 Listen and write + Listen and unscramble","回家作業：Phonics Listening Homework #9–#12"]},"note":""}],"4":[{"label":"Pacesetters（Unit 13~16，2025版）","fields":{"發音教學重點":["雙母音/捲舌母音：oi / oy / oo / ar / or / er / ir / ur","oi 與 oy 發音相同，但 oy 通常出現在字尾","er / ir / ur 三者發音相同，皆需捲舌","範例單字：teacher, eraser, bird, girl, turtle, fur（er/ir/ur）"],"教學口訣／技巧":["「先畫出兩個O，再將oo畫成貓頭鷹，貓頭鷹晚上會發出「嗚嗚」的聲音」——教 oo 發音的圖像記憶口訣（把兩個 O 畫成貓頭鷹的眼睛）。","ar/or 記憶技巧：忘記怎麼唸時，可以想簡單單字 \"car\" 和 \"for\" 作為參考音。"],"常見錯誤":["er / ir / ur 三種拼法發音相同，容易搞混拼法，需捲舌發音正確。"],"KK音標相關":["文件未提供獨立 KK 音標符號教學。"],"評量／作業形式":["Listen and circle、Listen and unscramble；Quiz 為 Listen and write，並附「Phonics Answer key」","回家作業：Phonics Listening Homework #13–#16"]},"note":""}],"5":[{"label":"Pacesetters（Unit 17~19，2023版）","fields":{"發音教學重點":["本單元屬於**總複習**性質，複習內容包含：","ar / or / er / ir / ur","ch / sh","a_e / ay / ai / e_e / ee / ea / y / i_e / o_（長母音系列複習）","oa / oe / ow / oo / ou / ow / oi / oy / u_e（雙母音系列複習，原文此處重複列出 ow 兩次）"],"教學口訣／技巧":["「發音規則的建立非常重要，可以透過有趣的活動幫助學生熟悉識讀或拼字」","「學生聽到規則的發音，需要能反應怎麼拼，例如：學生聽到[ar]，就要馬上講出\"ar\"」——訓練音轉字反應力（與 Adventurers 小節相同教學理念，套用在不同規則上）。"],"常見錯誤":["文件未列出本單元specific的常見錯誤案例（本單元本身即為複習性質，泛指前面所有規則）。"],"KK音標相關":["文件未提供獨立 KK 音標符號教學。"],"評量／作業形式":["Listen and circle、Listen and unscramble；Quiz 為 Listen and write + Listen and unscramble","回家作業：Phonics Listening Homework #17–#19"]},"note":""}]},"L":{"1":[{"label":"Letter-perfect（Unit 1~3，2021版）","fields":{"發音教學重點":["發音規則：air, ear／ire, ore, our／ci, cy, ce","需分辨 c 發 /k/ 音，與 ce, ci, cy 發 /s/ 音的差異。","範例單字（依 Unit）：","Unit 1: chair, hair, airplane, stair, ear, hear, spear, beard","Unit 2: tire, fire, vampire, core, store, snore, our, hour, sour","Unit 3: city, circle, excited, bicycle, spicy, juicy, rice, dance, price","Unit 4（原文雖標示 Part Outline 為 Unit 1~3，但單字清單仍列出 Unit4: goat, glue, dragon, gum, orange, giraffe, page, engineer——保留原文，範圍標示與內容有出入，如實記錄）"],"教學口訣／技巧":["文件未提供明確教學口訣，僅提示老師需授課前聽過 Kimberley 錄製音檔。"],"常見錯誤":["學生需要「看到字母（如 air）就能馬上讀出發音」、「聽到發音（如 /er/）就能馬上講出對應拼法（air）」——文件列為評量重點，隱含此為學生易混淆處。"],"KK音標相關":["文件未提供 KK 音標符號教學。"],"評量／作業形式":["Listen and circle、Listen and unscramble；Quiz 為 Listen and write（單字聽寫）","回家作業：Phonics Listening Homework #1–#3"]},"note":""}],"2":[{"label":"Letter-perfect（Unit 4~7，2023版）","fields":{"發音教學重點":["g 的規則發音 /g/，與 gi, gy, ge, dge 發 /dʒ/ 的差異","其他規則：nd, nt／ng, nk 字尾","範例單字（依 Unit）：","Unit 4: goat, glue, gum, orange, page, engineer","Unit 5: giant, gym, large, bridge, fridge","Unit 6: brand, pond, tent, point, mint, hunt","Unit 7: sing, king, strong, long, pink, drink"],"教學口訣／技巧":["文件未提供明確教學口訣。"],"常見錯誤":["學生需能分辨 g /g/ 與 ge, gi, gy /dʒ/ 的發音差異——文件列為學習目標第 3 點，隱含此為常見混淆點。"],"KK音標相關":["文件未提供 KK 音標符號教學。"],"評量／作業形式":["Listen and circle、Listen and unscramble；Quiz 為 Listen and write","回家作業：Phonics Listening Homework #4–#7"]},"note":""}],"3":[{"label":"Letter-perfect（Unit 8~10，2023版）","fields":{"發音教學重點":["有聲/無聲子音辨識：有聲（b, d, g, l, m, n, r, ge, ng 等）／無聲（p, k, t, f 等）","s 的濁化規則：接在有聲子音後 s 發 /z/（如 dogs, names, boys）；接在無聲子音後 s 發 /s/（如 cats, ducks, books）","es 複數字尾規則：字尾為 ch, sh, s, x 時，es 發 /ɪz/（如 watches, brushes, foxes, kisses）","wr / kn 不發音規則：wr 開頭時 w 不發音（write, wrap）；kn 開頭時 k 不發音（knife, knock）","範例單字（依 Unit）：","Unit 8: 有聲 – labels, rubber bands, scissors／無聲 – sticky notes, socks, caps","Unit 9: watches, brushes, foxes, kisses","Unit 10: write, wrap, knife, knock"],"教學口訣／技巧":["手放在喉嚨上發音，感受聲帶是否震動：有震動＝有聲子音，無震動＝無聲子音（觸覺輔助教學法）。"],"常見錯誤":["wr, kn 開頭的字，學生容易誤把不發音的 w/k 唸出來，是文件特別列出的規則重點。","es 何時發 /ɪz/（字尾為 ch/sh/s/x 時）是需要老師額外舉例強化的規則。"],"KK音標相關":["文件僅用 /z/、/s/、/ɪz/ 等音標符號輔助說明規則，未做獨立 KK 符號教學。"],"評量／作業形式":["Listen and circle、Listen and unscramble；Quiz 為 Listen and write + Listen and unscramble","回家作業：Phonics Listening Homework #8–#10"]},"note":""}],"4":[{"label":"Letter-perfect（Unit 11~14，2025版）","fields":{"發音教學重點":["h / kn / gh 不發音規則：h 接在母音前不發音；kn, gh 開頭時前面字母不發音（讀之前先劃掉不發音字母）","ment 字尾：字尾為 -ment 的字通常是名詞","sion / tion 字尾：sion 發 [ʒən]，tion 發 [ʃən]；字尾為 -tion 或 -sion 的字通常是名詞","tch / mb 規則：mb 字尾的 b 不發音","範例單字（依 Unit）：Unit11 – hour, white, knee, knife, ghost；Unit12 – basement, payment, treatment；Unit13 – vision, station, vacation；Unit14 – match, itch, lamb"],"教學口訣／技巧":["教學技巧：讀單字前，先讓學生把不發音的字母劃掉（h, k, g, b 等）。","教 -ment 字尾前，可先讓學生自己嘗試唸唸看字尾發音，再帶正式教學。"],"常見錯誤":["h/kn/gh/mb 等不發音字母是學生容易誤讀的地方（文件多次提醒要劃掉不發音字母）。","sion 與 tion 的發音容易混淆（[ʒən] vs [ʃən]）。"],"KK音標相關":["有標註 sion=[ʒən]、tion=[ʃən] 的 KK 符號對照，但屬於規則輔助說明，非獨立 KK 教學單元。"],"評量／作業形式":["Listen and circle、Listen and unscramble；Quiz 為 Listen and write，並附「Phonics Answer key」","回家作業：Phonics Listening Homework #11–#14"]},"note":""}],"5":[{"label":"Letter-perfect（Unit 15~18，原文標示「2024版」）","fields":{"發音教學重點":["ie 拼法：依單字不同，可能發 i_e 或 e_e 的音（無固定單一發音，需個別記憶）","例：pie → i_e；movie → e_e","ei 拼法：依單字不同，可能發 a_e 或 e_e 的音","例：eight → a_e；ceiling → e_e","範例單字：Unit15 – pie, tie, movie, thief；Unit16 – eight, reindeer, weird, ceiling"],"教學口訣／技巧":["教學方式：老師在白板上寫下單字，唸出單字讓學生寫下對應的發音類別（i_e 或 e_e；a_e 或 e_e），訓練「聽音辨類別」而非死記。","進入 Unit 17、18 複習前，老師需先複習 Unit 1~16 全部內容。"],"常見錯誤":["ie／ei 這類「同拼法、不同發音」的字沒有固定規則，是文件特別點出需要個別記憶、容易讓學生混淆的地方。"],"KK音標相關":["文件未提供獨立 KK 音標符號教學（用 i_e/e_e/a_e 等自然發音拼法分類，非 KK 符號）。"],"評量／作業形式":["Listen and circle、Listen and unscramble；Quiz 為 Listen and write + Listen and unscramble","回家作業：Phonics Listening Homework #15–#18"]},"note":""}]},"U":{"1":[{"label":"K.K.（Unlimited-Potential，Unit 1~3 + Review1，2021版）","fields":{"發音教學重點":["目標：能發音並辨識子音的 KK 音標符號：[p], [b], [t], [d], [k], [g], [f], [v], [s], [z], [θ], [ð]","教「有聲子音（voiced）」與「無聲子音（voiceless）」的概念：","有聲子音：[b], [d], [g], [v], [z], [ð], [ʒ], [dʒ], [m], [n], [ŋ], [l], [r], [w], [j]","無聲子音：[p], [t], [k], [f], [s], [θ], [ʃ], [tʃ], [h]","學生需要知道何時該用 [s]、何時該用 [z]（原文僅簡述此能力要求，未展開規則細節）。"],"教學口訣／技巧":["用一張衛生紙放在嘴前，讓學生感受吐氣氣流強弱，藉此分辨有聲/無聲子音（衛生紙飄動法）。","老師上課前需掃描書籍封面內頁 QR Code 聽音檔，確保發音與語調正確；並協助學生撕掉書籍後方的解答頁。"],"常見錯誤":["文件未列出具體常見錯誤案例，僅強調有聲/無聲子音的辨識是教學重點。"],"KK音標相關":["本小節即為 KK 音標子音入門教學，涵蓋 12 個子音符號的發音與有聲/無聲分類（詳見上方發音教學重點）。"],"評量／作業形式":["Listen and circle、Listen and write the K.K.；Quiz 為 Listen and write（聽寫字母發音，寫出KK）","回家作業：K.K. Listening Homework #1–#3"]},"note":""}],"2":[{"label":"K.K.（Unlimited-Potential，Unit 4~6 + Review2；原文標題誤植為「K.K. Level 1」，2022版）","fields":{"發音教學重點":["KK 子音符號：[ʃ], [ʒ], [tʃ], [dʒ], [m], [n], [ŋ], [h], [w], [j]","複習有聲子音（voiced）／無聲子音（voiceless）概念"],"教學口訣／技巧":["沿用衛生紙吐氣法，讓學生感受有聲/無聲子音的氣流差異（同 Level 1 K.K. 小節手法）。"],"常見錯誤":["文件未列出具體常見錯誤案例。"],"KK音標相關":["有聲子音：[b], [d], [g], [v], [z], [ð], [ʒ], [dʒ], [m], [n], [ŋ], [l], [r], [w], [j]","無聲子音：[p], [t], [k], [f], [s], [θ], [ʃ], [tʃ], [h]"],"評量／作業形式":["Listen and circle、Listen and write the K.K.","回家作業：K.K. Listening Homework #4–#6"]},"note":""}],"3":[{"label":"K.K.（Unlimited-Potential，Unit 7~9 + Review3，2023版）","fields":{"發音教學重點":["[l] vs [r]：發 [r] 時需要捲舌","[i] vs [ɪ]：[i] = ee, ea, e_e, e 拼法；[ɪ] = i, y 拼法","[e] vs [ɛ] vs [æ]：[e] = a_e, ai, ay 拼法；[ɛ] = e 拼法；[æ] = a 拼法","KK 音標聽寫練習範例：sheep → [ʃip]、pick → [pɪk]、check → [tʃɛk]","文件提到學生需理解課本內「Susan's Tips」每一章的提示（原文未展開內容，僅提及此參考資源）"],"教學口訣／技巧":["把自然發音拼法與 KK 符號對照講解（例如同時列出 [i] 對應 ee/ea/e_e/e 四種拼法），幫助學生建立「符號↔拼法」的雙向連結。"],"常見錯誤":["發 [r] 時需捲舌，是文件特別強調的技巧要求。","[i] 與 [ɪ]、[e] 與 [ɛ] 與 [æ] 的三組音容易混淆，文件建議搭配拼法對照表一起教。"],"KK音標相關":["本小節即為 KK 音標教學核心：[l], [r], [i], [ɪ], [e], [ɛ], [æ] 及其對應拼法（詳見上方）。"],"評量／作業形式":["Listen and circle、Listen and write the K.K.；Quiz 為 Review 3（課本 p.34~35）","回家作業：K.K. Listening Homework #7–#9"]},"note":""}],"4":[{"label":"K.K.（Unlimited-Potential，Unit 10~Review4，2025版）","fields":{"發音教學重點":["[ɑ] vs [ʌ]：對比範例 son／sun","[ɔ] vs [o]：[ɔ] = au, al 拼法；[o] = ow, oe, o_e 拼法；對比範例 Paul／toe","[ʊ] vs [u]：[ʊ] 短音，[u] 長音；[ʊ] = oo 拼法；[u] = ue, oo, u_e 拼法；對比範例 cook／blue"],"教學口訣／技巧":["「[ɑ] = o 嘴形上下開（很重要！一定要讓學生清楚差異喔！）」／「[ʌ] = u 嘴形左右開（很重要！一定要讓學生清楚差異喔！）」——文件用驚嘆語氣特別強調此嘴型差異的重要性。","「口訣：u很像是綁單馬尾的「長」髮女孩，所以[u]是「長音」」——用「綁馬尾的長髮女孩」聯想 u 是長音 [u] 的記憶口訣。","[ɔ] 教學提示：讀 [ɔ] 時強調喉嚨發聲；讀 [o] 時強調嘴型變化。"],"常見錯誤":["[ɑ] 與 [ʌ] 的嘴型差異是文件重複強調（兩次「很重要！」）的常見混淆點。","[ʊ]（短音）與 [u]（長音）的長短區辨也是教學重點。"],"KK音標相關":["本小節即為 KK 音標教學核心：[ɑ], [ʌ], [ɔ], [o], [ʊ], [u] 及其對應拼法與嘴型口訣（詳見上方）。"],"評量／作業形式":["Listen and circle、Listen and write the K.K.；Quiz 為 Review 4（課本 p.45~46）","回家作業：K.K. Listening Homework #10–#12"]},"note":""}],"5":[{"label":"K.K.（Unlimited-Potential，Unit 13~14 + Review5，原文標示「2024版」）","fields":{"發音教學重點":["目標符號：[ə], [ɝ], [ɚ], [aɪ], [aʊ], [ɔɪ]","[ɝ] 通常出現在單字的開頭或中間（例：nurse, work, early）","[ɚ] 通常出現在單字的字尾（例：teacher, doctor, factor）","[aɪ] 與 i_e / ie / igh 拼法發音相同（例：five, tie, night）","[aʊ] 與 ou / ow 拼法發音相同（例：house, out, now, down）","[ɔɪ] 與 oi / oy 拼法發音相同（例：noise, coin, soy, boy）"],"教學口訣／技巧":["「Amanda」單字記憶法教 [ə]：A-m-a-n-d-a 六個字母中，非重音的 a 發 [ə]（schwa），其餘 a 分別發 [æ]、[ɑ]；並用「banana」（b-a-n-a-n-a）再練習一次同樣的規則。","「記憶點：[ɝ]長得很像3，所以會出現在中間，[ɚ]長得像6，所以會出現在後。」——用符號形狀聯想「3」在中間、「6」在後面的圖像記憶口訣，幫助分辨 [ɝ] 與 [ɚ] 的出現位置規則。"],"常見錯誤":["[ɝ] 與 [ɚ] 因為發音相近，學生容易搞混兩者該出現在單字的哪個位置，文件特別設計圖像口訣來糾正。","文件提醒「學生需要用正確嘴型發出這些 K.K.」，隱含發音嘴型不到位是常見問題。"],"KK音標相關":["本小節即為 KK 音標教學核心：[ə], [ɝ], [ɚ], [aɪ], [aʊ], [ɔɪ] 及其對應拼法與位置規律（詳見上方）。"],"評量／作業形式":["Listen and circle、Listen and write the K.K.；Quiz 為 Review 5（課本 p.53~54）","回家作業：All of the exercises of Unit13~Review5、K.K. Listening Homework #13–#15"]},"note":""}]}},"reading":{"A":{"1":[{"label":"Tongue Twisters","fields":{"閱讀教學重點":["文本為繞口令（tongue twisters），主要訓練發音與流暢度（pronunciation & fluency）","訓練用已學過的 phonics 技巧辨識並唸出單字"],"教學流程／提問重點":["老師解釋什麼是 tongue twister（繞口令能提升發音與流暢度）","老師用 PPT/PPS 把句子寫在白板上","學生用 phonics 技巧辨認並唸出單字","掃 QR code 播放音檔，學生跟讀（文件註記：第 3 個沒有 QR Code）","完成練習 1：用有趣方式練習繞口令","解釋 4 個表情符號並一起做動作，從慢到快搭配動作唸出繞口令","分組競賽提升學習動機","完成練習 2：聽力寫出正確母音（老師先複習白板母音、強調發音，唸句子讓學生寫，再對答案並重唸一次）","完成練習 3：讀句子、發揮想像力畫圖，並分享圖畫","最後分組競賽比賽唸繞口令的速度與語調","文件未提供具體引導提問句型，以教學步驟指示為主"],"評量方式":["Level-up evaluation：聽力寫出正確母音（Listen and write down the correct vowels）","附答案：A big black bug bit a big black dog on his big black nose."]},"note":""}],"2":[{"label":"What is inside my school bag?","fields":{"閱讀教學重點":["主題為書包文具，跨領域主題：Daily Life","訓練用 phonics 技巧唸讀文具單字","學習句型：單數「This is a/an___. This is my___.」，複數「They are ___s. They are my ___s.」","朗讀 Exercise 1 腳本，訓練語調與發音"],"教學流程／提問重點":["開場提問：What is inside your school bag? What is inside your pencil case? Have you ever seen this stationery before?","掃碼聽音檔（全部教完可再聽一次）","用 phonics 技巧教文具的英文","教句型（含中文對應：這是一個(這些是)…/這個(這些)是我的…）","完成 Exercise 1&2 — Exercise 1 引導學生扮演 YouTuber 開箱自己書包，注重發音語調停頓與表達流暢度；Exercise 2 依 Exercise 1 台詞畫出書包內文具並標示英文"],"評量方式":["Level-up evaluation：讀描述並圈出正確圖片（Read the description and circle the correct picture）"]},"note":""}],"3":[{"label":"A Thief in the Stationery Shop","fields":{"閱讀教學重點":["文具店竊賊故事，跨領域主題：Stationary / Preposition","訓練用 phonics 技巧讀懂英文描述；複習 Level 2 學過的文具詞彙並學習新詞彙；熟悉介系詞（prepositions）"],"教學流程／提問重點":["老師複習介系詞","請學生瀏覽文章，畫線標出文具詞彙、圈出介系詞；複習前一級學過的文具詞彙","掃碼聽音檔（全部教完可再聽一次）","老師以有趣故事講解文章並教三個詞彙","提問引導：如果你是警察，你會怎麼做？","讓學生自由發揮畫圖（可作回家作業）","若時間充足，與學生一起重現案發現場，學生可在 Graphics 頁畫出案發現場","讓學生投票並分享意見"],"評量方式":["Level-up evaluation：(1) 配對介系詞與描述 (2) 配對詞彙與圖片"]},"note":""}],"4":[{"label":"Yummy Kitchen Menu","fields":{"閱讀教學重點":["餐廳菜單文本，跨領域主題：Food and Beverage","學習如何從菜單點餐（漢堡/三明治/飲料/甜點/點心）；認識價格依尺寸（S/M/L）而不同","學習顧客與店員對話並填寫表單；額外句型「but no___」（例：不要洋蔥）"],"教學流程／提問重點":["帶學生逐項朗讀菜單，特別是關鍵字","教飲料尺寸：S=Small, M=Medium, L=Large","補充細節：BLT Sandwich（培根生菜番茄三明治）、Tuna Mayo Sandwich（鮪魚沙拉三明治）","帶學生朗讀對話並依菜單完成對話（答案可能不同）","練習對話後，學生輪流與同學練習對話並寫下最終點餐清單","掃碼聽音檔","額外資訊：教調味料（ketchup 番茄醬、mustard 芥末、relish 調味醬汁等）、配料（洋蔥、pickles 醃製品、起司等）"],"評量方式":["Level-up evaluation：配對關鍵字與正確圖片（Match the keywords with the correct picture）"]},"note":""}],"5":[{"label":"Going to the Zoo","fields":{"閱讀教學重點":["動物園主題文章，跨領域主題：Daily Life & Animals","訓練辨識文章中的動詞與形容詞並標示；透過閱讀認識不同動物及其描述"],"教學流程／提問重點":["詢問學生去動物園的經驗，可做班級票選最喜歡的動物","發放學習單並先教動物詞彙","講解 Mission 1 與動詞概念（例：eat, jump, run；示範吃飯動作引出「動作詞叫 verbs」概念）","帶讀文章，所有動詞皆以粗體標示，解釋意義並請學生標示出來","進入 Mission 2，講解形容詞概念（例：畫一顆蘋果，再畫一顆較大的蘋果，說 \"This is a big apple\"）","Exercise 1：帶學生找出第一頁「Lucy sees…」句子，提問 \"Who can tell me what Lucy sees?\" 答對給點數並畫出動物；同法找出「Tina sees…」句子","Exercise 2：讓學生讀動物描述（皆為第一人稱）並寫出正確答案；讀完描述後可問 \"What is this animal?\" 引導說出動物名稱"],"評量方式":["Level-up evaluation：朗讀段落（Read out the paragraphs）","附答案：Exercise1: Lucy sees a lion, a bear, a hippo, and a fox. Tina sees an elephant, a rabbit, and a fox；Exercise2（由左至右、由上至下）：B A D F / C E"]},"note":""}]},"P":{"1":[{"label":"Dark, Dark Wood","fields":{"閱讀教學重點":["文本為故事文章《Dark, Dark Wood》","訓練有語調流暢朗讀文章、理解文章內容","用 phonics 技巧辨識生字（教 \"ar\" 發音，圈出含 \"ar\" 的單字：dark）","認識 Exercise 1 詞彙的中文意義"],"教學流程／提問重點":["掃碼聽音檔","用畫圖方式（在白板作畫）讓學生理解內容","教 \"ar\" 發音，圈出含 \"ar\" 的單字","教朗讀文章及生字，請學生用手指指字朗讀，注意語調發音","複習並完成 Exercise 1 關鍵字","Exercise 2：師生共創故事 — 討論選一個地點（公園/教室/機場/學校/山/海…），討論在該地點會看到什麼並寫在白板","完成 Exercise 2（寫）並一起朗讀；完成 Exercise 2（畫）畫出最後會看到的東西，並可與同學分享文章"],"評量方式":["Level-up evaluation：排列故事順序（Place the sequence of the story in the correct order）"]},"note":""}],"2":[{"label":"Why Do Zebras Have Stripes","fields":{"閱讀教學重點":["科普文章，主題斑馬條紋與動物保護色，跨領域主題：Animals Earth Science","訓練理解文章內容、朗讀語調發音、phonics 辨識生字、記憶關鍵字中文意義","文件說明教學用意：「藉由有趣的科普文章讓學生學習英文以外的知識…並且藉由學習日常生活中會碰到的動物、昆蟲，提升對於學習英文的自信心」"],"教學流程／提問重點":["提問：有哪些身上有條紋的動物？（例：斑馬、老虎、大黃蜂、花栗鼠）為什麼斑馬有條紋？","告知本課學習目標","掃碼聽音檔（全部教完可再聽一次）","讓學生自行閱讀文章，把不會的字寫在黑板上再統一講解","完成 Exercise 1（提醒正確書寫生字）；教 Learn more（QR code）並逐句講解文章","完成 Exercise 2，先教動物英文；發放列印教材（需提前準備剪刀膠水，也可先用代號填寫回家剪貼完成）","教紙上句子的 phonics 技巧並理解意思，與學生討論後剪下句子貼到方框"],"評量方式":["Level-up evaluation：Exercise 2 連連看（Read and match）","附答案：kangaroos–J / snails–D / polar bears–B / ladybugs–C / rabbits–A / octopuses–E / skunks–G / chameleons–F / snakes–I / lizards–H"]},"note":""}],"3":[{"label":"English Sudoku","fields":{"閱讀教學重點":["結合數獨（Sudoku）遊戲的英文學習文章，跨領域主題：Math & Logic","訓練理解文章、朗讀語調發音、phonics 辨識生字、記憶關鍵字中文意義","文件說明：Exercise 1、2 讓學生在無意識中重複字母幫助記憶詞彙，同時更熟悉數字"],"教學流程／提問重點":["發放學習單前，詢問學生還記得多少上一課「Why Do Zebras Have Stripes」的內容","告知本課將學習的技巧；發放學習單，引導學生閱讀段落（文件提醒：Keywords 中的 box 在此為「宮格」之意）","掃碼聽音檔（全部教完可再聽一次）","Exercise 1：老師可在白板畫同樣方格，帶領完成第一次示範","Exercise 2：讓學生自己嘗試，之後公布答案（解題成功可加分鼓勵）","Exercise 3：以整個詞彙填入 3x3 宮格，倒數第二列已有答案可依序推理（若學生無法完成，老師可先用鉛筆帶學生寫數字輔助解題，最後再寫回英文）"],"評量方式":["Level-up evaluation：關鍵字填空（Fill in the blanks of the keywords）"]},"note":""}],"4":[{"label":"Milk Nutrition Facts","fields":{"閱讀教學重點":["牛奶營養標示文本，跨領域主題：Food & Nutrition","認識不同乳製品營養標示項目，特別是關鍵字（nutritious 營養的, calories 卡路里, protein 蛋白質, vitamin 維他命, calcium 鈣）、製造日期（MFG）/有效日期（EXP）、計量單位符號（oz 盎司, g 克, mg 毫克, % 百分比）","鼓勵學生自行到超市查看營養標示"],"教學流程／提問重點":["開啟教材前，老師可準備牛奶盒（瓶）讓學生實際查看營養標示，猜測牛奶中含有什麼營養","掃碼聽音檔（全部教完可再聽一次），帶學生閱讀文章學習關鍵字","解釋每個計量單位符號；再從 Learn more 簡單解釋 MFG/EXP 日期順序與中文意義（可計算距離 EXP 還有幾天）","帶學生透過簡短介紹認識不同乳製品，比較卡路里、蛋白質、脂肪、碳水化合物，並依卡路里高低排序","可播放 Jamie Lewis 推薦的影片讓課程更有趣"],"評量方式":["Level-up evaluation：配對關鍵字（nutritious, calories, protein, vitamin, calcium）"],"擷取限制備註":[]},"note":""}],"5":[{"label":"Little Red Riding Hood","fields":{"閱讀教學重點":["格林童話「小紅帽」，跨領域主題：Grimm's Fairy Tales","透過角色（狼、奶奶、伐木工人）臉部特徵功能學習至少 5 個動作動詞；認識至少三種不同身份角色"],"教學流程／提問重點":["播放音檔或朗讀故事給學生聽，可詢問學生從每個角色觀察到什麼特徵；讀到第三段時教「action verbs」定義（see, hear, smell），透過扮演大野狼演示","Exercise 1：標示 be 動詞與動作動詞，教兩者差異","繼續完成第 1 頁，老師可扮演旁白，讓學生扮演奶奶、小紅帽、大野狼、伐木工人","讓學生讀文章並教不會的詞彙","完成 Exercise 1","Exercise 2：解說做法——剪下次頁服裝讓大野狼扮成奶奶，畫出四肢（進行前可先教配件、上衣下著的說法）","讓學生上台分享如何幫大野狼裝扮，並提問：他/她的奶奶有什麼樣的特徵？"],"評量方式":["Level-up evaluation：朗讀段落（Read out the paragraphs）","Exercise 1 答案：1.(b) 2.(c) 3.(b)","教材準備：需請學生自備剪刀與膠水供 Exercise 2 使用"]},"note":""}]},"L":{"1":[{"label":"A Postcard from London","fields":{"閱讀教學重點":["文本為明信片文體《A Postcard from London》，跨領域主題：Travel & Tourism","認識明信片格式與倫敦地標（London / Big Ben / London Eye / red bus / Queen Elizabeth / Hyde Park / Tower Bridge 等）","用 phonics 技巧唸讀生字，訓練理解文章內容並回答問題"],"教學流程／提問重點":["Q&A 討論開場：Have you ever written a postcard? Who will you write to? What will you say?","討論明信片上看到什麼、對英國的看法","詢問學生最喜歡的國家並分享當地知名景點（例：美國-自由女神像/時代廣場；加拿大-CN塔/尼加拉瀑布）","提問引導：Have you ever been to England? Do you know the difference between English and American English?","完成 Before Learning（老師可用 Google 圖片給學生看真實地點樣貌）","完成 Exercise 1：讀明信片圈出 top tips；教朗讀文章及生字","完成 Exercise 2：配對星期幾與 Lucy 的活動","完成 After Learning：寫自己的明信片（引導提問：你要寫給誰？要分享什麼？要從哪裡寄？），並分享自己的明信片","老師提問閱讀理解問題確認學生理解程度"],"評量方式":["Level-up evaluation：配對星期幾與 Lucy 的活動（Match the days of the week to Lucy's activities）","附答案：Monday→Big Ben / Tuesday→London Eye / Wednesday→Tower Bridge / Thursday→on bus / Friday→Park / Saturday→Buckingham Palace / Sunday→at home"]},"note":""}],"2":[{"label":"Animals on the Move","fields":{"閱讀教學重點":["動物遷徙文章，跨領域主題：Animals Earth Science","認識動物每年遷徙原因；訓練理解文章、朗讀語調發音、認識關鍵字","關鍵字：migrate, source, graze on, stripe, wildebeest, mammal, flamingo, wetland, tiny（因版權限制文章不可修改，僅需認識關鍵字中文意義）"],"教學流程／提問重點":["播放影片，討論影片中出現哪些動物、為什麼需要遷徙（若時間允許可搜尋更多 YouTube 遷徙影片）","掃碼聽音檔（全部教完可再聽一次）","讀文章，理解關鍵字意義","完成 Exercise 1、2、3（多選、是非、寫下新詞彙）"],"評量方式":["Level-up evaluation：依關鍵字填空（Fill the correct keyword into the sentence）","附答案：Exercise1: 1.(C) 2.(D) 3.(A)；Exercise2: (a)F (b)F (c)T (d)F (e)F"]},"note":""}],"3":[{"label":"Penguins Take a Field Trip at the Aquarium","fields":{"閱讀教學重點":["新冠疫情期間美國芝加哥 Shedd 水族館企鵝趣聞新聞文章，跨領域主題：Animals Earth Science / Global News","文件說明：讓學生知道疫情雖使許多公共場所關閉，人們被迫待在家，但仍有正向趣事發生，帶來不同思考角度；學生可透過影片理解國外新聞如何報導，並可與家長分享","訓練理解文章、朗讀語調發音","關鍵字：Aquarium 水族館, explore 探索, believe 相信, roaming 漫步, hallways 走廊, expected 預期, curious 好奇的, pleasure 歡樂"],"教學流程／提問重點":["發放學習單前，詢問學生對 coronavirus（武漢肺炎）了解多少","發放學習單，補充新聞背景（芝加哥一間名為 Shedd 的水族館因疫情關閉）","掃碼聽音檔（全部教完可再聽一次）；教關鍵字","ECC 延伸活動：學生可兩人一組用關鍵字編一個關於企鵝在想什麼的小故事","通讀文章並與學生討論圖片，讓學生在對話框中填入他們認為動物會說的話","讓學生多了解新聞中的企鵝（Rockhopper Penguins 跳岩企鵝）","與學生一起看影片，鼓勵與家長分享影片內容及課堂所學（家長簽名可獲加分）","回答練習題"],"評量方式":["Level-up evaluation：依關鍵字填空（Fill the correct keyword into the sentence）","附答案：Learn about（依序）white, black, crabs, shrimps, black, orange；Exercise: 1. The Shedd Aquarium 2. They are a couple. 3. Yes, they did."]},"note":""}],"4":[{"label":"Animals in Australia Are in Danger","fields":{"閱讀教學重點":["澳洲野火動物新聞文章，跨領域主題：Animals Earth Science / Global News","學習環境議題新聞常見詞彙；認識可描述物體/生物的形容詞（round 圓的, compact 緊實的）","更了解澳洲動物（無尾熊、袋鼠、沙袋鼠、短尾矮袋鼠等）"],"教學流程／提問重點":["老師導入主題，詢問學生是否知道地球上有野火（wildfires）","若知道，讓學生思考野火對環境帶來的壞影響；若不知道，老師展示圖片或影片","掃碼聽音檔（全部教完可再聽一次）；老師通讀文章並解釋關鍵字","詢問學生是否見過以下動物；解釋描述並教詞彙","學生設計自己的對話","教 Learn more 部分：袋鼠（kangaroo）與沙袋鼠（wallaby）的差異","教動物時可讓學生觀看 Exercise 1 的影片","學生做 Exercise 1，閱讀每題描述；老師播放 Exercise 2 影片","老師可提供受傷動物數量相關資訊","學生討論兩個問題，與同伴討論並寫下自己與他人的答案"],"評量方式":["Level-up evaluation：(1) 關鍵字填空 (2) 配對描述與澳洲動物","Exercise 1 影片答案：1. Koala 2. Kangaroo/Wallaby 3. Quokka"]},"note":""}],"5":[{"label":"What Is Your Favorite Shape of Pasta?","fields":{"閱讀教學重點":["義大利麵形狀介紹文章（含網路留言評論），跨領域主題：Different types of Pasta","認識不同義大利麵種類知識並正確發音；閱讀每則網路留言時能理解並找出正確關鍵字"],"教學流程／提問重點":["老師導入主題，詢問學生是否認識不同種類的義大利麵","若知道，讓學生用中文說出或畫在白板上；若不知道，老師發放教材","掃碼聽音檔（Before reading 部分，全部教完可再聽一次）","老師通讀文章並解釋描述，帶學生圈出/標示與義大利麵形狀相關的關鍵字（例：curly spirals, spindle, pen(s), bow tie, butterfly/butterflies, seashells/shells, conch）","學生做 Exercise 1，閱讀每題描述","讓學生讀第 1 頁的留言（comments），依 Before reading 部分內容填空並教詞彙","可讓學生分享自己最喜歡的義大利麵形狀以獲得點數"],"評量方式":["Level-up evaluation：配對描述與正確義大利麵種類（Match the descriptions with correct types of pasta）","Exercise 1 答案：1. Conchiglie 2. Fusilli 3. Farfalle 4. Penne；留言填空答案：1.Farfalle 2.bow ties 3.butterflies 4.Farfalle 5.Conchiglie 6.Fusilli 7.Penne 8.Penne","補充資源：文件附上 Fusilli、Penne、Farfalle、Conchiglie 的 YouTube 發音影片連結，供老師課前確認正確發音"]},"note":""}]},"U":{"1":[{"label":"Title 1：Celebrating Earth Day","fields":{"閱讀教學重點":["文章介紹地球日，跨領域主題：Environment & Earth","學習環保知識、認識關鍵字中文意義、朗讀文章、回答文章問題","關鍵字：faucet 水龍頭, breathe 呼吸, pollution 污染, metal 金屬, plastic 塑膠, wasteful 浪費的"],"教學流程／提問重點":["討論地球日是什麼","掃碼聽音檔（全部教完可再聽一次）","朗讀文章（文件註記：對 U 級生不難，可請學生翻譯句子）","圈出需要記憶的關鍵字並畫記寫下中文","一起完成練習；老師解釋各部分該做什麼，分組完成問題（從文章中找答案）","老師提問確認理解；帶學生閱讀「Learn More」資訊","讓學生看影片（Pulp recycling、Plastic Ocean）","一起回收垃圾（收集英語教室垃圾拿到一樓回收，有時間可協助其他班級）","補充資料（Extra Resources）：台灣淨灘前十名垃圾種類；廚餘回收知識","補充資料（Extra Information）：加拿大 reduce/reuse/recycle 概念，可請學生思考如何落實在生活中"],"評量方式":["Level-up evaluation：(1) 多選題選出省水/維持地球乾淨/種樹步驟的正確答案 (2) 配對關鍵字與圖片 (3) 填空（H.H.H. U1 閱讀）"]},"note":""},{"label":"Title 2：Telephones and cellphones（H.H.H. Unit 1 Pg.14）","fields":{"閱讀教學重點":["電話與手機歷史文章，跨領域主題：History & Technology","認識關鍵字中文意義並朗讀文章","關鍵字：invent 發明, useful 有用的, communicate 溝通, far away 遙遠地, wire 電話線, sound 聲音, travel 旅行, radio wave 無線電波, cell phone 手機, message 訊息"],"教學流程／提問重點":["朗讀文章","學生圈出、朗讀、理解關鍵字中文意義（畫記關鍵字並寫下中文）","老師提問閱讀理解問題確認學生理解程度","完成 H.H.H.U1「Part Q」「Part R」及 Workbook 4 U1 閱讀練習"],"評量方式":["Quiz：老師寫出關鍵字英文，學生寫詞性（原文為 \"students write English and part of speech\"，疑似與其他 Level 相同段落的慣用寫法「students write Chinese and part of speech」不同，此處忠實保留原文用字，未逕行更正）"]},"note":""}],"2":[{"label":"Title 1：Recycling Works Well in Taiwan","fields":{"閱讀教學重點":["台灣資源回收新聞文章，跨領域主題：Environment & Earth","理解文章並流暢朗讀；認識 Learn more 部分（台灣還做了哪些環保措施）","關鍵字：landfill 垃圾掩埋場, pollution 污染, cardboard 紙箱, metal 金屬, plastic 塑膠, glass 玻璃, create 製作（學生不需會拼寫，只需記中文意思）"],"教學流程／提問重點":["討論垃圾去哪裡，詢問學生對台灣垃圾回收的看法，導入主題","掃碼聽音檔（全部教完可再聽一次）；讀新聞理解意義","完成練習 A & B","與學生一起讀「Learn More」部分，了解台灣回收有趣資訊","提問：你認為台灣未來會如何做得更好？讓學生知道自己也是改變的一部分","一起完成練習"],"評量方式":["Level-up evaluation：(1) 閱讀理解 (2) 是非題 (3) H.H.H. U2 填空","附答案：正確答案 a,b,c,c,c；True/False: F,T,F,T,F,T,F,T"]},"note":""},{"label":"Title 2：Garbage: Where does it go?（H.H.H. Unit 2 Pg.26）","fields":{"閱讀教學重點":["垃圾處理流程文章（H.H.H. Unit 2），跨領域主題：Environment & Earth","認識關鍵字並理解中文意義；朗讀文章","關鍵字：burn 燃燒, heat 熱能, electricity 電力, bury 掩埋, hole 洞, landfill 垃圾掩埋場, separate 分離, recycle 回收, metal 金屬, plastic 塑膠, glass 玻璃, throw away 丟掉"],"教學流程／提問重點":["讀文章","學生圈出、朗讀、認識關鍵字中文意義（畫記並寫下中文）","老師提問閱讀理解問題確認理解","完成 H.H.H.U2「Part P」「Part Q」及 Workbook 4 U2 閱讀練習"],"評量方式":["Quiz：老師寫出關鍵字英文，學生寫英文與詞性（原文如此）"]},"note":""}],"3":[{"label":"Title 1：My Cool Job - Roller Coaster Engineer","fields":{"閱讀教學重點":["雲霄飛車工程師職業介紹文章（Six Flags 主題樂園），跨領域主題：Business & Engineering","文件說明：因 U 級學生在口說課有樂園主題課程，此篇文章作為延伸","訓練理解文章並流暢朗讀、認識關鍵字中文意義、回答問題","關鍵字：roller coaster 雲霄飛車, engineer 工程師, vice president 副總裁, theme park 主題樂園, opportunity 機會, construction 建造, creativity 創意, inclusive 包容的, observe 觀察, quarry 採石場"],"教學流程／提問重點":["討論學生在口說課學到的「The Most-Visited Theme Parks on Earth」內容並導入主題","掃碼聽音檔（全部教完可再聽一次）；讀新聞理解意義（不需拼寫，只需記中文意思）","與學生一起讀「Learn More」，了解更多 Six Flags 資訊","完成 Exercise 1 多選題","讓學生互相討論，從文章中找答案完成 Questions 部分","完成 Exercise 2：想像自己是雲霄飛車設計師，發揮創意"],"評量方式":["Level-up evaluation：(1) 閱讀理解 (2) H.H.H. U3 填空；Exercise 1 多選答案：d, b, c, a"]},"note":""},{"label":"Title 2：Garbage: Story of Basketball（H.H.H. Unit 3 Pg.40，文中教學步驟小標題為 \"The History of Basketball\" — 標題名稱前後不一致，忠實記錄此落差）","fields":{"閱讀教學重點":["籃球歷史文章（H.H.H. Unit 3），跨領域主題：Sports & History","認識關鍵字並理解中文意義；朗讀文章","關鍵字：invent 發明, team 隊伍, score 得分, referee 裁判, shoot 投射, hoop 籃筐, amazing 令人驚豔的, country 國家, famous 有名的"],"教學流程／提問重點":["讀文章","學生圈出、朗讀、認識關鍵字中文意義（畫記並寫下中文）","老師提問閱讀理解問題確認理解","完成 H.H.H.U3「Part O」「Part P」及 Workbook 4 U3 閱讀練習"],"評量方式":["Quiz：老師寫出關鍵字英文，學生寫英文與詞性（原文如此）"]},"note":""}],"4":[{"label":"Title 1：Do Kids Need Homework?","fields":{"閱讀教學重點":["辯論主題文章「孩子需要功課嗎？」，跨領域主題：Debate & Discussion","訓練表達特定立場意見的能力；透過小組討論與辯論熟悉「discussion」與「debate」流程","理解文章、認識關鍵字、回答問題","關鍵字：addition 加法, subtraction 減法, multiplication 乘法, division 除法, experiences 經歷, happiness 快樂, responsibility 責任, assignment 作業, subjects 學科, pointless 無意義的"],"教學流程／提問重點":["老師在白板上寫下主題「Homework or not」","將學生分成正反兩組討論意見 5 分鐘（各組發一張 A3 紙，一組列出優點 pros，一組列出缺點 cons），接著花 5–10 分鐘辯論（範例句型：正方 \"I think kids need the homework because…\"；反方 \"I can't agree with you. I think kids don't need any homework because…\"）","辯論後，讓學生在 Exercise「Debate」部分寫下三個以上自己的意見","掃碼聽音檔（全部教完可再聽一次）","讀文章（對 U 級生不難，可請學生翻譯句子；分組閱讀與自己立場相符的段落並標出重點）","圈出需要記憶的關鍵字","一起完成多選練習（讓學生盡力理解每個選項意義，老師協助猜測）","若時間允許可播放相關影片（Should Homework Be Banned? - Behind the News；Do Kids Need Homework?）"],"評量方式":["Level-up evaluation：(1) 閱讀理解 (2) H.H.H. U4 填空；多選題答案：1.C 2.B 3.A"]},"note":""},{"label":"Title 2：Water of the Earth（H.H.H. Unit 4 Pg.52）","fields":{"閱讀教學重點":["地球水資源文章（H.H.H. Unit 4），跨領域主題：World & Nature","學生需能閱讀並理解文章","關鍵字：cover 覆蓋, percent 百分比, ocean 海洋, sea 海, lake 湖, fresh 淡的, important 重要的, in fact 事實上"],"教學流程／提問重點":["文件未提供具體教學步驟，僅列出關鍵字與作業要求（H.H.H. U4 Reading「Part O」「Part P」、Workbook 4 U4 閱讀練習、L.H.W.）"],"評量方式":["Quiz：老師寫出關鍵字英文，學生寫中文與詞性"]},"note":""}],"5":[{"label":"Title 1：Food for Thought","fields":{"閱讀教學重點":["飲食與大腦健康長文，跨領域主題：Body & Health","學習如何讓身體與大腦更健康的知識；理解文章後能改變自己的習慣","認識關鍵字並理解中文意義；學習從長文章中排序、回答問題的技巧","關鍵字：gorge 狼吞虎嚥, forgetful 健忘的, affect 影響（動詞）, effect 影響（名詞）, digestion 消化, gut 腸道, break down 分解, wipe out 消滅, bacteria 細菌, depression 沮喪/憂鬱, long-term 長期的"],"教學流程／提問重點":["詢問學生飲食習慣（多常吃垃圾食物？吃哪些健康食物？等）","發放新教材前，讓學生猜測對腸道與大腦最好的食物是什麼（優格 yogurt），可用種類、顏色或口味引導","從「Learn More」開始，寫下身體部位的英文與中文；老師可解釋消化系統如何運作","掃碼聽音檔（全部教完可再聽一次）；用良好語調朗讀文章","圈出需要記憶的關鍵字","Exercise 1：關鍵字填空","Exercise 2：再讀一次文章，將句子依 a,b,c,d 排序，只給 5 分鐘找出關鍵句","Learn More：寫下身體部位名稱","Check 部分：列出讓大腦成長的訣竅，勾選是否保持這些習慣，老師可鼓勵學生開始執行健康計畫定期實踐"],"評量方式":["Level-up evaluation：(1) 閱讀理解 (2) H.H.H. U5 填空","Exercise 1 答案：1.gut 2.digestion 3.wipe out 4.yogurt 5.depression 6.long-term；Exercise 2 答案：b→c→d→a"]},"note":""},{"label":"Title 2：Look, sharks!（H.H.H. Unit 5 Reading Pg.66）","fields":{"閱讀教學重點":["跨領域主題：Animals & Ocean","關鍵字：dinosaur 恐龍, type 種類, afraid 害怕的, attack 攻擊, sink 下沈, row 排, tooth/teeth 牙齒, broken 壞掉的, lose 失去","**擷取備註**：本篇標題為「Look, sharks!」（鯊魚），但文件提供的關鍵字列表內容為恐龍相關詞彙（dinosaur, tooth, attack 等），標題與關鍵字主題不一致，如實記錄此落差，未自行推測或更正"],"教學流程／提問重點":["文件未提供具體教學步驟，僅列出關鍵字與作業要求（H.H.H. U5 Reading「Part P」「Part Q」、Workbook 4 U5 閱讀練習、L.H.W.）"],"評量方式":["Quiz：老師寫出關鍵字英文，學生寫中文與詞性"]},"note":""}]},"S":{"1":[{"label":"Title 1：Making the Cut","fields":{"閱讀教學重點":["勵志文章，內容為一位八歲女孩實現夢想的故事，跨領域主題：Life","訓練朗讀文章、閱讀後分享想法、回答文章問題","關鍵字：barber 理髮師, charge 收費, braid 編織, be interested in 對…感興趣, course 課程, intimidated 感到威脅的, instructor 教授, hesitate 遲疑, afraid 害怕的, talkative 健談的, focus 專注, safety 安全, protect 保護, client 客戶, opportunity 機會, homeless 流浪漢, regulation 規則, blessing 祝福"],"教學流程／提問重點":["完成 Before Reading（pg.2）、觀看 pg.2 影片","掃碼聽音檔（全部教完可再聽一次）","學生通讀文章並畫線標出不熟悉的單字","標示並教關鍵字（跟 Voc & Phrases 課程結合）","通讀文章、完成 Exercise 1（T/F）","完成 Questions 部分，全班討論並寫下答案（具體提問內容文件未列出）","老師提問閱讀理解問題確認理解"],"評量方式":["Level-up evaluation：閱讀理解多選題（Multiple choices of reading comprehension）","Exercise 1（T/F）答案：1.(T) 2.(T) 3.(F) 4.(F) 5.(T)"]},"note":""},{"label":"Title 2：Working and Learning from Home During the COVID-19 Outbreak","fields":{"閱讀教學重點":["疫情期間居家工作學習文章，跨領域主題：Life & Technology","訓練朗讀、分享想法、回答問題","關鍵字：work from home 在家上班, social distancing 社交距離, prevent 預防, participate 參與, routine 例行公事, structure 架構, inconvenience 不便"],"教學流程／提問重點":["與學生簡短討論疫情影響的利弊，寫在白板上","繼續討論疫情前後的差異","文章前先完成 Exercise 1（列出上網課需要的物品），讓學生回家查生字","掃碼聽音檔（全部教完可再聽一次）","通讀文章，標示並教關鍵字","Exercise 2 前先討論日常活動與例行公事，幫助學生更容易完成練習","老師提問閱讀理解問題確認理解"],"評量方式":["文件未提供本篇獨立的測驗形式（Success 單元共用的 Level-up evaluation 為：Multiple choices of reading comprehension，列於 Title 1 段落）"]},"note":""}],"2":[{"label":"Title 1：Social Media","fields":{"閱讀教學重點":["社群媒體 App 名稱正確發音與認識，跨領域主題：Life & Technology","文件說明：因為 App 名稱常被唸錯，需確保學生正確發音"],"教學流程／提問重點":["詢問學生最常使用哪個 App","進行 Before Learning，檢查是否能唸出 App 名稱","掃碼聽音檔（全部教完可再聽一次）","學生通讀文章並畫線標出不熟悉單字；標示並教關鍵字（中文和詞性請參考 VOC 教案）","通讀文章，完成 Exercise 1","讓學生投票選擇學習後會選用的系統並說明原因","回家作業：拿爸媽手機改成英文版本，下堂課討論是否成功"],"評量方式":["Level-up evaluation：(1) 配對 App 英文名稱與正確圖片 (2) 配對圖案與其功能 (3) 閱讀理解多選題"]},"note":""},{"label":"Title 2：The New Design of Tokyo 2020 Olympic Medals","fields":{"閱讀教學重點":["東京奧運獎牌設計文章，跨領域主題：Environment & Technology","文件說明：希望學生對奧運有國際視野，並認識獎牌來自環保回收材質（3C 裝置回收再製）"],"教學流程／提問重點":["發教材前先問學生對奧運了解多少，提升興趣","掃碼聽音檔（全部教完可再聽一次）","學生閱讀並畫線標出不會的單字；教關鍵字並通讀文章","完成練習；完成 Learn More","文件未提供更具體的引導提問方式"],"評量方式":["Level-up evaluation：閱讀理解多選題","附答案：1.(b) 2.(c) 3.(a) 4.(d) 5.(c)"]},"note":""}],"3":[{"label":"Title 1：Wildlife Photographer of the Year Awards","fields":{"閱讀教學重點":["野生動物攝影得獎者文章，跨領域主題：Life","文件說明：得獎者年紀與 Success 級學生相近，讓學生了解不能用年紀侷限自己能做的事情（\"Everything is possible!\"）","訓練朗讀文章、閱讀後分享想法、回答問題"],"教學流程／提問重點":["掃碼聽音檔（全部教完可再聽一次）","教關鍵字並通讀文章","閱讀後分享想法；回答文章相關問題","完成練習","文件未提供具體引導提問句型"],"評量方式":["Level-up evaluation：閱讀理解多選題","附答案：Exercise1: 1.(F) 2.(T) 3.(F) 4.(T)；Exercise2: 1.(d) 2.(c) 3.(c) 4.(d)；Exercise3: 答案不一（Answers may vary）"]},"note":""},{"label":"Title 2：Creative E-mails","fields":{"閱讀教學重點":["電子郵件寫作文章（一位離家上大學的學生與父母的通信），跨領域主題：Life & Language usage","文件說明：學習閱讀與寫作 email 格式（開頭 greeting、結尾 sign-off），內文結合已學過文法（send…to / so…that… / not only…but also… / spend / after，以及未來 Unit 9 的 since 完成式）；轉承詞 Unfortunately 常見於英檢寫作"],"教學流程／提問重點":["發放學習單前，詢問學生對寫/寄 email 的認識：Have you ever written e-mails or letters to somebody? Who did you send it to? What's the content in that e-mail or letter? 若沒有，討論為何人們寄 email、為何 email 比電話更好（\"less time sensitive\"、\"more personal\"）","告訴學生接下來要學的 email 是一位離家上大學的學生與父母之間的通信","發放學習單，讓學生閱讀並畫線標出不會的字","掃碼聽音檔（全部教完可再聽一次）；教關鍵字並通讀 email 內容","完成 Exercise 1 理解題","Exercise 2：可提供老師自己的信箱，讓學生回家寫一封 email，完成者可獲得老師回信與加分"],"評量方式":["Level-up evaluation：閱讀理解多選題","Exercise 1 答案：1.(c) 2.(a) 3.(b) 4.(d)"]},"note":""}],"4":[{"label":"Title 1：4 Extreme Sports That Have to Be Seen to Be Believed","fields":{"閱讀教學重點":["極限運動介紹文章，跨領域主題：Extreme Sports","文件說明：世界上有上百種運動可以嘗試，人生短暫應找到適合自己的運動","訓練閱讀理解、記憶關鍵字中文意義、朗讀文章、分享想法、回答問題"],"教學流程／提問重點":["教關鍵字並通讀文章（教學建議：利用文章句子帶學生理解如 assistance 等詞如何應用於句中，時間充足可請學生造句確保真正理解關鍵字意義）","掃碼聽音檔（全部教完可再聽一次）","完成練習","鼓勵學生分享未來想嘗試哪種極限運動","讓學生選擇最喜歡的極限運動並寫下原因，使用表格中的形容詞描述（此練習無標準答案）"],"評量方式":["Level-up evaluation：閱讀理解多選題"]},"note":""},{"label":"Title 2：What Will I Be When I Grow Up?","fields":{"閱讀教學重點":["長大後想做什麼職業的短故事（聽力結合閱讀），跨領域主題：Life & Language usage","文件說明：此學習單專為 Success 學生設計，將聽力練習融入閱讀，並降低聽力難度以建立學生學習自信，同時練習閱讀與檢視自己的聽力理解"],"教學流程／提問重點":["課前簡短討論：What do you want to be when you grow up? Have you ever dreamed of being a/an…?","告知學生接下來要聽一個短故事","掃碼並請學生專心盡力寫下聽到的內容","依理解程度先完成 Exercise 2","教第 2 頁的腳本（script）含關鍵字","讓學生一邊聽故事一邊搭配腳本閱讀，再回到第 1 頁確認 Exercise 2 答案是否正確","Questions 部分：讓學生寫下自己的夢想職業及原因，之後互相調查訪問彼此；老師巡場確保學生用正確英文提問"],"評量方式":["文件未提供本篇獨立的測驗形式細節（Success 單元共用的 Level-up evaluation 為：Multiple choices of reading comprehension，列於 Title 1 段落）"]},"note":""}],"5":[{"label":"Title 1：Girls Skate!","fields":{"閱讀教學重點":["女孩滑板文章，探討性別刻板印象議題，跨領域主題：World & Sports","文件說明：訓練學生批判思考並討論性別刻板印象議題；認識衣索比亞（Ethiopia）文化差異","訓練理解文章、認識關鍵字、回答問題","關鍵字：chance 機會, physical 生理上的, mental 心理上的, male-dominated 男性主導的, provide 提供, community 社區, take place 舉辦, diverse 多樣性的, mentor 指導, popularize 使普及, according to 根據…, stereotype 刻板印象, donate 捐贈, cofounder 共同創辦人"],"教學流程／提問重點":["老師以謎語開場並提供線索（這是一種極限運動、需要站在某物上保持平衡、可以讓某物變快或變慢；可依需要提供更多線索）","讓學生分享滑板經驗","提問：Can girls skate? Why or why not? 讓學生表達意見並寫在白板上","老師導入文章主題","掃碼聽音檔，老師可不時暫停音檔讓學生模仿語調發音，確保能朗讀全文","教文章並提問 wh- 問題確認閱讀理解","圈出需要記憶的關鍵字","讓學生討論三個問題並分享意見，也可就男性主導運動議題進行辯論","完成 Exercise 1：訂正錯誤敘述的錯誤部分","帶學生認識滑板運動起源；觀看長板（longboarding）影片並體驗走在長板上","完成 Exercise 2：需能在文章中找出關鍵資訊"],"評量方式":["Level-up evaluation：閱讀理解多選題","Exercise 1 答案：1.F 2.F 3.T 4.F 5.F；Exercise 2 答案：1.C 2.C 3.B 4.B 5.C"]},"note":""},{"label":"Title 2：My Secret Team","fields":{"閱讀教學重點":["家庭成員支持不同球隊、面對意見分歧的短故事（聽力結合閱讀），跨領域主題：Life & Sports","文件說明：此學習單專為 Success 學生設計，將聽力練習融入閱讀並降低聽力難度以建立學習自信；主題為思考如何解決與家人意見不同的問題","關鍵字：secret 秘密, support 支持, team 隊伍, hard 困難的, be good at 擅長於…, pretend 假裝, cheer 歡呼, score 得分, celebrate 慶祝, alone 孤單的, wardrobe 衣櫃, terrible 糟糕的, billionaire 億萬富翁, united 聯合的, match 比賽"],"教學流程／提問重點":["發教材前先與學生簡短討論：Do you support a football team or team of another sport? Do you support the same team as your family?","發教材，告知學生接下來要聽一段短故事，只有專心聽的學生才能發現有趣之處","Exercise 1：掃碼請學生專心盡量把聽到的內容寫在便利貼上","Exercise 2：讓學生再聽一次故事，將句子依順序編號以掌握故事大綱","Exercise 3：完成劃線找出錯誤並改正正確用詞，確認學生對故事的理解","Questions 部分：老師引導學生思考「你有時候和家人意見不同嗎？如果有，是什麼情況？」，不論答案為何都要引導學生正向思考；老師可提供好方法（例如每個人都值得尊重即使想法不同、全家人可以坐下來分享意見）"],"評量方式":["文件未提供本篇獨立的測驗形式細節（Success 單元共用的 Level-up evaluation 為：Multiple choices of reading comprehension，列於 Title 1 段落）"]},"note":""}]}},"speaking":{"A":{"1":[{"label":"7 Colors of a Rainbow","fields":{"口說活動":["Outdoor Sentence 跟讀（固定戶外口說句，需標示語調並理解中文翻譯）","A Plus Chant（全校英語校呼，需搭配教學影片教導語調與動作；文件註明「凝結學生的重要校呼，各大活動都會用到，全耶加人都要會並重視」）","句型跟讀：\"It is a/an……\" \"They are……\" 描述彩虹顏色","延伸活動：Skittles 遊戲猜色（隱藏糖果顏色讓學生猜）；用書包物品造句（如 \"It is a yellow pencil.\"）"],"教學流程":["1. 掃描 QR code 聽音檔","2. 老師提問「Have you ever seen a rainbow?」「What the colors of a rainbow are?」，板書各顏色英文名稱（可搭配彩虹圖片）","3. 翻開 IEE binder，帶讀 \"It is a/an……\" 和 \"They are……\" 句型及關鍵字","4. 完成 Exercise 1（畫出彩虹顏色，可當作業）與 Exercise 2（連連看）","5. 延伸活動（Skittles 猜色、書包物品造句）"],"評量方式":["Line Mission：朗讀 outdoor sentence（語調發音）＋朗讀 7 colors of a rainbow 句子"],"教學提醒":["老師教學前需上雲端聽音檔，確保自己先掌握正確語調","需完成聽力作業並檢查家長簽名（QR code 在教材頁面上）"]},"note":"跨科連結：Art & Science"}],"3":[{"label":"What do you do every day?","fields":{"口說活動":["句型問答：\"What do you do every day? I ___ every day.\" / \"What's your favorite thing to do every day? I like to ___.\"","畫出每天 7am / 3pm / 7pm 的活動並跟同學分享","Bingo 賓果遊戲：學生在格中畫出教材所學及延伸的每日活動，教師抽籤或猜拳隨機點選學生作答，全班需一起練習句子，需表達流暢才能算連線成功"],"教學流程":["1. 先不發學習單，直接問學生每天做什麼，寫在黑板上","2. 發學習單，請學生核對黑板上未列出的內容","3. 掃描 QR code 聽音檔","4. 教句型 \"What do you do every day? I ___ every day.\" 及 \"What's your favorite thing to do every day? I like to ___.\"","5. 確保學生能流暢說出句子","6. 畫出三個時段的活動並跟同學分享","7. 完成 Bingo 賓果遊戲"],"評量方式":["Line Mission：朗讀 outdoor sentence ＋朗讀 Exercise 句型1問答（圖片1-3）＋句型2問答（圖片4-6）"],"教學提醒":["「Level 3 的 Line Mission 需要特別強調流暢度、語調和發音」（原文標註，Level 3 起在多個單元重複出現此提醒）","需完成聽力作業（QR code 在學習單上）"]},"note":"跨科連結：Daily Life"}],"4":[{"label":"A Toy Story Shop","fields":{"口說活動":["玩具店購物問答句型：\"What do you want to buy?\" / \"I want to buy (a)___/___(s)\"；\"How much is (are) the ___(s)?\" / \"It is (They are) ___ dollars.\"","分類玩具並口說介紹喜好","模擬買賣情境：教師扮演店家，學生持假鈔（共600元預算）採購","製作購物清單並與同伴交換分享"],"教學流程":["1. 介紹喜愛的玩具，教句型 \"I like ___(s)\"","2. 將玩具分三類（填充玩具、彈簧玩具、塑膠玩具，可補充更多類別），寫下中文意義，完成 Exercise 1","3. 討論教材中四位小孩喜歡的玩具及原因","4. 分類自己喜愛的玩具，練習句型表達想買哪種玩具及角色名稱","5. 教數字報價句型 \"It is ___ dollars.\"","6. 蓋書練習問答 \"How much is the ___?\"（可提示偏高或偏低，讓學生猜3次）","7. 完成 Exercise 2 問答練習","8. 發放假鈔（共600元預算）模擬採購，教師扮演店家","9. 找夥伴分享採購成果","10. 完成 Exercise 3：寫下自己的購物清單並抄寫夥伴的清單（教師可變化預算、價格、品項增加練習機會）"],"評量方式":["Line Mission：朗讀 outdoor sentence ＋朗讀 A Toy Story Shop 對話（共4個）"],"教學提醒":["「Level 4 的 Line Mission 需要特別強調流暢度、語調和發音」（原文標註，Level 4 各單元重複出現此提醒）","需完成聽力作業並取得家長簽名（QR code 在學習單上）"]},"note":"跨科連結：Daily Life"}],"5":[{"label":"What is Your Favorite Cartoon?","fields":{"口說活動":["句型問答：\"What is your favorite cartoon?\" / \"I like to watch ___.\"","查看電視節目表回答播出時間/頻道：\"What time is ___ on?\" / \"It's on at ___.\" ；\"Which channel is ___ on?\" / \"It's on ___.\""],"教學流程":["1. 問學生看過哪些卡通（可用中文分享），帶出將學習這些卡通的英文名稱","2. 教學習單上卡通的英文名稱","3. 教問答句型 \"What is your favorite cartoon?\" / \"My favorite cartoon is ___.\"","4. 帶學生理解電視節目表，教 Exercise 1 相關句型","5. Exercise 2：分享最愛卡通（若不知道英文名稱，教師可提供），並請學生回家查看家中電視有哪些英文頻道","6. 延伸活動：黑板畫空白節目表，一位學生聽寫、一位學生讀說，練習對話（需與課本不同，自行編排）"],"評量方式":["Level-up evaluation：朗讀 outdoor sentence ＋朗讀 Pg.1 Exercise 問答 ＋朗讀 Pg.2 Exercise 1 對話"],"教學提醒":["「Line Mission 需要特別強調流暢度、語調和發音」（原文標註，Level 5 各單元重複出現此提醒）"]},"note":""},{"label":"Baby Animals","fields":{"口說活動":["用課文詞彙描述動物寶寶（例：\"Lions have got brown fur and big paws.\"）","Extra Learning 延伸活動（聽力配對遊戲）：列印 P31 Exercise 3 圖片並準備空白紙片寫上句子片段（This is / a / an / whale's / monkey's / elephant's / lion's / tail. / paw. / skin. / tusk. 等），教師唸出完整句子（如 \"This is a whale's tail.\"），學生需找出正確紙片並排出正確順序，可分隊計時競賽或一對一比賽"],"關鍵字":["L4：monkey、fur、lion、paw、cub、family、brown","L5：elephant、trunk、whale、tail、calf、live"],"教學流程":["L4：① 展示 Reader 封面局部圖引導猜測動物 ② 提問大獅子/小獅子區分，確立是 baby lion ③ Baby animals 主題導讀（p8-9），引導學生從圖片找出動物寶寶 ④ 朗讀/播放課文錄音，每幾頁停下提問（如 p14-15 獅子毛色與大小）⑤ 完成練習（可用有獎徵答方式引導尋找答案，非直接給答案）","L5：① 看 p6-7 圖片認識不同動物與 \"calf\"、\"cub\" 詞彙，討論動物身體部位（哪些動物有毛皮/爪子）② 描述某動物讓學生猜測（例：\"This animal is very big and live under the sea.\"）③ 朗讀/播放課文錄音並提問（如 \"Do you live in a group?\" \"Have you got gray skin?\"）④ 完成練習"],"評量方式":["Novel Line Mission：L4 朗讀 p14-16 課文；L5 朗讀 p22-24 課文，需注意語調發音"],"教學提醒":["Answer Key 欄位文件中留白，未附具體答案"]},"note":"頁碼範圍：L4 p8-17、p32,34,35（p33 可斟酌是否有多餘時間）；L5 p6-7、p18-25、p30,31、跨科連結：Baby Animals and Their Families"}]},"P":{"1":[{"label":"I Am a Singer!","fields":{"口說活動":["迪士尼主題曲跟唱練習（歌詞發音、中文意義）","分兩組進行「前奏猜曲＋配對」遊戲","Exercise 問答：分享最愛角色與歌詞"],"教學流程":["1. 播放音檔讓學生猜歌名／電影","2. 依序帶入各首迪士尼歌曲（如 Aladdin、The Lion King），教中文意義並跟唱","3. 提醒學生回家掃 QR 練唱","4. 播放卡拉OK前奏，分兩組猜曲並配對","5. 完成 Exercise，分享最愛角色與歌詞","6. 行為表現良好可額外教唱其他電影歌曲","7. 教唱建議：搭配活動幫助記憶；板書押韻詞並不看歌詞單獨練習發音，確認學生是真的唱對字而非含糊帶過"],"評量方式":["Line Mission：朗讀 outdoor sentence（語調發音）＋朗讀 Exercise 問答"],"教學提醒":["需完成聽力作業並檢查家長簽名"]},"note":"跨科連結：Music & Movie"}],"3":[{"label":"What's that noise?","fields":{"口說活動":["自行閱讀文章，辨識文章與 Exercise 2 中的動物聲音","師生對話練習（教師扮演 A、學生扮演 B）：例如 \"What's this sound?\" — \"It's the sound of a pig.\""],"教學流程":["1. 開課本前播放音檔，讓學生猜是誰在說話（可播影片輔助）","2. 共讀文章，教授不會的生字","3. Exercise 1 圈出文章中出現的動物","4. 聽動物聲音猜測動物並填空","5. 教 Exercise 2 動物詞彙，播歌曲請學生填入動物出現順序、配對聲音","6. 完成 Exercise 3（掃 QR 播放動物聲音，依序寫下編號）","7. 師生對話練習（教師示範播放第二次音檔）"],"評量方式":["Line Mission：朗讀 outdoor sentence ＋朗讀 \"What's that noise?\" 故事文章"],"教學提醒":["內附詳細 Answer Key（Exercise 1/2/3 各動物對照答案）","需特別強調流暢度、語調和發音"]},"note":"跨科連結：Animals"}],"4":[{"label":"What Would You Like to Drink?","fields":{"口說活動":["用句型 \"I would like to recommend you my favorite drink ___.\" 向外國朋友推薦飲料","描述飲料的冰塊與糖度細節","依黃色便條紙上的文字練習點飲料口說"],"教學流程":["1. 問學生喜愛的飲料，寫在黑板上","2. 核對補充黑板上未列出的飲料","3. 教飲料名稱、價格、大小、加料詞彙（M=中、L=大）","4. 教冰塊選項與甜度選項的表達方式","5. 教推薦句型","6. Exercise 1：依限定預算選購飲料，畫出飲料杯內容（含配料或冰塊）並寫下英文說明","7. Exercise 2：依黃色便條紙練習點飲料口說（教師可變化口味、限時增加挑戰）","8. Exercise 3：依外國朋友的喜好推薦飲料"],"評量方式":["Line Mission：朗讀 outdoor sentence ＋用英文向外國朋友推薦喜愛的飲料"],"教學提醒":["需特別強調流暢度、語調和發音","需完成聽力作業並取得家長簽名"]},"note":"跨科連結：Daily Life"}],"5":[{"label":"Get to Know Your Shoes","fields":{"口說活動":["分享家中鞋款","購鞋情境對話（尺寸、與店員對話）","正確唸出常見鞋類品牌名稱"],"教學流程":["1. 問學生穿什麼鞋、平常在哪買鞋","2. 發學習單，看圖教英文與中文名稱","3. 大任務：分享家人有哪些鞋款","4. 完成 Exercise 2 四組問答，需流暢朗讀","5. 教情境對話並流暢朗讀（原文註記「答案不一，旁邊沒有 Note 可以對照，明年會修改標題」）","6. Learn more 部分：勾選已知品牌，用 phonics 拼讀嘗試朗讀","7. 公布正確答案並一起練習，鼓勵學生回家查看自己鞋櫃品牌"],"延伸活動建議":["老師可找 Google 上的 \"OOTD\"（Outfit of The Day）穿搭圖，引導學生猜測服飾品牌（衣服、褲子、鞋子等）"],"評量方式":["評量考試：朗讀 outdoor sentence ＋朗讀 Exercise 1 問答 ＋朗讀 Pg.3 與店員的對話"],"教學提醒":["需特別強調流暢度、語調和發音","需完成聽力作業（QR code 在學習單上）"]},"note":"跨科連結：Daily Life"},{"label":"We Can Help!","fields":{"口說活動":["認識不同助人職業與相關交通工具詞彙","用 \"can\" 和 \"need\" 造句","表達對高難度職業（海巡、山難救援）的看法"],"關鍵字":["L4：firefighter、fire truck、road accident、police、police car、crime、helicopter、policewoman、ambulance、hospital","L5：helicopter ambulance、accident、sea、coast guard、coast guard boat、coast guard helicopter、mountain rescue helicopter"],"教學流程":["文件說明：「從Level 4開始，每一堂口說課利用10-15分鐘左右的時間按照順序進行一個主題的教學，每個主題有兩頁」","L4 依序主題：Help!（消防員，p8-9）→ Firefighters can help（道路事故，p12-13）→ The police help people（警察/罪案，p14-15）→ Helicopters（直升機協助，p16-17）→ Ambulances（救護車，p18-19），每個主題翻頁前先提問引導（例：Before turning to Reader pages 10-11, ask: Who are these people? How can they help?）","L5 依序主題：Helicopter ambulances（p20-21）→ Problems in the sea!（海上意外，p22-23）→ Boats and helicopters（海巡艇/直升機，p24-25）→ Mountain rescue（山難救援，p26-27），同樣每主題翻頁前提問引導","開場提問：L4 問學生知道哪些助人職業（例：警察/消防員做什麼）；L5 問學生父母的職業","每個章節教師先朗讀文章，學生需跟讀，注意語調發音"],"評量方式":["Novel Line Mission：L4 朗讀 p10-11（Firefighters）；L5 朗讀 p22-23（Problems in the sea!），需注意發音語調"],"教學提醒":["Answer Key 欄位文件中留白"]},"note":"頁碼範圍：L4 p8-19 / Activity p28-37；L5 p20-27 / Activity p38-47、跨科連結：Career"}]},"L":{"1":[{"label":"Flight Schedule","fields":{"口說活動":["查看機場資訊時刻表並口說介紹（航班號、目的地城市/國家、起飛時間）","依自己填寫的機票資訊，仿 YouTuber 口吻口頭介紹自己的機票"],"教學流程":["1. 掃描 QR code 聽音檔","2. 課堂上帶讀網路機場時刻表，教航班號、目的地（特別是城市對應正確國家）、起飛時間，完成 Exercise 1","3. 依範例完成自己的機票資訊填寫","4. 依機票內容完成 Exercise 2","5. 仿 YouTuber 方式介紹自己的機票"],"評量方式":["Line Mission：朗讀 outdoor sentence ＋拿出 binder 介紹自己的機票"],"教學提醒":["課前老師需先聽音檔，確認每個城市發音及所對應國家；確認機票內容正確寫法","需完成聽力作業並檢查家長簽名"]},"note":"跨科連結：Travel & Tourism"}],"3":[{"label":"Ice Cream Around the World","fields":{"口說活動":["用句型 \"I would like a scoop of ___ ice cream.\" 描述冰淇淋口味","用英文介紹世界各國特色冰淇淋（如 Gelato、炒冰）","班級調查：\"What kind of ice cream flavor do you like the most?\" 並設計冰淇淋店菜單"],"教學流程":["1. 發學習單前先問最愛口味/配料，寫在黑板上","2. 預告接下來兩個月將深入學習冰淇淋主題，播放各國孩童試吃冰淇淋的影片","3. 完成 Before Learning 小測驗（討論式進行，答對給點數，不直接公布答案）","4. 教 \"Inside an ice cream shop\" 各口味發音與意義，教句型 \"I would like a scoop of ___ ice cream.\"（並延伸討論兩球不同口味/相同口味怎麼說）","5. 介紹 Gelato 與麻糬冰淇淋，播影片完成 Exercise 1 填空","6. 分組完成 Exercise 2：模擬開冰淇淋店，教句型 \"What kind of ice cream flavor do you like the most?\" / \"I like ___ ice cream the most.\"，記錄調查結果、設計菜單"],"評量方式":["Line Mission：朗讀 outdoor sentence ＋用英文介紹一種冰淇淋"],"教學提醒":["內附詳細 Answer Key（冰淇淋口味中英對照、Exercise 1 各國冰淇淋答案）","需特別強調流暢度、語調和發音"]},"note":"跨科連結：Food / Culture"}],"4":[{"label":"How Much Do You Know about the Olympics","fields":{"口說活動":["用形容詞描述運動賽事並分享對奧運項目的看法","分享 3 個奧運項目"],"教學流程":["1. 課堂初問學生對奧運的了解，分享已知項目","2. 發學習單，教英文項目名稱，請學生寫下另外3個2021奧運項目","3. 掃碼觀看2021奧運影片，寫下想看的項目","4. 教形容詞描述賽事","5. 配對奧運主辦年份與城市，說明奧運標誌意涵（可讓學生分組設計自己配色的標誌並賦予意義）","6. 完成「你該知道的奧運小知識」部分"],"評量方式":["Line Mission：朗讀 outdoor sentence ＋分享3個奧運項目 ＋選3題用形容詞分享想法"],"教學提醒":["內附詳細 Answer Key（Exercise 問答範例句、主辦城市年份對照表、Learn More 選擇題答案）","需特別強調流暢度、語調和發音"]},"note":"跨科連結：Sports / History"}],"5":[{"label":"Best Italian Pasta Sauce","fields":{"口說活動":["認識番茄醬、白醬、青醬並用英文點餐描述細節","依範例對話練習點餐：\"I prefer eating ___, so I'd like to order the chicken macaroni with ___.\""],"教學流程":["1. 發學習單前問學生對義大利麵醬的了解","2. 掃碼播放製作影片，學生討論各醬料食材並記錄在 Ideas Sheet","3. 發學習單帶讀各醬料介紹，理解關鍵字，寫下正確醬料名稱並依喜好排序（Answer Key 1）","4. 帶讀對話，依資訊思考答案（Answer Key 2）","5. 替換單字，自創點餐對話"],"評量方式":["Level-up evaluation：朗讀 outdoor sentence ＋選一種義大利麵醬，用課本 Pg.2 對話點餐"],"教學提醒":["需特別強調流暢度、語調和發音","內附 Answer Key 1（番茄醬/白醬/青醬，答案不一）與 Answer Key 2"]},"note":"跨科連結：不同義大利麵醬 / Food (ingredients)"},{"label":"Cats VS. Dogs","fields":{"口說活動":["精確描述貓狗的各種行為","流暢表達貓狗的溝通/表達方式","分享貓科/犬科趣味知識","朗讀文中描述貓狗情緒表達的段落（L4 選 p23、25；L5 選 p26、27），需注意語調速度"],"關鍵字":["L4：diet、sense、communication、predator、canine、feline、domesticated、evolve、cell、instinct、carnivore、consult、defend、pack、express","L5：pounce、rotten、breed、spread、rough、perch、trait、cuddle、ancestor、guard、command"],"教學流程":["L4：① 閱讀前可讓學生分享對貓狗特性、感官、飲食、溝通方式的既有認知，可讓學生投票討論貓狗誰的先天條件較優 ② p22 前內容教師可快速帶過，圈出關鍵字並標註詞性與中文翻譯 ③ 閱讀後可分組競賽測驗記憶 ④ p22-25 聚焦口說任務，教師需先掌握貓狗溝通擬聲詞的正確發音，再引導學生熟悉內容 ⑤ 用關鍵字協助學生表達感受，請學生依理解模擬貓狗擬聲詞","L5：① 重點在 p26-27，之後教師可帶讀圈詞並寫下正確中文翻譯與詞性 ② 可為每段設計問題，讓學生舉手搶答或在閱讀前輪流猜測答案（例如：老虎獵食時通常咬獵物哪個部位）③ 帶學生熟悉 p26-27 內容"],"評量方式":["Novel Line Mission：L4 從 p23、25 選一段朗讀；L5 從 p26、27 選一段朗讀，需注意語調速度"],"教學提醒":["Answer Key 欄位原文註明「Answer key is not necessary」（不需要提供答案）"]},"note":"頁碼範圍：L4 p4-25；L5 p26-45、跨科連結：Animals、Learning Goal（原文）：完成閱讀後，學生能比較貓狗的感官知覺、飲食行為與溝通方式，進而更理解身邊的貓狗，培養對動物更友善的態度"}]},"U":{"1":[{"label":"Speechless","fields":{"口說活動":["歌詞填空跟唱（Speechless）","Exercise 1：找出並圈出歌詞中的押韻詞","Exercise 2：分享對歌曲的想法"],"教學流程":["1. 開課本前先播歌曲，問學生是哪首歌／哪部電影（可延伸問是否知道 Speechless 的意思）","2. 發學習單再播一次音檔，帶學生填空歌詞（熟悉後可播歌曲暫停搶答填空）","3. 完成 Exercise 1（圈押韻詞）","4. 完成 Exercise 2（分享想法）","5. 課末帶讀全部歌詞，全班合唱"],"評量方式":["Line Mission：朗讀 outdoor sentence ＋分享對歌曲的想法（Exercise 2: 1-3）"],"教學提醒":["文件未列出本單元的聽力作業/家長簽名待辦項（與其他單元不同，僅列 Line mission）"]},"note":"跨科連結：Music & Movie"}],"3":[{"label":"The Most-Visited Theme Parks on Earth","fields":{"口說活動":["表達想嘗試的遊樂設施","分享最想去的主題樂園並說明原因","與同學對話分享最想玩／最不想玩的設施及原因"],"教學流程":["1. 問學生是否去過台灣遊樂園（舉例 E-DA、六福村、劍湖山等）","2. 問是否去過國外主題樂園","3. 介紹世界知名主題樂園","4. 帶讀樂園特色（時間充裕可播放影片）","5. 讓學生分享個人經驗","6. 依特色寫下最想去的樂園及原因並分享（注意部分學生可能害怕遊樂設施，需協助表達感受）","7. 教遊樂設施詞彙及描述感受的形容詞","8. 教句型並協助寫下回答","9. 兩人一組對話練習"],"評量方式":["Line Mission：朗讀 outdoor sentence ＋分享最想去的主題樂園及原因 ＋分享最想玩／最不想玩的設施及原因"],"教學提醒":["「Level 3 的 Line Mission 需要特別強調流暢度、語調和發音」","部分學生可能害怕遊樂設施，教師需協助他們表達感受","需完成聽力作業（QR code 在學習單上）"]},"note":"跨科連結：Travel & Tourism"}],"4":[{"label":"Describing Food in English","fields":{"口說活動":["用多元形容詞（不只 yummy/delicious）描述食物口感","正確唸出知名品牌名稱","分組 VS 競賽：限時20秒比賽正確唸出最多品牌名稱"],"教學流程":["1. 概述本級數將學習多種食物形容詞，帶讀 Before Learning 三題，播影片核對答案（Answer 1: peppery/spicy/hot；Answer 2: sugary/sweet；Answer 3: tangy/sour/sharp）","2. 課堂討論最愛速食餐廳及點餐內容，寫黑板","3. 蓋book先教形容詞，開book後請學生找出並標出所有形容詞（最快完成者給獎勵）","4. 教句型 \"How is your ___?\" / \"It is ___.\" 反覆練習至流暢","5. 共同閱讀對話，完成 Exercise 1","6. 播放 After Learning 影片前先讓學生自行唸出品牌名，再播影片比較正確發音差異","7. 分組 VS 競賽：限時20秒內正確唸出最多品牌名","8. 班級票選想學的其他品牌並教發音"],"評量方式":["Line Mission：朗讀 outdoor sentence ＋朗讀 Exercise 1 描述口感對話 ＋唸出所有品牌名稱"],"教學提醒":["需特別強調流暢度、語調和發音","需完成聽力作業並取得家長簽名"]},"note":"跨科連結：Food / Languages"}],"5":[{"label":"The Deep Ocean","fields":{"口說活動":["介紹海洋分層（ocean zones）","用英文表達深度","介紹海底生物及其棲息區域（Exercise 3）"],"教學流程":["1. 問學生是否見過深海生物","2. 展示深海生物圖片吸引興趣","3. 黑板畫海洋分層與深度示意圖，讓學生建立整體概念","4. 帶讀各分層特色","5. 協助學生在 idea page 寫下所選海洋分層/生物的介紹稿","6. 用高樓和地標比較解說深度概念","7. 教水壓概念，播放馬里亞納海溝探索影片","8. 完成 Exercise 1","9. Exercise 2：介紹另外三種海洋生物，依圖猜測牠們棲息的分層","10. Exercise 3：選一種生物介紹其棲息分層（依「海洋專家」範例仿寫，需替換底線關鍵字；注意深層海洋光線稀少，需調整\"sunlight\"相關說法）","11. After Learning：全班討論投票最愛海洋生物並記錄想法"],"評量方式":["評量考試：朗讀 outdoor sentence ＋介紹 Exercise 3 中一種海洋生物及其棲息分層"],"教學提醒":["需特別強調流暢度、語調和發音","內附詳細 Answer Key（Exercise 1 & 2 動物與分層對照表）"]},"note":"跨科連結：Marine Science"},{"label":"Space","fields":{"口說活動":["認識太陽系與各行星特色詞彙","用最高級句型介紹行星特徵","L4：流暢朗讀 p8-9 全部太空相關詞彙","L5：從水星（p48）、太陽（p50）、月球（p53）或土星（p56）擇一，朗讀相關段落"],"關鍵字":["L4：space、planet、asteroid、comet、Jupiter、Mars、Mercury、Venus、difficult、important、spacecraft、tail、travel","L5：gas、storm、Saturn、ring、moon、Uranus、Neptune、Pluto、dwarf planet"],"教學流程":["1. 閱讀前展示封面提問「你看到什麼？」帶出太空/太陽/行星主題，並提問「你對太空了解多少？空間有多大？太空中有什麼？」","2. 看 p6-7 認識詞彙與行星名稱，問哪些字是學生已知的","3. 用 Flashcards 1-13（隨機順序）逐一出示，請學生配對 p6-7 上的單字","4. 播放課文錄音第一段落（Audio track 1），搭配 p8-9 圖片，確保理解這些都在太空中","5. 持續朗讀/播放課文，每個主題段落停下提問檢查理解（例：\"What have robots done?\" \"What does the Sun do for people?\" \"Why can people only live on Earth?\" \"What is Mercury made of?\" \"What are comets?\" \"Is Venus very hot or very cold?\" \"Is there any water on the Moon?\" \"What did people travel in to get to the Moon?\"）","6. 再次播放課文，每幾頁停下請學生分享一項有趣的太空知識","7. 延伸活動：展示全部13張 Flashcards，教師用形容詞（含最高級）描述某行星讓學生猜答案（例：\"It's our most important star.\"→地球；\"It's the coldest planet.\"→水星；\"It's the windiest planet.\"→海王星）"],"評量方式":["Novel Line Mission：L4 流暢朗讀 p8-9 所有太空詞彙；L5 從水星/太陽/月球/土星段落擇一朗讀，需流暢、語調正確、有自信"],"教學提醒":["Answer Key 欄位文件中留白"]},"note":"頁碼範圍：L4 p6-25 / Activity p45-53；L5 p26-43 / Activity p54-62、跨科連結：Science (Space)"}]},"S":{"1":[{"label":"Oral Communication Skills 1-19","fields":{"口說活動":["Oral Communication 問答（Question 1-19）表達個人意見","問答複習活動：Activity 1（聽答案猜問題，問答可交換）；Activity 2（限時快問快答分組競賽，限時3分鐘看哪組回答最多）"],"教學流程":["1. 一堂課建議可跑 4 題","2. 帶學生讀題目與範例答案，引導表達自己的意見（答案可以不同）","3. 可請學生寫下自己的意見","4. 與同學練習問答","5. 進行問答複習活動（Activity 1 / 2）"],"評量方式":["Line Mission：朗讀 outdoor sentence ＋選 5 題表達想法（朗讀問題並回答）"],"教學提醒":["建議搭配教材 Phrases，查詢可用片語加入答案中，加強口說品質"]},"note":"跨科連結：Life"}],"3":[{"label":"Oral Communication Skills 26-30 ＋ Meeting English Speakers from All Over the World!","fields":{"口說活動":["Oral Communication 問答（Question 26-30）表達個人意見","模仿影片中不同口音的語調","比較不同英語口音差異並分享喜好","問答複習活動（同 Level 1 Unit 5 模式）"],"教學流程（Oral Communication 部分）":["讀題目與範例答案，引導表達個人意見；請學生寫下意見；與同學練習問答；複習活動（聽答案猜題 / 限時快問快答分組競賽）"],"教學流程（口音主題 Meeting English Speakers）":["1. 討論台灣各地口音是否相同（如台北 vs 台中 vs 屏東），及對岸普通話與台灣華語的差異，帶出「英語口音多樣性」主題","2. 播放三部卡通片段，配對正確口音（連知名卡通角色都講不同英語）","3. 若時間允許，播放影片上的不同口音（先不看逐字稿），學生寫下聽到的內容，練習辨識與模仿差異","4. 學生分享最喜歡的口音，強調沒有口音優劣之分，這正是英語多元有趣之處"],"評量方式":["Line Mission：朗讀 outdoor sentence ＋選一部影片模仿其語調 ＋從 Q26-30 選 2 題分享想法"],"教學提醒":["建議搭配教材 Phrases 查詢可用片語加入答案","需特別強調流暢度、語調和發音","口音主題重在建立正確心態：no accent is better than others"]},"note":"跨科連結：Life ／ Languages・Entertainment"}],"4":[{"label":"Oral Communication Skills 31-35 ＋ Currencies Around the World","fields":{"口說活動":["Oral Communication 問答（Question 31-35）表達個人意見","分享對貨幣價值、最低工資、賺錢方式的看法","問答複習活動（同 Level 1/3 Unit 5 模式）"],"教學流程（Currencies Around the World 主題）":["1. 討論「東西在各地價格是否相同」（答案為否，用大麥克指數 Big Mac Index 解釋），寫下 \"cost ≠ value\"","2. 討論能否在他國使用台幣（不行，因貨幣價值不同），用手機查匯率佐證，舉7-11例子說明「同金額不同價值」","3. 解釋大麥克指數（The Economist 雜誌發布，比較各國貨幣被高估或低估的程度）","4. 引導完成 Exercise 1 & 2","5. Exercise 1 No.2：用新學的形容詞解釋各地大麥克價格差異，可延伸做熟悉物品的 Q&A 口說練習","6. Exercise 2 No.1：計算各國最低時薪可買幾個大麥克（需四捨五入，因無法買到84%的漢堡）","7. Exercise 2 No.2：分組討論想用什麼方式賺錢，寫下結論（Exercise 2 No.3）","8. 延伸說明：可用一種貨幣賺錢、另一種貨幣花費（例如線上工作賺加幣、花台幣）"],"評量方式":["Line Mission：朗讀 outdoor sentence ＋分享 Currencies Exercise 1-2 的想法 ＋從 Q31-35 選2題分享想法"],"教學提醒":["需特別強調流暢度、語調和發音","需完成聽力作業並取得家長簽名"]},"note":"跨科連結：Life ／ Global Economic"}],"5":[{"label":"Oral Communication Skills 36-42 ＋ Something Just Like This","fields":{"口說活動":["Oral Communication 問答（Question 36-42）表達個人意見","學習押韻詞並創作改編歌詞","分享改編後的英語歌曲"],"教學流程（Oral Communication 部分）":["同其他 Level 的 Unit 5 模式：讀題目與範例答案，引導表達個人意見；請學生寫下意見；與同學練習問答；複習活動（聽答案猜題 / 限時快問快答分組競賽）"],"教學流程（Something Just Like This 主題，建議分4天進行）":["1. 播歌曲，板書英雄角色與特質（Verse 1&2）（第1天）","2. 描述英雄傳說讓學生猜是哪位英雄，幫助理解歌詞含意","3. 學唱 Verse 1&2 旋律","4. 分享最愛的英雄，標出歌詞中提到的英雄與能力（Exercise 1-1）","5. 打亂 Verse 1 歌詞順序讓學生唱，體會不押韻歌詞不悅耳（第2天）","6. 講解押韻詞概念（舉例：\"gifts\" rhymes with \"fists\"、\"gold\" rhymes with \"control\"）","7. Exercise 2：練習更多押韻詞範例，猜測對應的英雄能力（第3天，可上 Marvel 官網查答案）","8. 引導學生思考如何將英雄與押韻詞填入空格","9. 讓學生上台發表自創改編歌曲（第4天）"],"評量方式":["評量考試：朗讀 outdoor sentence ＋用押韻詞演唱改編歌曲 ＋從 Q36-42 選3題分享想法"],"教學提醒":["需特別強調流暢度、語調和發音","## 額外補充：Speaking (Novel) Level 4 & Level 5 Lesson Plan 2024","（L4/L5 共用｜原文小說口說延伸教材）"],"說明":[]},"note":"跨科連結：Life ／ Music"},{"label":"Great Inventions","fields":{"口說活動":["像專業朗讀者一樣流暢朗讀文章","隨文章內容練習被動語態、不定詞/動名詞、關係代名詞（which），並複習過去式、比較級形容詞、現在完成式、未來式（be going to / will）與子句","L4 朗讀 P.20 指定段落；L5 朗讀 P.46 指定段落，需清晰有自信"],"關鍵字":["詳列於課本 P.62-63 Glossary（原文提醒：老師應要求學生在英文解釋後寫下中文意義），涵蓋 tool、machine、ancient、cart、electric、scientist、recycle、print、disease、connect、signal、wire、electricity、bamboo、modern、engine、steam engine、flight、airship、model、wind tunnel、personal computer、company 等23個詞彙"],"教學流程":["L4（建議每堂15-20分鐘、2-4頁）：","1. 發書前提問「這是什麼發明？」「發明者是誰？」「在哪裡發明的？」「何時發明的？」「為什麼重要？」（對應 P.60）","2. 播放相關發明主題影片（電話、印刷機、疫苗、輪子、紙）","3. 每章節教師先朗讀文章，學生需跟讀並注意語調發音（Main Point）","4. 引導學生畫記不會的詞彙並寫下中文意義（Keywords）","5. 教師朗讀句子，請學生翻譯或改述內容用意（Details and explanations）","6. 教授 P.6-P.27，聚焦流暢朗讀 P.20（即 Line mission 內容）","7. 提出延伸問題（輪子為何重要？紙的未來？印刷機發明前的生活？疫苗是什麼？電話今天如何運作？）","8. Activity P.49-54 可作回家作業，教師可快速帶過部分題目","9. 請學生尋找或搜尋自己見過/用過的一項偉大發明，畫出並描述其功能","10. （選用）閱讀後可延伸提問：最愛的發明/知識/圖片是哪一個？","L5（流程相同，主題換為網路、電腦、飛機、汽車、電燈泡）：聚焦流暢朗讀 P.46（Line mission），延伸問題換成：第一顆燈泡製作困難點？汽車發明前的交通方式？飛行歷史？電腦如何演變？網路的用途？下一個偉大發明會是什麼？"],"評量方式":["Novel Line Mission：L4 朗讀 P.20 段落；L5 朗讀 P.46 段落，需清晰有自信"],"教學提醒":["Answer Key 欄位文件中留白"]},"note":"頁碼範圍：L4 P.6-P.27 / Activities P.49-54；L5 P.28-47 / Activities P.55-59、跨科連結：Science (Inventions)"}]}},"speakingNotices":{"2":"此 Level 的 Speaking 課綱為全級數共用之特別企劃教案（非 5 品牌單元結構），內容未逐級數整理，請參考原始課綱檔案。"}};
+
+const TAGS = {
+  A: { label:"語言能力亮點", dot:"#3E6E8E", items:[
+    {id:"a1", label:"主動自我修正發音"},
+    {id:"a2", label:"句型使用正確流暢"},
+    {id:"a3", label:"字彙記憶迅速"},
+    {id:"a4", label:"朗讀流暢有語調"},
+    {id:"a5", label:"拼字準確"},
+    {id:"a6", label:"聽力反應快"},
+  ]},
+  B: { label:"課堂參與／微行為", dot:"#4C7A5E", items:[
+    {id:"b1", label:"主動舉手發言"},
+    {id:"b2", label:"專注聆聽"},
+    {id:"b3", label:"樂於分享表達"},
+    {id:"b4", label:"主動協助同儕"},
+    {id:"b5", label:"常規坐姿佳"},
+    {id:"b6", label:"眼神專注跟隨"},
+  ]},
+  C: { label:"待加強／需觀察", dot:"#B65C3D", items:[
+    {id:"c1", label:"句型容易混淆"},
+    {id:"c2", label:"字彙記憶待加強"},
+    {id:"c3", label:"發音待加強"},
+    {id:"c4", label:"專注力待加強"},
+    {id:"c5", label:"作業未完成"},
+    {id:"c6", label:"表現較上次退步"},
+  ]},
+  D: { label:"特殊亮點", dot:"#6B4E8E", items:[
+    {id:"d1", label:"克服緊張主動開口"},
+    {id:"d2", label:"展現創意巧思"},
+    {id:"d3", label:"自信心明顯提升"},
+    {id:"d4", label:"主動提出問題"},
+  ]},
+};
+
+const PHRASES = {
+  a1:{warm:[
+    n=>`特別留意到${n}唸錯音時能自己聽出來、馬上重唸一次修正，這種對發音的敏銳度很難得！`,
+    n=>`今天${n}好幾次自己抓到發音不對，沒等老師開口就重唸一次，聽得出來對自己很有要求！`,
+    n=>`${n}對自己的發音很敏感，唸錯的當下自己就聽出來並立刻修正，這個習慣真的很珍貴。`,
+  ], precise:[
+    n=>`${n}於口說練習中展現自我監控能力，能即時察覺並修正發音誤差。`,
+    n=>`觀察到${n}具備良好的自我監控（self-monitoring）能力，能在口說當下自行偵測並修正發音錯誤。`,
+    n=>`${n}在口說練習過程中會主動比對正確發音並即時調整，語音意識發展良好。`,
+  ]},
+  a2:{warm:[
+    n=>`${n}今天用本課句型造句造得又快又順，看得出來已經內化了！`,
+    n=>`本課句型${n}用起來完全不卡頓，一開口就是完整正確的句子，很扎實！`,
+    n=>`讓${n}練習造句時幾乎不用修正，句型抓得很穩！`,
+  ], precise:[
+    n=>`${n}對本課核心句型掌握度佳，能正確且流暢地應用於口說練習。`,
+    n=>`${n}於句型練習中準確率高，展現對句構規則的內化程度良好。`,
+    n=>`${n}能不假思索地正確產出本課句型，顯示語言自動化程度已達一定水準。`,
+  ]},
+  a3:{warm:[
+    n=>`才教沒幾遍，${n}就能馬上認出並唸出今天的新單字，記憶力很快！`,
+    n=>`${n}對新單字的吸收速度很驚人，教過一次幾乎就記住了！`,
+    n=>`今天的生字對${n}來說完全不是問題，一下子就都記起來了！`,
+  ], precise:[
+    n=>`${n}對本課目標字彙的識讀與記憶速度優於平均，複習階段反應迅速。`,
+    n=>`${n}於單字習得階段展現優異的短期記憶轉化能力。`,
+    n=>`${n}在初次接觸新字彙後即能快速建立記憶連結，複習時辨識度高。`,
+  ]},
+  a4:{warm:[
+    n=>`${n}朗讀時語調很有起伏，聽起來很有感情，不是死板地唸字而已！`,
+    n=>`聽${n}朗讀課文，抑揚頓挫抓得很好，完全不是逐字唸出來的感覺！`,
+    n=>`${n}唸句子時語調很自然，聽起來像在說話而不是在唸稿子！`,
+  ], precise:[
+    n=>`${n}朗讀時語調起伏掌握良好，展現對句意的理解而非機械式唸讀。`,
+    n=>`${n}的朗讀展現出良好的語調變化（intonation），顯示對文本語意的掌握。`,
+    n=>`${n}朗讀時能適當運用重音與停頓，非單純逐字唸讀。`,
+  ]},
+  a5:{warm:[
+    n=>`小考拼字幾乎都對，看得出${n}平常真的有把單字練熟！`,
+    n=>`${n}這次拼字幾乎沒有失誤，看得出回家有認真複習！`,
+    n=>`${n}的單字拼寫正確率很高，基本功打得很穩！`,
+  ], precise:[
+    n=>`${n}於單字拼寫測驗中正確率高，顯示課後複習紮實。`,
+    n=>`${n}在拼字測驗中展現高度準確性，字彙基礎穩固。`,
+    n=>`${n}的拼寫表現顯示其對字母拼讀規則已有穩定掌握。`,
+  ]},
+  a6:{warm:[
+    n=>`聽力練習時${n}反應很快，題目一唸完就能圈出正確答案！`,
+    n=>`${n}聽力特別靈敏，音檔一播完幾乎馬上就知道答案！`,
+    n=>`做聽力題目時${n}完全不用重播，一次就聽懂重點！`,
+  ], precise:[
+    n=>`${n}在聽力理解活動中反應速度快，能迅速掌握關鍵訊息並作答。`,
+    n=>`${n}的聽力理解反應時間短，顯示聽覺處理與訊息擷取能力良好。`,
+    n=>`${n}於聽力練習中能一次聽出關鍵字並準確作答，理解效率高。`,
+  ]},
+  b1:{warm:[
+    n=>`${n}今天很勇敢，好幾次主動舉手回答問題，完全不怕答錯！`,
+    n=>`今天${n}舉手舉得特別積極，感覺很想表現自己！`,
+    n=>`${n}只要有機會就主動舉手，參與度很高！`,
+  ], precise:[
+    n=>`${n}課堂參與度高，多次主動舉手發言。`,
+    n=>`${n}展現高度課堂參與意願，主動舉手回答頻率明顯高於平均。`,
+    n=>`${n}在課堂問答環節主動性佳，願意承擔答錯的風險積極作答。`,
+  ]},
+  b2:{warm:[
+    n=>`整堂課${n}眼睛都跟著老師，聽得非常專心！`,
+    n=>`${n}今天上課特別專注，完全沒有分心！`,
+    n=>`${n}聽講的時候很認真，老師講什麼都跟得上！`,
+  ], precise:[
+    n=>`${n}課堂專注力表現穩定，能全程跟隨教學節奏。`,
+    n=>`${n}展現良好的持續性專注力，整堂課參與度維持穩定。`,
+    n=>`${n}於教學過程中專注力表現良好，未見明顯分心情形。`,
+  ]},
+  b3:{warm:[
+    n=>`請${n}分享想法時，總是講得又長又完整，看得出他很享受表達自己！`,
+    n=>`${n}很喜歡跟大家分享自己的想法，講起來滔滔不絕！`,
+    n=>`只要有分享的機會，${n}都會主動多講一點，表達慾很強！`,
+  ], precise:[
+    n=>`${n}樂於口語表達，能主動延伸分享個人想法。`,
+    n=>`${n}於分享活動中展現良好的口語表達意願與延伸能力。`,
+    n=>`${n}樂於在課堂上表達個人觀點，回答內容常超出基本要求。`,
+  ]},
+  b4:{warm:[
+    n=>`看到同學不會的時候，${n}會主動小聲提醒或示範，很有同理心！`,
+    n=>`${n}會主動照顧旁邊的同學，看到誰卡住了就幫忙一下！`,
+    n=>`${n}很有小老師的架式，會主動教不會的同學！`,
+  ], precise:[
+    n=>`${n}展現良好的同儕互助行為，主動協助學習有困難的同學。`,
+    n=>`${n}於課堂中展現利社會行為，主動支援學習進度較慢的同儕。`,
+    n=>`${n}具備良好的合作學習態度，願意主動分享並協助同學。`,
+  ]},
+  b5:{warm:[
+    n=>`${n}上課坐得很端正，常規表現一直都很穩定！`,
+    n=>`${n}上課的秩序一直都很好，是老師省心的小幫手！`,
+    n=>`${n}坐姿跟常規都維持得很好，完全不用提醒！`,
+  ], precise:[
+    n=>`${n}課堂常規表現穩定，坐姿與秩序皆符合課堂規範。`,
+    n=>`${n}於課堂常規面向表現一致，未見需特別提醒之情形。`,
+    n=>`${n}課堂行為規範遵守度高，坐姿與秩序穩定。`,
+  ]},
+  b6:{warm:[
+    n=>`老師在黑板上寫字或做動作時，${n}的眼神都緊緊跟著，超投入！`,
+    n=>`${n}上課眼神都跟著老師走，完全沒有放空的時候！`,
+    n=>`不管老師在講什麼、寫什麼，${n}的視線都會跟過去，很投入！`,
+  ], precise:[
+    n=>`${n}課堂觀察力佳，能持續以視覺專注跟隨教學示範。`,
+    n=>`${n}於教學過程中視覺專注度高，能持續跟隨板書與示範動作。`,
+    n=>`${n}展現穩定的視覺追蹤與課堂投入度。`,
+  ]},
+  c1:{warm:[
+    (n,p)=>`${p?`「${p}」`:"這個句型"}${n}目前還在抓規則，偶爾會跟其他句型搞混，這是很正常的學習過程～`,
+    (n,p)=>`${n}對${p?`「${p}」`:"這個句型"}還在熟悉階段，偶爾會跟之前學的句型混在一起，多練習幾次就會穩定下來！`,
+    (n,p)=>`${p?`「${p}」`:"這個句型"}的規則${n}還沒完全抓穩，會需要再多一點時間內化。`,
+  ], precise:[
+    (n,p)=>`${n}對本課句型${p?`「${p}」`:""}尚未完全穩定，練習中偶有結構混淆，建議加強句型辨識練習。`,
+    (n,p)=>`${n}於${p?`「${p}」`:"本課句型"}的應用上準確度尚待提升，觀察到與相近句型混淆之情形。`,
+    (n,p)=>`${n}對${p?`「${p}」`:"本課句型"}的掌握仍在發展中，建議透過對比練習強化句型辨識度。`,
+  ]},
+  c2:{warm:[
+    n=>`今天的新單字${n}還需要多看幾次才會記得住，我們會持續在課堂上複習！`,
+    n=>`${n}對這批新單字還不太熟，需要多一點時間反覆接觸才會記牢！`,
+    n=>`這次的單字${n}還在記憶階段，多複習幾次應該就會穩定下來！`,
+  ], precise:[
+    n=>`${n}對本課目標字彙的記憶保留度尚待加強，建議增加複習頻率。`,
+    n=>`${n}於字彙習得階段仍需較多重複接觸，建議安排間隔複習。`,
+    n=>`${n}目前對本課字彙的長期記憶轉化尚未穩定，建議搭配多元複習方式。`,
+  ]},
+  c3:{warm:[
+    n=>`有些單字的發音${n}還在抓嘴型，老師會持續帶著練習！`,
+    n=>`${n}少數幾個音還沒完全到位，我們會多花時間糾正！`,
+    n=>`有幾個發音${n}還需要多練習，慢慢來會越來越準！`,
+  ], precise:[
+    n=>`${n}於部分單字之發音準確度尚待加強，已於課堂上進行個別糾音。`,
+    n=>`${n}在特定音素的發音準確度上仍有進步空間，建議持續個別指導。`,
+    n=>`${n}的發音仍在調整階段，部分音素需要額外練習以達到準確度。`,
+  ]},
+  c4:{warm:[
+    n=>`今天${n}比較容易分心，我們會多用一些互動小遊戲幫助他專注！`,
+    n=>`${n}今天精神狀態比較不集中，中間有點恍神！`,
+    n=>`${n}今天上課比較容易被其他東西吸引注意力，會再多留意！`,
+  ], precise:[
+    n=>`${n}今日課堂專注力略有波動，建議家中作息與休息安排可再留意。`,
+    n=>`${n}本次課堂持續專注時間較短，建議留意課前作息與睡眠品質。`,
+    n=>`${n}今日專注力表現不如以往穩定，將持續觀察並適時調整教學互動方式。`,
+  ]},
+  c5:{warm:[
+    n=>`今天的作業${n}還沒有全部完成，麻煩爸爸媽媽幫忙留意一下進度喔！`,
+    n=>`${n}這次的作業還差一點點沒寫完，麻煩協助提醒一下！`,
+    n=>`${n}的作業部分還沒完成，請爸媽幫忙關心一下進度！`,
+  ], precise:[
+    n=>`${n}本次指定作業尚未全部完成，請家長協助確認並督促補齊。`,
+    n=>`${n}的作業完成度尚未達標，敬請家長協助追蹤並督促補交。`,
+    n=>`${n}本週指定作業有缺漏，請家長協助確認完成進度。`,
+  ]},
+  c6:{warm:[
+    n=>`跟前幾週比起來，${n}今天的狀況比較不在狀態內，也許是最近比較累，我們會再多留意！`,
+    n=>`${n}這次的表現比之前弱一些，不確定是不是最近比較忙碌，會再觀察！`,
+    n=>`${n}今天感覺沒有平常穩定，之後會再多關心一下狀況！`,
+  ], precise:[
+    n=>`${n}本次課堂表現與前次相比略有下滑，建議留意近期學習狀態與作息安排。`,
+    n=>`${n}本次表現較前期略為退步，建議留意其近期生活與學習狀態是否有變化。`,
+    n=>`相較於過往，${n}本次課堂各項指標略微下滑，建議持續觀察並適時關心。`,
+  ]},
+  d1:{warm:[
+    n=>`${n}明明看起來有點緊張，卻還是鼓起勇氣開口回答，這份勇氣要好好稱讚！`,
+    n=>`看得出${n}其實有點怕答錯，但還是願意開口嘗試，很棒的突破！`,
+    n=>`${n}今天雖然有點緊張，還是主動舉手回答，值得肯定！`,
+  ], precise:[
+    n=>`${n}在略顯緊張的情況下仍主動開口練習口說，展現良好的學習勇氣。`,
+    n=>`${n}儘管展現些許緊張情緒，仍願意主動嘗試口語表達，值得肯定。`,
+    n=>`${n}克服了課堂上的緊張感，主動參與口說練習，展現正向的學習韌性。`,
+  ]},
+  d2:{warm:[
+    n=>`造句的時候${n}想出了很有創意的例子，不是課本上的答案，很有自己的想法！`,
+    n=>`${n}的例句都很有自己的風格，不是照課本抄的，很有創意！`,
+    n=>`${n}想句子的時候常常有意想不到的點子，很好玩！`,
+  ], precise:[
+    n=>`${n}於句型練習中展現個人創意，能跳脫課本例句自行延伸應用。`,
+    n=>`${n}展現獨立思考能力，能自主發想貼近生活經驗的例句。`,
+    n=>`${n}的口語產出展現創意與個人風格，非單純模仿課本範例。`,
+  ]},
+  d3:{warm:[
+    n=>`感覺得出來${n}今天講英文的時候比之前更有自信了，聲音也更大聲了！`,
+    n=>`${n}最近開口說英文越來越大方，跟以前比進步很多！`,
+    n=>`${n}現在講英文比較不會遲疑了，明顯比之前有自信！`,
+  ], precise:[
+    n=>`${n}口說表現的自信程度較過往有明顯提升。`,
+    n=>`${n}在口語表達上的自信心呈現正向成長趨勢。`,
+    n=>`相較於先前，${n}於口說時的猶豫程度明顯降低，自信心提升顯著。`,
+  ]},
+  d4:{warm:[
+    n=>`${n}今天問了一個很棒的問題，代表他真的有認真在思考課堂內容！`,
+    n=>`${n}主動提問，問題問得很有深度，看得出有在動腦筋！`,
+    n=>`${n}今天舉手問了問題，代表真的有跟上並認真思考！`,
+  ], precise:[
+    n=>`${n}主動針對課堂內容提出問題，顯示具備良好的主動學習態度。`,
+    n=>`${n}展現主動探究精神，能針對課堂內容提出具思考性的問題。`,
+    n=>`${n}於課堂中主動提問，顯示深度理解與批判性思考傾向。`,
+  ]},
+};
+
+function pick(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+function pickPhrase(id, style, name, pattern){
+  const fn = pick(PHRASES[id][style]);
+  return fn(name, pattern);
+}
+
+const NO_TAG_FOCUS = {
+  warm: [
+    n=>`${n}今天上課掌握度不錯，能跟上課堂節奏。`,
+    n=>`${n}今天整體吸收得還不錯，課程進度跟得上！`,
+    n=>`${n}這堂課學習狀況穩定，沒有特別需要留意的地方。`,
+  ],
+  precise: [
+    n=>`${n}對本次教學內容掌握度良好，能跟上課堂進度。`,
+    n=>`${n}本次課堂對教學內容之理解程度符合預期。`,
+    n=>`${n}於本次課堂展現穩定的學習吸收度。`,
+  ],
+};
+const NO_TAG_HIGHLIGHT = {
+  warm: [
+    n=>`今天${n}上課態度穩定，持續保持這樣的節奏就很棒！`,
+    n=>`${n}今天表現一如往常地穩定，是很讓人放心的學習狀態！`,
+    n=>`${n}這堂課維持一貫的好狀態，繼續保持！`,
+  ],
+  precise: [
+    n=>`${n}本次課堂表現穩定，維持既有學習節奏。`,
+    n=>`${n}本次課堂表現與平時一致，未見特殊需留意事項。`,
+    n=>`${n}持續維持穩定的課堂參與與學習表現。`,
+  ],
+};
+
+let state = {
+  levelIdx: 0,
+  unitIdx: 0,
+  chapterIdx: 0,
+  tool: "comment",
+  selectedTags: new Set(),
+};
+
+function stripParens(s){
+  return s.replace(/（[^）]*）/g,"").replace(/\([^)]*\)/g,"").trim();
+}
+function firstWords(vocabArr, n){
+  n = n || 3;
+  let out = [];
+  if(!vocabArr) return out;
+  for(const raw of vocabArr){
+    let s = raw.replace(/^Ch\d+[:：]\s*/,"");
+    s = stripParens(s);
+    let parts = s.split(/[,，、]/).map(x=>x.trim()).filter(Boolean);
+    parts = parts.map(p=>{
+      const idx = Math.max(p.lastIndexOf("："), p.lastIndexOf(":"));
+      return idx >= 0 ? p.slice(idx+1).trim() : p;
+    });
+    for(const p of parts){
+      if(!p) continue;
+      if(/verb\s*list/i.test(p) || /未逐字列出|未列出|備註|特別提醒/.test(p)) continue;
+      if(!/[A-Za-z]/.test(p)) continue;
+      if(p.length<=24 && out.indexOf(p)===-1) out.push(p);
+      if(out.length>=n) break;
+    }
+    if(out.length>=n) break;
+  }
+  return out;
+}
+function firstPattern(sentArr){
+  if(!sentArr || !sentArr.length) return "";
+  if(/未提供|不適用|無獨立句型|非句型教學|未轉錄/.test(sentArr[0])) return "";
+  let s = sentArr[0].replace(/^(Ch\d+|Review\s*\d*|U\d+\s*Learn\s*\d+)[:：]\s*/,"");
+  const m = s.match(/(?:例[：:]|Ex[:：])\s*([^（()）]+)/);
+  if(m) return m[1].trim().replace(/[。.]$/,"");
+  const qMatches = s.match(/[A-Z][A-Za-z0-9',._\-\/ ]{2,60}\?/g);
+  if(qMatches){ const good = qMatches.find(x=>x.includes(" ")); if(good) return good.trim(); }
+  const eMatches = s.match(/[A-Z][A-Za-z0-9',._\-\/ ]{2,60}\./g);
+  if(eMatches){ const good = eMatches.find(x=>x.includes(" ")); if(good) return good.trim(); }
+  const m2 = s.match(/^([^。；]+)/);
+  return (m2 ? m2[1] : s).slice(0,50).trim();
+}
+
+function currentLevel(){ return CURRICULUM[state.levelIdx]; }        // 現在選的「級數」= Adventures/Pacesetters/... 系列
+function currentUnit(){ return currentLevel().levels[state.unitIdx]; } // 現在選的「Level」= 該系列內的 Level 1-5（或 U 系列的 Unit1-7）
+function currentChapter(){
+  const u = currentUnit();
+  const chs = u.chapters || [];
+  return chs[state.chapterIdx] || chs[0] || {id:"main", label:u.label, vocab:[], sentences:[]};
+}
+function chapterVocab(){
+  const c = currentChapter();
+  const u = currentUnit();
+  return (c.vocab && c.vocab.length) ? c.vocab : (u.sharedVocab || []);
+}
+function chapterSentences(){
+  return currentChapter().sentences || [];
+}
+
+function renderLevels(){
+  const row = document.getElementById("levelRow");
+  row.innerHTML = "";
+  CURRICULUM.forEach((lv, i)=>{
+    const el = document.createElement("div");
+    el.className = "level-chip" + (i===state.levelIdx ? " active":"");
+    el.style.setProperty("--chip-hue", lv.hue);
+    el.innerHTML = `<span class="code">${lv.code}</span><span class="zh">${lv.zh}</span>`;
+    el.onclick = ()=>{ state.levelIdx = i; state.unitIdx = 0; state.chapterIdx = 0; renderAll(); };
+    row.appendChild(el);
+  });
+}
+
+function renderUnits(){
+  const list = document.getElementById("unitList");
+  list.innerHTML = "";
+  const lv = currentLevel();
+  list.classList.toggle("compact", !lv.noSeriesStructure);
+  lv.levels.forEach((u,i)=>{
+    const el = document.createElement("div");
+    el.className = "unit-item" + (i===state.unitIdx ? " active":"");
+    el.style.setProperty("--chip-hue", lv.hue);
+    const showTitle = lv.noSeriesStructure; // J 沒有 Level 數字語意，需要顯示標題；其餘級數只顯示 Level N 即可
+    el.innerHTML = showTitle
+      ? `<span class="u-num">${lv.levelUnit} ${u.level}</span><span class="u-body"><span class="u-title">${u.label}</span></span>`
+      : `<span class="u-num-solo">${u.label}</span>`;
+    el.onclick = ()=>{ state.unitIdx = i; state.chapterIdx = 0; renderAll(); };
+    list.appendChild(el);
+  });
+}
+
+function renderChapters(){
+  const row = document.getElementById("chapterRow");
+  row.innerHTML = "";
+  const lv = currentLevel();
+  const chapters = currentUnit().chapters || [];
+  chapters.forEach((c, i)=>{
+    const el = document.createElement("span");
+    el.className = "chapter-chip" + (i===state.chapterIdx ? " active":"");
+    el.style.setProperty("--chip-hue", lv.hue);
+    el.textContent = c.label;
+    el.onclick = ()=>{ state.chapterIdx = i; renderChapters(); };
+    row.appendChild(el);
+  });
+}
+
+function renderTagGroups(){
+  const wrap = document.getElementById("tagGroups");
+  wrap.innerHTML = "";
+  Object.entries(TAGS).forEach(([key, group])=>{
+    const g = document.createElement("div");
+    g.className = "tag-group";
+    g.innerHTML = `<div class="tag-group-label"><span class="dot" style="--dot:${group.dot}"></span>${group.label}</div>`;
+    const chips = document.createElement("div");
+    chips.className = "tag-chips";
+    group.items.forEach(item=>{
+      const chip = document.createElement("span");
+      chip.className = "tag-chip" + (state.selectedTags.has(item.id) ? " selected":"");
+      chip.style.setProperty("--dot", group.dot);
+      chip.textContent = item.label;
+      chip.onclick = ()=>{
+        if(state.selectedTags.has(item.id)) state.selectedTags.delete(item.id);
+        else state.selectedTags.add(item.id);
+        renderTagGroups();
+      };
+      chips.appendChild(chip);
+    });
+    g.appendChild(chips);
+    wrap.appendChild(g);
+  });
+}
+
+const CONTEXT_COMPOSERS = [
+  (ctx, pattern, words)=>{
+    let s = `${ctx}。`;
+    if(pattern) s += `本次核心句型：「${pattern}」。`;
+    if(words.length) s += `重點字彙：${words.join("、")}。`;
+    return s;
+  },
+  (ctx, pattern, words)=>{
+    let s = `本次上課內容為${ctx}`;
+    if(pattern) s += `，核心句型是「${pattern}」`;
+    if(words.length) s += pattern ? `，搭配關鍵單字${words.join("、")}一起練習` : `，關鍵單字包括${words.join("、")}`;
+    return s + "。";
+  },
+  (ctx, pattern, words)=>{
+    let s = `這堂課圍繞${ctx}展開`;
+    if(pattern) s += `，重點放在句型「${pattern}」`;
+    if(words.length) s += pattern ? `，以及${words.join("、")}等單字的運用` : `，聚焦${words.join("、")}等單字`;
+    return s + "。";
+  },
+];
+
+function buildFocus(style, name, unit, cTagIds){
+  const lv = currentLevel();
+  const chap = currentChapter();
+  const words = firstWords(chapterVocab(), 3);
+  const pattern = firstPattern(chapterSentences());
+  const chSuffix = (chap.label && chap.label !== unit.label) ? `‧${chap.label}` : "";
+  const ctx = `${lv.zh}${lv.code}級 ${lv.en} ${unit.label}「${unit.topic || unit.label}${chSuffix}」`;
+  const composed = pick(CONTEXT_COMPOSERS)(ctx, pattern, words);
+  let tail;
+  if(cTagIds.length){
+    tail = cTagIds.map(id=>pickPhrase(id, style, name, pattern)).join(" ");
+  } else {
+    tail = pick(NO_TAG_FOCUS[style])(name);
+  }
+  return `【本課語言焦點】\n${composed}${tail}`;
+}
+
+function buildHighlight(style, name, tagIds){
+  if(!tagIds.length){
+    return `【課堂高光與微行為】\n${pick(NO_TAG_HIGHLIGHT[style])(name)}`;
+  }
+  const sentences = tagIds.map(id=>pickPhrase(id, style, name));
+  return `【課堂高光與微行為】\n${sentences.join(" ")}`;
+}
+
+function buildTask(style, name, unit, cTagIds){
+  const words = firstWords(chapterVocab(), 3);
+  const pattern = firstPattern(chapterSentences());
+  const hasC = id => cTagIds.indexOf(id) !== -1;
+  const w = words.join("、");
+  let variants;
+
+  if(hasC("c2") && words.length){
+    variants = { warm: [
+      n=>`今晚請${n}當1分鐘小老師，教爸爸媽媽這幾個單字怎麼唸、什麼意思：${w}。說對一個蓋一個章，簡單又有成就感！`,
+      n=>`今晚可以請${n}挑${w}這幾個單字考考爸媽會不會唸，順便自己也複習一次！`,
+      n=>`睡前花1分鐘，讓${n}把今天學的${w}教給爸媽聽，當一日小老師！`,
+    ], precise: [
+      n=>`建議安排1–2分鐘，由${n}主動教家長本課重點字彙（${w}）之發音與字義，作為口說輸出與記憶鞏固練習。`,
+      n=>`建議今晚安排簡短時間，請${n}以口說方式複述本課字彙（${w}）供家長確認記憶狀況。`,
+      n=>`建議由${n}主動向家長講解本課字彙（${w}）之發音與意義，強化記憶保留與口說輸出。`,
+    ]};
+  } else if(hasC("c1") && pattern){
+    variants = { warm: [
+      n=>`今晚可以請${n}用「${pattern}」這句話考考爸爸媽媽，看爸媽答不答得出來，順便自己也再練習一次！`,
+      n=>`今晚讓${n}拿「${pattern}」這句話出題考爸媽，答對了記得稱讚一下！`,
+      n=>`睡前花點時間，請${n}教爸媽今天學的句型「${pattern}」，順便自己再說一次！`,
+    ], precise: [
+      n=>`建議今晚由${n}主動以本課句型（${pattern}）向家長提問，作為口說輸出與句型內化練習。`,
+      n=>`建議安排簡短時間，由${n}向家長示範並提問本課句型（${pattern}），強化句型內化。`,
+      n=>`建議請${n}以本課句型（${pattern}）與家長進行簡短問答練習，鞏固句型結構。`,
+    ]};
+  } else if(hasC("c3") && words.length){
+    variants = { warm: [
+      n=>`今晚請${n}挑今天教的單字唸給爸媽聽，請爸媽當小裁判聽聽看發音清不清楚！單字：${w}`,
+      n=>`今晚讓${n}把${w}這幾個字唸給爸媽聽，請爸媽幫忙聽聽發音準不準！`,
+      n=>`睡前請${n}示範唸${w}給爸媽聽，順便練習正確發音！`,
+    ], precise: [
+      n=>`建議由${n}朗讀本課重點字彙供家長評聽，作為發音校正的口說練習：${w}`,
+      n=>`建議安排${n}朗讀本課字彙（${w}）供家長聆聽評估，作為發音矯正練習。`,
+      n=>`建議請${n}示範朗讀本課字彙（${w}），由家長協助確認發音準確度。`,
+    ]};
+  } else if(words.length && pattern){
+    variants = { warm: [
+      n=>`今晚請${n}當1分鐘小老師，教爸媽今天學的單字：${w}，還可以順便用「${pattern}」考考爸媽！`,
+      n=>`今晚讓${n}教爸媽${w}這幾個單字，再用「${pattern}」這句話考考爸媽！`,
+      n=>`睡前請${n}帶爸媽複習${w}，並用「${pattern}」互相問答一下！`,
+    ], precise: [
+      n=>`建議安排1–2分鐘，由${n}主動向家長示範本課字彙（${w}）與句型（${pattern}），完成一次完整的口說輸出。`,
+      n=>`建議由${n}向家長示範本課字彙（${w}）並以句型（${pattern}）進行簡短問答，完成口說輸出練習。`,
+      n=>`建議安排簡短時間，請${n}結合本課字彙（${w}）與句型（${pattern}）向家長進行口說展示。`,
+    ]};
+  } else if(words.length){
+    variants = { warm: [
+      n=>`今晚請${n}教爸媽今天學到的單字：${w}，說對就給個掌聲！`,
+      n=>`今晚讓${n}把${w}教給爸媽，考考爸媽記不記得住！`,
+      n=>`睡前花點時間，請${n}複習${w}給爸媽聽！`,
+    ], precise: [
+      n=>`建議由${n}向家長講解本課字彙（${w}），作為口說輸出練習。`,
+      n=>`建議安排${n}向家長複述本課字彙（${w}），強化口說輸出與記憶。`,
+      n=>`建議請${n}以口說方式向家長介紹本課字彙（${w}）。`,
+    ]};
+  } else {
+    variants = { warm: [
+      n=>`今晚可以請${n}分享今天上課學到的一件事，用自己的話說說看！`,
+      n=>`今晚讓${n}講一件今天上課印象最深的事情給爸媽聽！`,
+      n=>`睡前請${n}用英文或中文都可以，分享一個今天學到的新東西！`,
+    ], precise: [
+      n=>`建議請${n}以口語摘要今日課堂學習重點，作為表達與複習練習。`,
+      n=>`建議安排${n}向家長口頭摘要今日課堂重點，作為表達訓練。`,
+      n=>`建議請${n}簡述今日課堂學習內容，強化統整與表達能力。`,
+    ]};
+  }
+  return `【今晚無痛共學任務】\n${pick(variants[style])(name)}`;
+}
+
+function generateComment(style){
+  const name = (document.getElementById("studentName").value || "這位同學").trim();
+  const unit = currentUnit();
+  const allTags = Array.from(state.selectedTags);
+  const cTags = allTags.filter(id=>id[0]==="c");
+  const highlightTags = allTags.filter(id=>id[0]!=="c");
+  return [
+    buildFocus(style, name, unit, cTags),
+    buildHighlight(style, name, highlightTags),
+    buildTask(style, name, unit, cTags),
+  ].join("\n\n");
+}
+
+function renderOutput(){
+  const area = document.getElementById("outputArea");
+  area.innerHTML = "";
+  [["warm","溫暖鼓勵型"],["precise","精準專業型"]].forEach(([style,label])=>{
+    const text = generateComment(style);
+    const card = document.createElement("div");
+    card.className = "output-card";
+    card.innerHTML = `
+      <div class="out-head">
+        <span class="style-name">${label}</span>
+        <button class="ghost" data-copy>複製</button>
+      </div>
+      <pre>${text.replace(/【([^】]+)】/g,"<b>【$1】</b>")}</pre>
+    `;
+    card.querySelector("[data-copy]").onclick = ()=>copyText(text);
+    area.appendChild(card);
+  });
+}
+
+function copyText(text){
+  navigator.clipboard && navigator.clipboard.writeText(text).then(showToast, ()=>fallbackCopy(text));
+  if(!navigator.clipboard) fallbackCopy(text);
+}
+function fallbackCopy(text){
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try{ document.execCommand("copy"); showToast(); }catch(e){}
+  document.body.removeChild(ta);
+}
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg || "已複製到剪貼簿";
+  t.classList.add("show");
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=>t.classList.remove("show"), 1600);
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+
+const COURSE_META = {
+  vocsen:   {label:"Vocabulary & Sentence 單字句型", hue:"#B65C3D"},
+  grammar:  {label:"Grammar 文法",   hue:"#3E6E8E"},
+  speaking: {label:"Speaking 口說",  hue:"#4C7A5E"},
+  phonics:  {label:"Phonics 發音",   hue:"#9A7B2F"},
+  reading:  {label:"Reading 閱讀",   hue:"#6B4E8E"},
+};
+
+function renderPrepFields(fields){
+  let html = "";
+  Object.keys(fields || {}).forEach(k=>{
+    const lines = fields[k];
+    if(!lines || !lines.length) return;
+    html += `<div class="prep-field"><div class="field-name">${escapeHtml(k)}</div><ul>${lines.map(l=>`<li>${escapeHtml(l)}</li>`).join("")}</ul></div>`;
+  });
+  return html;
+}
+
+function renderPrepEntry(e, hue, collapsible){
+  const noteHtml = e.note ? `<div class="entry-note">${escapeHtml(e.note)}</div>` : "";
+  const chevron = collapsible ? `<span class="chevron">▸</span>` : "";
+  const cls = "prep-entry" + (collapsible ? " collapsible" : "");
+  const onclick = collapsible ? ` onclick="this.parentElement.classList.toggle('expanded')"` : "";
+  return `<div class="${cls}"><div class="entry-label"${onclick} style="color:${hue}">${chevron}${escapeHtml(e.label)}</div>${noteHtml}<div class="entry-body">${renderPrepFields(e.fields)}</div></div>`;
+}
+
+function renderCourseBlock(courseKey, entries, notice){
+  const meta = COURSE_META[courseKey];
+  let html = `<div class="prep-course" style="--course-hue:${meta.hue}"><div class="prep-course-head"><span class="dot"></span><h3>${meta.label}</h3></div>`;
+  if(notice){
+    html += `<div class="prep-notice" style="margin-top:8px;">${escapeHtml(notice)}</div>`;
+  } else if(!entries || !entries.length){
+    html += `<div class="empty-note" style="margin-top:8px;">此書系此 Level 查無獨立教材內容。</div>`;
+  } else {
+    const collapsible = entries.length > 1;
+    html += entries.map(e=>renderPrepEntry(e, meta.hue, collapsible)).join("");
+  }
+  html += `</div>`;
+  return html;
+}
+
+function renderVocSenPrepBlock(u){
+  const meta = COURSE_META.vocsen;
+  const chapters = u.chapters || [];
+  const collapsible = chapters.length > 1;
+  let html = `<div class="prep-course" style="--course-hue:${meta.hue}"><div class="prep-course-head"><span class="dot"></span><h3>${meta.label}</h3></div>`;
+  html += chapters.map(c=>{
+    const fields = {};
+    if(c.vocab && c.vocab.length) fields["單字 Vocabulary"] = c.vocab;
+    if(c.sentences && c.sentences.length) fields["句型 Sentences"] = c.sentences;
+    return renderPrepEntry({label:c.label, fields}, meta.hue, collapsible);
+  }).join("");
+  if(u.notes && u.notes.length){
+    html += `<div class="prep-field" style="margin-top:10px;"><div class="field-name">教學提醒 Notes</div><ul>${u.notes.map(l=>`<li>${escapeHtml(l)}</li>`).join("")}</ul></div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function extractCorePatterns(u){
+  const out = [];
+  (u.chapters||[]).forEach(c=>{
+    const p = firstPattern(c.sentences);
+    if(p) out.push({label:c.label, pattern:p});
+  });
+  return out;
+}
+
+function collectErrorWarnings(u, code, lvlKey){
+  const warnings = [];
+  const KEEP = /錯誤|易混淆|容易搞混|特別提醒|特別留意|注意|提醒學生/;
+  (u.notes||[]).forEach(l=>{ if(KEEP.test(l)) warnings.push({source:"單字句型", text:l}); });
+  if(code !== "U"){
+    ((PREP_DATA.grammar[code]||{})[lvlKey]||[]).forEach(e=>{
+      Object.keys(e.fields||{}).forEach(k=>{
+        if(!/常見錯誤|教學提醒/.test(k)) return;
+        (e.fields[k]||[]).forEach(l=>{ if(l && !/文件未|文件未特別/.test(l)) warnings.push({source:"Grammar "+e.label, text:l}); });
+      });
+    });
+    ((PREP_DATA.phonics[code]||{})[lvlKey]||[]).forEach(e=>{
+      (e.fields["常見錯誤"]||[]).forEach(l=>{ if(l && !/文件未/.test(l)) warnings.push({source:"Phonics", text:l}); });
+    });
+  }
+  return warnings;
+}
+
+function bucketSteps(steps){
+  const cleaned = steps.map(s=>s.replace(/^\d+\.\s*/, ""));
+  const n = cleaned.length;
+  if(n < 2) return null;
+  const warmEnd = Math.max(1, Math.round(n*0.3));
+  const wrapStart = Math.min(n-1, Math.max(warmEnd+1, n - Math.max(1, Math.round(n*0.2))));
+  return {
+    warmup: cleaned.slice(0, warmEnd),
+    main: cleaned.slice(warmEnd, wrapStart),
+    wrapup: cleaned.slice(wrapStart),
+  };
+}
+
+function detectMainLabel(steps){
+  const text = steps.join(" ");
+  if(/分組|配對|兩人一組|小組|group|pair/i.test(text)) return "Pair / Group Work 分組練習";
+  return "主要練習 Main Practice";
+}
+
+function buildActivityFlow(code, lvlKey){
+  if(code === "U") return null;
+  const sEntries = (PREP_DATA.speaking[code]||{})[lvlKey] || [];
+  let steps = null, source = null;
+  const sWithFlow = sEntries.find(e=>e.fields["教學流程"] && e.fields["教學流程"].length>1);
+  if(sWithFlow){
+    steps = sWithFlow.fields["教學流程"];
+    source = "來源：Speaking「" + sWithFlow.label + "」";
+  } else {
+    const rEntries = (PREP_DATA.reading[code]||{})[lvlKey] || [];
+    const rWithFlow = rEntries.find(e=>e.fields["教學流程／提問重點"] && e.fields["教學流程／提問重點"].length>1);
+    if(rWithFlow){
+      steps = rWithFlow.fields["教學流程／提問重點"];
+      source = "來源：Reading「" + rWithFlow.label + "」";
+    }
+  }
+  if(!steps) return null;
+  const buckets = bucketSteps(steps);
+  if(!buckets) return null;
+  return {source, buckets, mainLabel: detectMainLabel(buckets.main)};
+}
+
+function getExamDate(levelNum){
+  const rows = document.querySelectorAll("#examDateGrid .exam-date-row");
+  const row = rows[levelNum-1];
+  if(!row) return "";
+  return row.querySelector(".exam-date-input").value.trim();
+}
+
+function renderQuickView(u, code, lvlKey){
+  const patterns = extractCorePatterns(u);
+  const warnings = collectErrorWarnings(u, code, lvlKey);
+  const flow = buildActivityFlow(code, lvlKey);
+
+  let html = `<div class="quick-view">`;
+
+  if(typeof u.level === "number"){
+    const examDate = getExamDate(u.level);
+    if(examDate){
+      html += `<div class="qv-block qv-exam">🗓️ 本 Level 階級考日期：<b>${escapeHtml(examDate)}</b></div>`;
+    }
+  }
+
+  html += `<div class="qv-block"><h4>📌 當課核心句型</h4>`;
+  if(patterns.length){
+    html += `<ul>${patterns.map(p=>`<li><b>${escapeHtml(p.label)}：</b>${escapeHtml(p.pattern)}</li>`).join("")}</ul>`;
+  } else {
+    html += `<div class="empty-note">此 Level 未偵測到明確句型公式。</div>`;
+  }
+  html += `</div>`;
+
+  html += `<div class="qv-block"><h4>⚠️ 易錯點警示</h4>`;
+  if(warnings.length){
+    html += `<ul>${warnings.slice(0,8).map(w=>`<li><span class="warn-src">${escapeHtml(w.source)}：</span>${escapeHtml(w.text)}</li>`).join("")}</ul>`;
+  } else {
+    html += `<div class="empty-note">${code==="U" ? "U 書系跨科資料暫不支援自動整理（見下方說明）。" : "此 Level 各科課綱未特別標註易錯點。"}</div>`;
+  }
+  html += `</div>`;
+
+  html += `<div class="qv-block"><h4>🎯 建議教學活動流程</h4>`;
+  if(flow){
+    html += `<div class="flow-stage"><span class="stage-tag">Warm-up 暖身</span><ul>${flow.buckets.warmup.map(s=>`<li>${escapeHtml(s)}</li>`).join("")}</ul></div>`;
+    html += `<div class="flow-stage"><span class="stage-tag">${escapeHtml(flow.mainLabel)}</span><ul>${flow.buckets.main.map(s=>`<li>${escapeHtml(s)}</li>`).join("")}</ul></div>`;
+    html += `<div class="flow-stage"><span class="stage-tag">Wrap-up 收尾</span><ul>${flow.buckets.wrapup.map(s=>`<li>${escapeHtml(s)}</li>`).join("")}</ul></div>`;
+    html += `<div class="flow-source">${escapeHtml(flow.source)}，依步驟順序切分為三階段，非原文既有分類，僅供備課參考。</div>`;
+  } else {
+    html += `<div class="empty-note">此 Level 查無足夠完整的教學步驟可供整理成三階段流程，請參考下方各科教學流程欄位自行安排。</div>`;
+  }
+  html += `</div>`;
+
+  html += `</div>`;
+  return html;
+}
+
+function renderPrepTool(){
+  const lv = currentLevel();
+  const u = currentUnit();
+  document.getElementById("prepLevelLabel").textContent = `${lv.code}級 ${lv.en} ${u.label} 備課摘要`;
+  const content = document.getElementById("prepContent");
+
+  if(lv.noSeriesStructure){
+    content.innerHTML = `<div class="empty-note">Level J 沒有跨科目備課資料，內容請參考「單字一覽表」分頁（教材進度範圍與教學提醒）。</div>`;
+    return;
+  }
+
+  const code = lv.code;
+  const lvlKey = String(u.level);
+  let html = "";
+  html += renderQuickView(u, code, lvlKey);
+  html += renderVocSenPrepBlock(u);
+
+  if(code === "U"){
+    html += `<div class="prep-notice">Unlimited-Potential 書系的 Grammar／Phonics／Speaking／Reading 課綱是依「原始學年資料夾」（Level 1–5）分類，跟這裡 Voc+Sen 依 H.H.H. 教材單元（${escapeHtml(u.label)}）呈現的切法不是同一套編號，暫時無法精準對應，故不顯示，避免誤導。如需這幾科的 U 書系內容，請直接查閱原始課綱。</div>`;
+  } else {
+    html += renderCourseBlock("grammar", (PREP_DATA.grammar[code]||{})[lvlKey],
+      code==="S" ? "Success 書系沒有獨立文法課綱，文法教學沿用 Unlimited-Potential 教材內容。" : null);
+    html += renderCourseBlock("speaking", (PREP_DATA.speaking[code]||{})[lvlKey],
+      PREP_DATA.speakingNotices[lvlKey] || null);
+    html += renderCourseBlock("phonics", (PREP_DATA.phonics[code]||{})[lvlKey],
+      code==="S" ? "Success 書系沒有獨立發音課綱，發音教學沿用 Unlimited-Potential（K.K.）教材內容。" : null);
+    html += renderCourseBlock("reading", (PREP_DATA.reading[code]||{})[lvlKey], null);
+  }
+
+  content.innerHTML = html;
+}
+
+function entriesToText(lines, entries, notice){
+  if(notice){ lines.push("（" + notice + "）"); return; }
+  if(!entries || !entries.length){ lines.push("（此書系此 Level 查無獨立教材內容）"); return; }
+  entries.forEach(e=>{
+    lines.push("◆ " + e.label + (e.note ? "（" + e.note + "）" : ""));
+    Object.keys(e.fields || {}).forEach(k=>{
+      const items = e.fields[k];
+      if(!items || !items.length) return;
+      lines.push("  " + k + "：");
+      items.forEach(l=>lines.push("  ・" + l));
+    });
+  });
+}
+
+function prepPlainText(){
+  const lv = currentLevel();
+  const u = currentUnit();
+  const lines = [`${lv.zh}${lv.code}級 ${lv.en} ${u.label} 備課摘要`, ""];
+
+  if(lv.noSeriesStructure){
+    lines.push("Level J 沒有跨科目備課資料，內容請參考單字一覽表分頁。");
+    return lines.join("\n");
+  }
+
+  const qCode = lv.code, qLvlKey = String(u.level);
+  const patterns = extractCorePatterns(u);
+  const warnings = collectErrorWarnings(u, qCode, qLvlKey);
+  const flow = buildActivityFlow(qCode, qLvlKey);
+  lines.push("【📌 當課核心句型】");
+  if(patterns.length) patterns.forEach(p=>lines.push(`・${p.label}：${p.pattern}`));
+  else lines.push("（未偵測到明確句型公式）");
+  lines.push("", "【⚠️ 易錯點警示】");
+  if(warnings.length) warnings.slice(0,8).forEach(w=>lines.push(`・${w.source}：${w.text}`));
+  else lines.push("（此 Level 各科課綱未特別標註易錯點）");
+  lines.push("", "【🎯 建議教學活動流程】");
+  if(flow){
+    lines.push("Warm-up 暖身：");
+    flow.buckets.warmup.forEach(s=>lines.push("  ・" + s));
+    lines.push(flow.mainLabel + "：");
+    flow.buckets.main.forEach(s=>lines.push("  ・" + s));
+    lines.push("Wrap-up 收尾：");
+    flow.buckets.wrapup.forEach(s=>lines.push("  ・" + s));
+    lines.push(`（${flow.source}，依步驟順序切分，非原文既有分類，僅供參考）`);
+  } else {
+    lines.push("（查無足夠完整的教學步驟可供整理）");
+  }
+  lines.push("");
+
+  lines.push("【Vocabulary & Sentence 單字句型】");
+  (u.chapters||[]).forEach(c=>{
+    lines.push("◆ " + c.label);
+    (c.vocab||[]).forEach(l=>lines.push("  ・" + l));
+    (c.sentences||[]).forEach(l=>lines.push("  ・" + l));
+  });
+  if(u.notes && u.notes.length){
+    lines.push("  教學提醒：");
+    u.notes.forEach(l=>lines.push("  ・" + l));
+  }
+  lines.push("");
+
+  const code = lv.code, lvlKey = String(u.level);
+  if(code === "U"){
+    lines.push("（Unlimited-Potential 書系的 Grammar／Phonics／Speaking／Reading 因編號系統不同，暫不顯示，請查閱原始課綱。）");
+  } else {
+    lines.push("【Grammar 文法】");
+    entriesToText(lines, (PREP_DATA.grammar[code]||{})[lvlKey], code==="S" ? "Success 書系沒有獨立文法課綱，沿用 Unlimited-Potential 教材。" : null);
+    lines.push("", "【Speaking 口說】");
+    entriesToText(lines, (PREP_DATA.speaking[code]||{})[lvlKey], PREP_DATA.speakingNotices[lvlKey] || null);
+    lines.push("", "【Phonics 發音】");
+    entriesToText(lines, (PREP_DATA.phonics[code]||{})[lvlKey], code==="S" ? "Success 書系沒有獨立發音課綱，沿用 Unlimited-Potential（K.K.）教材。" : null);
+    lines.push("", "【Reading 閱讀】");
+    entriesToText(lines, (PREP_DATA.reading[code]||{})[lvlKey], null);
+  }
+  return lines.join("\n");
+}
+
+function renderAll(){
+  renderLevels();
+  renderUnits();
+  renderChapters();
+  if(state.tool === "prep") renderPrepTool();
+}
+
+document.getElementById("toolTabs").addEventListener("click", e=>{
+  const btn = e.target.closest(".tool-tab");
+  if(!btn) return;
+  state.tool = btn.dataset.tool;
+  document.querySelectorAll(".tool-tab").forEach(b=>b.classList.toggle("active", b===btn));
+  document.getElementById("paneComment").classList.toggle("active", state.tool==="comment");
+  document.getElementById("panePrep").classList.toggle("active", state.tool==="prep");
+  document.getElementById("chapterSection").style.display = state.tool==="prep" ? "none" : "";
+  if(state.tool==="prep") renderPrepTool();
+});
+
+document.getElementById("copyPrepBtn").addEventListener("click", ()=>copyText(prepPlainText()));
+document.getElementById("genBtn").addEventListener("click", renderOutput);
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBgtsJJZP3CmpZj8bkDYtMZlJDjyvGCPU4",
+  authDomain: "iee-teacher-tool.firebaseapp.com",
+  databaseURL: "https://iee-teacher-tool-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "iee-teacher-tool",
+  storageBucket: "iee-teacher-tool.firebasestorage.app",
+  messagingSenderId: "630005243652",
+  appId: "1:630005243652:web:088b7e326438665bc13a51",
+  measurementId: "G-6CKD9PGM6G"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const auth = firebase.auth();
+
+const examRows = Array.from(document.querySelectorAll(".exam-date-row")).map(row=>({
+  level: row.dataset.level,
+  input: row.querySelector(".exam-date-input"),
+}));
+
+db.ref("examDates").on("value", snapshot=>{
+  const data = snapshot.val() || {};
+  examRows.forEach(({level, input})=>{
+    if(document.activeElement !== input){
+      input.value = data["level"+level] || "";
+    }
+  });
+  if(state.tool === "prep") renderPrepTool();
+});
+
+let isAdmin = false;
+auth.onAuthStateChanged(user=>{
+  isAdmin = !!user;
+  examRows.forEach(({input})=>{ input.readOnly = !isAdmin; });
+  document.getElementById("adminToggleBtn").hidden = isAdmin;
+  document.getElementById("logoutBtn").hidden = !isAdmin;
+  document.getElementById("examHint").textContent = isAdmin
+    ? "管理員模式：直接修改下方日期即可即時儲存，所有人會立刻看到最新版本。"
+    : "目前為唯讀模式，如需編輯日期請點選「管理員登入」。";
+  document.getElementById("loginForm").hidden = true;
+  document.getElementById("loginError").textContent = "";
+});
+
+examRows.forEach(({level, input})=>{
+  input.addEventListener("change", ()=>{
+    if(!isAdmin) return;
+    db.ref("examDates/level"+level).set(input.value.trim());
+  });
+});
+
+document.getElementById("adminToggleBtn").addEventListener("click", ()=>{
+  document.getElementById("loginForm").hidden = false;
+});
+document.getElementById("loginCancelBtn").addEventListener("click", ()=>{
+  document.getElementById("loginForm").hidden = true;
+  document.getElementById("loginError").textContent = "";
+});
+document.getElementById("loginForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  const email = document.getElementById("loginEmail").value.trim();
+  const pw = document.getElementById("loginPassword").value;
+  document.getElementById("loginError").textContent = "登入中…";
+  auth.signInWithEmailAndPassword(email, pw)
+    .then(()=>{ document.getElementById("loginError").textContent = ""; document.getElementById("loginPassword").value=""; })
+    .catch(err=>{ document.getElementById("loginError").textContent = "登入失敗：" + err.message; });
+});
+document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut());
+
+renderAll();
+renderTagGroups();
+</script>
+</body>
+</html>
