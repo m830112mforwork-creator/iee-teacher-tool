@@ -1870,7 +1870,7 @@ const FRAG = {
   d4: { pos:"+", area:"提問", core:[
     "會主動提出問題",
     "遇到不懂的地方會直接問，不會放著",
-    "很願意發問，這是很好的學習habit" ]},
+    "很願意發問，這個習慣很好" ]},
 
   a7: { pos:"+", area:"發音", core:[
     "發音比前陣子進步很多",
@@ -1967,6 +1967,34 @@ const FRAG = {
     outlook:["調整回來應該不難","很快就會回到原本的節奏"] },
 };
 
+// ── 依 175 段真實教師訊息語料萃取的三個特徵 ──
+// ① 老師一律以第三人稱「老師」自稱（語料中「我」出現 0 次、「老師」28 次）
+const TEACHER_VIEW = {
+  "+": [
+    "老師看了也很替他開心",
+    "老師這邊觀察下來，狀態是穩定的",
+    "老師覺得這樣的節奏很好",
+    "看他這樣投入，老師也很有成就感",
+  ],
+  "-": [
+    "老師會多留意這一塊",
+    "老師這邊會再多帶著他練",
+    "接下來的課堂，老師會特別注意這部分",
+  ],
+};
+// ② 句尾語氣詞（語料：～12、喔4、耶4、唷3、囉3、呦2）
+const SOFT_END = ["唷", "喔", "呦", "囉", "耶"];
+function softEnd(chance){
+  return Math.random() < chance ? pick(SOFT_END) : "";
+}
+// ③ 對家長的回應語（語料：謝謝/感謝 8 次、不用擔心 2 次）
+const TO_PARENT = [
+  "也謝謝${p}平常的配合",
+  "這部分${p}可以放心",
+  "${p}不用太擔心",
+  "也謝謝${p}一直以來的支持",
+];
+
 // 連接詞：把多個觀察縫成一段，而不是並列
 const CONNECT_MID  = ["，", "，也", "，而且"];
 const CONNECT_LAST = ["，", "，另外", "，"];
@@ -2062,11 +2090,15 @@ function v2Praise(name, tagIds){
   }
   // 避免相鄰片段開頭用詞重複（例如「很願意分享…願意跨出…」）
   const picked = [];
+  const onlyOne = Math.random() < 0.4;      // 四成機率只講一件事，段落才會短
   for(const f of frags){
+    if(onlyOne && picked.length >= 1) break;
     const head = f.replace(/^(很|會|對|不用|上課|整堂課|今天)/, "").slice(0,2);
     if(picked.some(p=>p.replace(/^(很|會|對|不用|上課|整堂課|今天)/, "").slice(0,2) === head)) continue;
+    // 真實語料有 45% 的段落完全沒有逗號；兩個都帶逗號會堆成三段式排比
+    if(picked.length && f.includes("，") && picked[0].includes("，")) continue;
     picked.push(f);
-    if(picked.length >= (Math.random() < 0.45 ? 2 : 3)) break;   // 多數時候只講兩件事，段落才不會太長
+    if(picked.length >= 2) break;
   }
   // 片段本身已帶時間語（整堂課／今天）時就不再加，避免「這堂課整堂課」
   const hasTime = /^(整堂課|今天|這次|上課)/.test(picked[0]);
@@ -2076,10 +2108,10 @@ function v2Praise(name, tagIds){
   const midFor = f => pick(canUseYe(f) ? ["，", "，也", "，而且"] : ["，", "，而且"]);
   let s = `${nm(name)}${timeWord}${picked[0]}`;
   if(picked[1]) s += midFor(picked[1]) + picked[1];
-  if(picked[2]) s += pick(CONNECT_LAST) + picked[2];
   // 一段最多一個驚嘆號，且只在有多個亮點時才用
-  // 傳訊息時多半不打句號，段尾留白或用「～」更自然
-  return s + endMark(0.28) + maybeEmoji(0.34);
+  // 傳訊息時多半不打句號；語氣詞、標點、emoji 三者不會同時出現
+  const soft = softEnd(0.22);
+  return s + soft + (soft ? "" : endMark(0.26)) + maybeEmoji(soft ? 0.2 : 0.32);
 }
 
 // 需留意段落：承認 → 轉折 → 條件 → 預期
@@ -2118,6 +2150,9 @@ function v2Closing(rawName){
       `有需要再跟老師聊聊${maybeEmoji(0.4)}`,
     ]);
   }
+  if(Math.random() < 0.22){
+    return pick(TO_PARENT).replace(/\$\{p\}/g, p) + softEnd(0.3) + maybeEmoji(0.4);
+  }
   return pick([
     `我們繼續一起加油${maybeEmoji(0.5)}`,
     `下週見${maybeEmoji(0.6)}`,
@@ -2139,6 +2174,11 @@ function generateCommentV2(rawName, tags){
   paras.push(praise);
   const concern = v2Concern(name, tags);
   if(concern) paras.push(concern);
+  // 老師視角的一句話（語料中很常見，且能打破「全篇都在描述學生」的單調）
+  if(Math.random() < 0.32){
+    const view = pick(TEACHER_VIEW[concern ? "-" : "+"]);
+    paras.push(view + softEnd(0.25) + maybeEmoji(0.3));
+  }
   paras.push(v2Closing(name));
   return paras.map(p=>String(p).trim()).filter(Boolean).join("\n\n");
 }
