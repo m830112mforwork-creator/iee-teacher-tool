@@ -2140,6 +2140,58 @@ const COURSE_LESSON = {
   },
 };
 
+// 裁切「名稱：項目1, 項目2, …」這種敘述時，不能切在項目中間。
+// 作法：先在句號／分號等自然界線收尾；若仍過長，切在最後一個完整項目之後並補「等」。
+function trimList(s){
+  let t = String(s || "").trim();
+  if(!t) return "";
+  // 先砍掉補充說明（第一個句號或分號之後的內容）
+  t = t.replace(/[。；;].*$/, "").trim();
+  // 課綱偶爾寫成「本單元屬於總複習性質，複習內容包含：」這種空殼句，改成有意義的說法
+  t = t.replace(/^本單元屬於(.+?)性質.*$/, "$1")
+       .replace(/[，,]?\s*(複習內容包含|內容包含|包含以下|如下)\s*[：:]?\s*$/, "");
+  // 冒號後面沒有實際內容時，把冒號去掉
+  t = t.replace(/[：:]\s*$/, "").trim();
+  const LIMIT = 44;
+  // 沒有「名稱：清單」結構的純敘述，只取第一個子句——後面通常是寫給老師的補充
+  if(!/[：:]/.test(t)){
+    const first = t.split(/[，,]/)[0].trim();
+    if(first.length >= 8) return first;
+  }
+  if(t.length <= LIMIT) return t;
+
+  // 找出「名稱：清單」的分界
+  const m = /^([^：:]{2,20})[：:]\s*(.+)$/.exec(t);
+  if(m){
+    const head = m[1], list = m[2];
+    // 在長度上限內，取到最後一個完整項目的結尾
+    const room = LIMIT - head.length - 1;
+    if(room > 4){
+      const parts = list.split(/[，,、／\/]/).map(x=>x.trim()).filter(Boolean);
+      const kept = [];
+      let used = 0;
+      for(const p of parts){
+        if(used + p.length + 2 > room) break;
+        kept.push(p); used += p.length + 2;
+      }
+      // 切完只剩一兩個字的殘骸（如「有聲／無聲」）就不如只留名稱
+      if(kept.length && kept.join("").length >= 8) return `${head}：${kept.join("、")}等`;
+    }
+    return head;                    // 連一個項目都放不下，就只留名稱
+  }
+  // 沒有「：」結構的長敘述：只留第一個子句，後面多半是補充說明
+  // 沒有清單結構的長敘述：第一個子句通常就是重點，後面多是補充
+  const clauses = t.split(/[，,]/).map(x=>x.trim()).filter(Boolean);
+  if(clauses[0] && clauses[0].length >= 8) return clauses[0];
+  let acc = "";
+  for(const cl of clauses){
+    const next = acc ? acc + "，" + cl : cl;
+    if(next.length > LIMIT) break;
+    acc = next;
+  }
+  return acc || clauses[0].slice(0, LIMIT).trim();
+}
+
 // 取目前選定科目、選定單元的內容，組成一句「這週上了什麼」
 function v2LessonForCourse(){
   const meta = COURSE_LESSON[activeCourse];
@@ -2150,44 +2202,79 @@ function v2LessonForCourse(){
   const entry = (sub && sub.kind === "entry") ? entries[sub.idx] : entries[0];
   if(!entry) return "";
 
-  // 標題：去掉版本括號與教材編號，只留主題
+  // 標題清理：去掉編號、版本、備課用的後設資訊
   let title = String(entry.label)
-    .replace(/（[^）]*）/g, "")
-    .replace(/^[A-Z]?U?[\d.]+\s*[:：]\s*/, "")
+    .replace(/^Title\s*\d+\s*[：:]\s*/i, "")          // 「Title 1：」
+    .replace(/^[A-Za-z]{0,2}[\d.]+\s*[:：]\s*/, "")      // 「U1：」「U9.10：」
+    .replace(/^U\d+(\.\d+)?\s*[:：]\s*/, "")             // 保險：U11：
+    .replace(/（[^）]*）/g, "")                           // 版本、年份
+    .replace(/\s*[＋+]\s*/g, " ＋ ")
     .trim();
-  // 重點：取該科主要欄位的第一行，濾掉「文件未提供」這類佔位文字
-  const lines = (entry.fields || {})[meta.field] || [];
-  let point = lines.find(l => l && !/文件未|未提供|未特別/.test(l)) || "";
-  point = tidySpace(point).replace(/（[^）]*）/g, "").replace(/\*\*/g, "").trim();
-  // 去掉與引導語重複的開頭（如「教學重點是…」「重點在…」）
-  point = point.replace(/^(教學重點是|重點是|重點在|主要是|目標[:：]?)\s*/, "");
-  if(point.length > 42) point = point.slice(0, 42).replace(/[，、。；].*$/, "");
 
-  // 發音的標題是書系名（Adventurers 等），不是主題，改用重點本身
-  if(activeCourse === "phonics") title = "";
-  const sp = /^[A-Za-z]/.test(title) ? " " : "";   // 英文主題前補空格
-  const sp2 = /^[A-Za-z0-9]/.test(point) ? " " : "";
   const lead = pick(meta.lead);
-  if(title && point) return `${lead}${sp}${title}，${point}`;
-  if(title) return `${lead}${sp}${title}`;
-  if(point) return `${lead}${sp2}${point}`;
-  return "";
+  const sp = t => /^[A-Za-z0-9\[\("]/.test(t) ? " " : "";
+
+  // 發音的標題是書系名（Adventurers 等），必須改用教學重點
+  if(activeCourse === "phonics"){
+    const lines = (entry.fields || {})[meta.field] || [];
+    let point = lines.find(l => l && !/文件未|未提供|未特別/.test(l)) || "";
+    point = cleanPoint(point);
+    point = trimList(point);
+    return point ? `${lead}${sp(point)}${point}` : "";
+  }
+
+  // 其餘三科：標題本身就是主題，不再拖課綱給老師看的說明
+  if(!title) return "";
+  // 標題太簡略時，補一個很短的說明（≤20 字）
+  if(title.length <= 6){
+    const lines = (entry.fields || {})[meta.field] || [];
+    let point = cleanPoint(lines.find(l => l && !/文件未|未提供|未特別/.test(l)) || "");
+    point = point.split(/[，,：:]/)[0].trim();
+    if(point && point.length <= 20 && point !== title)
+      return `${lead}${sp(title)}${title}，${point}`;
+  }
+  // 標題本身過長時，切在自然斷點（避免一整串英文長標題）
+  if(title.length > 34){
+    const cut = title.slice(0, 34);
+    const at = Math.max(cut.lastIndexOf(" "), cut.lastIndexOf("，"), cut.lastIndexOf(","));
+    title = (at > 12 ? cut.slice(0, at) : cut).trim() + "…";
+  }
+  return `${lead}${sp(title)}${title}`;
 }
 
+// 去掉課綱裡寫給老師看的後設資訊與符號
+function cleanPoint(s){
+  return tidySpace(String(s || ""))
+    .replace(/\*\*/g, "")
+    .replace(/跨領域主題\s*[：:][^，。]*/g, "")
+    .replace(/^Title\s*\d+\s*[：:]\s*/i, "")
+    .replace(/[（(]([^）)]*)[）)]/g, (m, inner)=> /[,，]/.test(inner) ? "：" + inner.replace(/\s*等\s*$/, "") : "")
+    .replace(/：\s*：/g, "：")
+    .replace(/^(教學重點是|重點是|重點在|主要是|目標)\s*[：:]?\s*/, "")
+    .replace(/^[，,、]+|[，,、]+$/g, "")
+    .trim();
+}
 // 這堂課上了什麼：不吐 topic 原文，改用自然說法
 function v2Lesson(){
   // 選了文法／發音／閱讀／口說時，評語要講那一科的內容
   const byCourse = v2LessonForCourse();
   if(byCourse) return byCourse;
-  const words = firstWords(chapterVocab(), 3);
+  return v2LessonVocSen();
+}
+
+function v2LessonVocSen(){
+  let words = firstWords(chapterVocab(), 3);
   const pattern = firstPattern(chapterSentences());
+  // 單字太長時只列兩個，避免整句破 50 字
+  if(words.join("、").length > 26) words = words.slice(0, 2);
   const w = words.join("、");
   const bits = [];
   if(pattern && w){
     bits.push(pick([
-      `這週我們練到「${pattern}」這個句型，也帶了 ${w} 這幾個字`,
-      `這週上到「${pattern}」，搭配 ${w} 這幾個單字一起練`,
-      `這週的重點是「${pattern}」，單字的部分是 ${w}`,
+      `這週練到「${pattern}」，單字是 ${w}`,
+      `這週上到「${pattern}」，搭配 ${w} 一起練`,
+      `這週的重點是「${pattern}」，單字有 ${w}`,
+      `這週我們練到「${pattern}」這個句型，也帶了 ${w}`,
     ]));
   } else if(pattern){
     bits.push(pick([`這堂課的重點句型是「${pattern}」`, `今天我們練的是「${pattern}」`]));
