@@ -178,6 +178,91 @@
   }
   .exam-date-input:read-only,
   .exam-range-input:read-only{ color:var(--ink-faint); cursor:default; }
+  .course-filter{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:10px 12px;
+    margin-bottom:14px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:10px;
+  }
+  .course-filter-label{
+    font-family:var(--mono);
+    font-size:11px;
+    font-weight:700;
+    color:var(--ink-soft);
+    letter-spacing:.04em;
+    flex:none;
+  }
+  .course-filter-boxes{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    flex:1;
+    min-width:0;
+  }
+  .course-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:5px 10px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:var(--surface);
+    font-size:12px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    user-select:none;
+    transition:background .12s, border-color .12s, color .12s;
+  }
+  .course-chip:hover{ border-color:var(--course-hue, var(--accent)); }
+  .course-chip input{
+    appearance:none;
+    -webkit-appearance:none;
+    width:13px;
+    height:13px;
+    margin:0;
+    border:1.5px solid var(--line-strong, #b9b4ab);
+    border-radius:4px;
+    flex:none;
+    position:relative;
+    cursor:pointer;
+  }
+  .course-chip input:checked{
+    background:var(--course-hue, var(--accent));
+    border-color:var(--course-hue, var(--accent));
+  }
+  .course-chip input:checked::after{
+    content:"";
+    position:absolute;
+    left:3.5px; top:.5px;
+    width:3px; height:7px;
+    border:solid #fff;
+    border-width:0 2px 2px 0;
+    transform:rotate(45deg);
+  }
+  .course-chip:has(input:checked){
+    background:var(--surface);
+    border-color:var(--course-hue, var(--accent));
+    color:var(--ink);
+    font-weight:600;
+  }
+  .course-filter-all{
+    flex:none;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink-soft);
+    border-radius:8px;
+    padding:5px 10px;
+    font-size:12px;
+    font-family:var(--sans);
+    cursor:pointer;
+  }
+  .course-filter-all:hover{ border-color:var(--accent); color:var(--accent); }
+  .prep-course[hidden]{ display:none; }
   .exam-head{
     display:flex;
     align-items:center;
@@ -804,9 +889,16 @@
   <!-- PREP TOOL -->
   <section class="card tool-pane" id="panePrep">
     <h2 class="section-title"><span class="num">04</span> <span id="prepLevelLabel">備課摘要</span></h2>
+
+    <div class="course-filter" id="courseFilter">
+      <span class="course-filter-label">顯示科目</span>
+      <div class="course-filter-boxes" id="courseFilterBoxes"></div>
+      <button type="button" class="course-filter-all" id="courseFilterAllBtn">全選</button>
+    </div>
+
     <div id="prepContent"></div>
     <div style="margin-top:14px;">
-      <button class="ghost" id="copyPrepBtn">複製整份備課摘要</button>
+      <button class="ghost" id="copyPrepBtn">複製備課摘要</button>
     </div>
   </section>
 
@@ -1432,7 +1524,7 @@ function renderPrepEntry(e, hue, collapsible){
 
 function renderCourseBlock(courseKey, entries, notice){
   const meta = COURSE_META[courseKey];
-  let html = `<div class="prep-course" style="--course-hue:${meta.hue}"><div class="prep-course-head"><span class="dot"></span><h3>${meta.label}</h3></div>`;
+  let html = `<div class="prep-course" data-course="${courseKey}" style="--course-hue:${meta.hue}"><div class="prep-course-head"><span class="dot"></span><h3>${meta.label}</h3></div>`;
   if(notice){
     html += `<div class="prep-notice" style="margin-top:8px;">${escapeHtml(notice)}</div>`;
   } else if(!entries || !entries.length){
@@ -1449,7 +1541,7 @@ function renderVocSenPrepBlock(u){
   const meta = COURSE_META.vocsen;
   const chapters = u.chapters || [];
   const collapsible = chapters.length > 1;
-  let html = `<div class="prep-course" style="--course-hue:${meta.hue}"><div class="prep-course-head"><span class="dot"></span><h3>${meta.label}</h3></div>`;
+  let html = `<div class="prep-course" data-course="vocsen" style="--course-hue:${meta.hue}"><div class="prep-course-head"><span class="dot"></span><h3>${meta.label}</h3></div>`;
   html += chapters.map(c=>{
     const fields = {};
     if(c.vocab && c.vocab.length) fields["單字 Vocabulary"] = c.vocab;
@@ -1594,6 +1686,74 @@ function renderQuickView(u, code, lvlKey){
   return html;
 }
 
+// ── 科目篩選 ──────────────────────────────────────────────
+const COURSE_ORDER = ["vocsen","grammar","speaking","phonics","reading"];
+const COURSE_SHORT = {
+  vocsen:"單字句型", grammar:"文法", speaking:"口說", phonics:"發音", reading:"閱讀"
+};
+const COURSE_FILTER_STORAGE_KEY = "iee_course_filter_v1";
+
+function loadCourseFilter(){
+  try{
+    const raw = localStorage.getItem(COURSE_FILTER_STORAGE_KEY);
+    if(!raw) return COURSE_ORDER.slice();
+    const saved = JSON.parse(raw);
+    const valid = Array.isArray(saved) ? saved.filter(k=>COURSE_ORDER.includes(k)) : [];
+    // 全部取消勾選時視同全選，避免畫面整片空白
+    return valid.length ? valid : COURSE_ORDER.slice();
+  }catch(e){
+    return COURSE_ORDER.slice();
+  }
+}
+
+let activeCourses = loadCourseFilter();
+
+function saveCourseFilter(){
+  try{ localStorage.setItem(COURSE_FILTER_STORAGE_KEY, JSON.stringify(activeCourses)); }catch(e){}
+}
+
+function renderCourseFilter(){
+  const box = document.getElementById("courseFilterBoxes");
+  box.innerHTML = COURSE_ORDER.map(key=>{
+    const checked = activeCourses.includes(key) ? " checked" : "";
+    return `<label class="course-chip" style="--course-hue:${COURSE_META[key].hue}">`
+         + `<input type="checkbox" data-course-toggle="${key}"${checked}>`
+         + `<span>${COURSE_SHORT[key]}</span></label>`;
+  }).join("");
+
+  box.querySelectorAll("[data-course-toggle]").forEach(input=>{
+    input.addEventListener("change", ()=>{
+      const key = input.dataset.courseToggle;
+      if(input.checked){
+        if(!activeCourses.includes(key)) activeCourses.push(key);
+      } else {
+        activeCourses = activeCourses.filter(k=>k!==key);
+      }
+      if(!activeCourses.length){
+        // 至少保留一科，否則把這次的取消還原
+        activeCourses = [key];
+        input.checked = true;
+        showToast("至少要顯示一個科目");
+      }
+      saveCourseFilter();
+      applyCourseFilter();
+      syncCourseFilterAllBtn();
+    });
+  });
+  syncCourseFilterAllBtn();
+}
+
+function syncCourseFilterAllBtn(){
+  const btn = document.getElementById("courseFilterAllBtn");
+  if(btn) btn.textContent = activeCourses.length === COURSE_ORDER.length ? "只看單字句型" : "全選";
+}
+
+function applyCourseFilter(){
+  document.querySelectorAll("#prepContent .prep-course").forEach(el=>{
+    el.hidden = !activeCourses.includes(el.dataset.course);
+  });
+}
+
 function renderPrepTool(){
   const lv = currentLevel();
   const u = currentUnit();
@@ -1624,6 +1784,7 @@ function renderPrepTool(){
   }
 
   content.innerHTML = html;
+  applyCourseFilter();
 }
 
 function entriesToText(lines, entries, notice){
@@ -1674,32 +1835,49 @@ function prepPlainText(){
   }
   lines.push("");
 
-  lines.push("【Vocabulary & Sentence 單字句型】");
-  (u.chapters||[]).forEach(c=>{
-    lines.push("◆ " + c.label);
-    (c.vocab||[]).forEach(l=>lines.push("  ・" + l));
-    (c.sentences||[]).forEach(l=>lines.push("  ・" + l));
-  });
-  if(u.notes && u.notes.length){
-    lines.push("  教學提醒：");
-    u.notes.forEach(l=>lines.push("  ・" + l));
-  }
-  lines.push("");
-
   const code = lv.code, lvlKey = String(u.level);
-  if(code === "U"){
-    lines.push("（Unlimited-Potential 書系的 Grammar／Phonics／Speaking／Reading 因編號系統不同，暫不顯示，請查閱原始課綱。）");
-  } else {
-    lines.push("【Grammar 文法】");
-    entriesToText(lines, (PREP_DATA.grammar[code]||{})[lvlKey], code==="S" ? "Success 書系沒有獨立文法課綱，沿用 Unlimited-Potential 教材。" : null);
-    lines.push("", "【Speaking 口說】");
-    entriesToText(lines, (PREP_DATA.speaking[code]||{})[lvlKey], PREP_DATA.speakingNotices[lvlKey] || null);
-    lines.push("", "【Phonics 發音】");
-    entriesToText(lines, (PREP_DATA.phonics[code]||{})[lvlKey], code==="S" ? "Success 書系沒有獨立發音課綱，沿用 Unlimited-Potential（K.K.）教材。" : null);
-    lines.push("", "【Reading 閱讀】");
-    entriesToText(lines, (PREP_DATA.reading[code]||{})[lvlKey], null);
+
+  // 只匯出目前有勾選的科目
+  if(activeCourses.includes("vocsen")){
+    lines.push("【Vocabulary & Sentence 單字句型】");
+    (u.chapters||[]).forEach(c=>{
+      lines.push("◆ " + c.label);
+      (c.vocab||[]).forEach(l=>lines.push("  ・" + l));
+      (c.sentences||[]).forEach(l=>lines.push("  ・" + l));
+    });
+    if(u.notes && u.notes.length){
+      lines.push("  教學提醒：");
+      u.notes.forEach(l=>lines.push("  ・" + l));
+    }
+    lines.push("");
   }
-  return lines.join("\n");
+
+  if(code === "U"){
+    if(activeCourses.some(k=>k!=="vocsen")){
+      lines.push("（Unlimited-Potential 書系的 Grammar／Phonics／Speaking／Reading 因編號系統不同，暫不顯示，請查閱原始課綱。）");
+    }
+  } else {
+    if(activeCourses.includes("grammar")){
+      lines.push("【Grammar 文法】");
+      entriesToText(lines, (PREP_DATA.grammar[code]||{})[lvlKey], code==="S" ? "Success 書系沒有獨立文法課綱，沿用 Unlimited-Potential 教材。" : null);
+      lines.push("");
+    }
+    if(activeCourses.includes("speaking")){
+      lines.push("【Speaking 口說】");
+      entriesToText(lines, (PREP_DATA.speaking[code]||{})[lvlKey], PREP_DATA.speakingNotices[lvlKey] || null);
+      lines.push("");
+    }
+    if(activeCourses.includes("phonics")){
+      lines.push("【Phonics 發音】");
+      entriesToText(lines, (PREP_DATA.phonics[code]||{})[lvlKey], code==="S" ? "Success 書系沒有獨立發音課綱，沿用 Unlimited-Potential（K.K.）教材。" : null);
+      lines.push("");
+    }
+    if(activeCourses.includes("reading")){
+      lines.push("【Reading 閱讀】");
+      entriesToText(lines, (PREP_DATA.reading[code]||{})[lvlKey], null);
+    }
+  }
+  return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
 function renderAll(){
@@ -1811,6 +1989,14 @@ document.getElementById("loginForm").addEventListener("submit", e=>{
 });
 document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut());
 
+document.getElementById("courseFilterAllBtn").addEventListener("click", ()=>{
+  activeCourses = activeCourses.length === COURSE_ORDER.length ? ["vocsen"] : COURSE_ORDER.slice();
+  saveCourseFilter();
+  renderCourseFilter();
+  applyCourseFilter();
+});
+
+renderCourseFilter();
 renderAll();
 renderTagGroups();
 </script>
