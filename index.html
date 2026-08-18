@@ -1315,7 +1315,9 @@ function firstWords(vocabArr, n){
   n = n || 3;
   let out = [];
   if(!vocabArr) return out;
-  if(chapterVocabIsClean() && vocabArr === chapterVocab()) return vocabArr.slice(0, n);
+  // 單字庫少數項目夾帶多餘空白（如 "barber  理髮師"），先正規化
+  if(chapterVocabIsClean() && vocabArr === chapterVocab())
+    return vocabArr.slice(0, n).map(tidySpace);
   for(const raw of vocabArr){
     let s = raw.replace(/^Ch\d+[:：]\s*/,"");
     s = stripParens(s);
@@ -1333,10 +1335,13 @@ function firstWords(vocabArr, n){
     }
     if(out.length>=n) break;
   }
-  return out;
+  return out.map(tidySpace);
 }
+// 課綱與單字庫都可能夾帶多餘空白（如 "barber  理髮師"）
+function tidySpace(s){ return String(s).replace(/\s+/g, " ").trim(); }
 function firstPattern(sentArr){
   if(!sentArr || !sentArr.length) return "";
+  const _tidy = s => tidySpace(s);
   if(chapterSentenceIsClean() && sentArr === chapterSentences()){
     // 單字庫的句型欄會同時收錄問句與答句片段（如「he told a joke」），
     // 優先取大寫開頭且有結尾標點的完整句，取不到才退回第一筆
@@ -1882,8 +1887,13 @@ const EMOJI_POOL   = ["✨","💪","😊","📚","👍","☺️","🌱","👏","
 
 // 英文名字接中文時要空一格，符合樣本寫法（「Alvin 上課很專注」）
 // 姓名前後一律留空格，讓名字在中文句子裡看得清楚
-function nm(name){ return String(name) + " "; }
-function nmIn(name){ return " " + String(name) + " "; }
+// 姓名前後留空格；留空時退回「這位同學」，避免產生「Hello  爸爸媽媽」這種雙空格
+function safeName(name){
+  const s = String(name == null ? "" : name).replace(/\s+/g, " ").trim();
+  return s || "這位同學";
+}
+function nm(name){ return safeName(name) + " "; }
+function nmIn(name){ return " " + safeName(name) + " "; }
 
 function pickN(arr, n){
   const a = arr.slice();
@@ -1901,7 +1911,8 @@ function maybeEmoji(chance){
 }
 
 // 開場：招呼 + 老師自我介紹（樣本中 100% 都有）
-function v2Opening(name){
+function v2Opening(rawName){
+  const name = safeName(rawName);
   const p = teacher.parent;
   const t = teacher.name ? `我是 ${teacher.name}` : "我是他的英文老師";
   const N = nm(name);          // 英文名後補空格，中文名不補
@@ -1934,7 +1945,11 @@ function v2Lesson(){
   } else if(pattern){
     bits.push(pick([`這堂課的重點句型是「${pattern}」`, `今天我們練的是「${pattern}」`]));
   } else if(w){
-    bits.push(pick([`這堂課帶了 ${w} 這幾個單字`, `今天的單字是 ${w}`]));
+    // J 級的「單字」其實是教材進度範圍，措辭要不同
+    const isRange = /Unit\s*\d|上學期|下學期|第\s*\d+\s*[課回]/.test(w);
+    bits.push(isRange
+      ? pick([`這次的進度是 ${w}`, `目前上到 ${w} 的範圍`])
+      : pick([`這堂課帶了 ${w} 這幾個單字`, `今天的單字是 ${w}`]));
   }
   return bits.join("");
 }
@@ -2007,7 +2022,8 @@ function v2Closing(name){
   ]);
 }
 
-function generateCommentV2(name, tags){
+function generateCommentV2(rawName, tags){
+  const name = safeName(rawName);
   _usedEmoji = [];          // 每則訊息重置，避免同一則出現重複 emoji
   const paras = [];
   paras.push(v2Opening(name));
