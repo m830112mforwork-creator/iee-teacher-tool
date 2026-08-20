@@ -1882,7 +1882,9 @@ const FRAG = {
   d1: { pos:"+", area:"信心", core:[
     "這次克服了緊張，主動開口說了",
     "原本有點害羞，但今天勇敢開口了",
-    "願意跨出那一步主動發言，很不容易" ]},
+    "願意跨出那一步主動發言，很不容易",
+    "從被動回答轉為主動開口，這一步對孩子來說不容易",
+    "願意在同學面前開口，是很重要的一個突破" ]},
   d2: { pos:"+", area:"創意", core:[
     "造句的時候會加入自己的巧思",
     "想法很有創意，常常給出讓人驚喜的答案",
@@ -1890,7 +1892,9 @@ const FRAG = {
   d3: { pos:"+", area:"信心", core:[
     "看得出來自信心比之前提升了不少",
     "比起前陣子，明顯更敢表現自己了",
-    "整個人比以前更有底氣" ]},
+    "願意主動嘗試的次數變多了，這是信心在累積的表現",
+    "從願意回答到願意主動舉手，這中間的轉變很明顯",
+    "面對不熟悉的內容時，退縮的反應少了很多" ]},
   d4: { pos:"+", area:"提問", core:[
     "會主動提出問題",
     "遇到不懂的地方會直接問，不會放著",
@@ -1899,7 +1903,9 @@ const FRAG = {
   a7: { pos:"+", area:"發音", core:[
     "發音比前陣子進步很多",
     "這陣子發音明顯變準了",
-    "幾個原本卡住的音，現在都唸得出來了" ]},
+    "幾個原本卡住的音，現在都唸得出來了",
+    "幾個原本不穩定的音，現在已經能穩定發出來了",
+    "發音的正確率比前幾週明顯提升" ]},
   a8: { pos:"+", area:"口說", core:[
     "會主動用英文回答問題",
     "被問到的時候都直接用英文回，不會先講中文",
@@ -1912,7 +1918,9 @@ const FRAG = {
   b7: { pos:"+", area:"參與", core:[
     "整堂課的參與度很高",
     "每個活動都很投入",
-    "課堂活動幾乎都有跟上，參與度很高" ]},
+    "課堂活動幾乎都有跟上，參與度很高",
+    "每個環節都有跟上，參與的完整度很高",
+    "從暖身到練習都保持一致的投入" ]},
   b9: { pos:"+", area:"氛圍", core:[
     "帶動了班上開口說英文的氣氛",
     "會影響旁邊的同學一起用英文",
@@ -1929,7 +1937,9 @@ const FRAG = {
   d8: { pos:"+", area:"進步", core:[
     "跟上週比起來進步很明顯",
     "這週的狀態比上週好很多",
-    "進步的幅度比前一週明顯" ]},
+    "進步的幅度比前一週明顯",
+    "跟上週相比，掌握的速度明顯加快",
+    "這週的吸收狀況比上週更到位" ]},
   d9: { pos:"+", area:"合作", core:[
     "分組的時候很願意跟同學合作",
     "團隊活動中很好溝通",
@@ -1971,7 +1981,9 @@ const FRAG = {
     outlook:["會愈來愈願意用英文表達","開口的意願會慢慢提高"] },
   c8: { pos:"-", area:"口說", issue:[
     "開口說的時候還不太有把握",
-    "口說的自信還在建立中" ],
+    "口說的自信還在建立中",
+    "對自己的發音還不太有把握，開口前會猶豫一下",
+    "知道怎麼說，但要開口時還需要一點推力" ],
     remedy:["多給一些成功的小經驗","從他熟悉的內容開始練"],
     outlook:["自信會慢慢累積起來","會愈說愈敢說"] },
   c9: { pos:"-", area:"文法", issue:[
@@ -2323,9 +2335,18 @@ function v2LessonVocSen(){
 }
 
 // 正向段落：主詞只出現一次，其餘用連接詞縫合
-function v2Praise(name, tagIds){
-  const frags = tagIds.filter(id=>FRAG[id] && FRAG[id].pos === "+")
-                      .map(id=>pick(FRAG[id].core));
+let _usedPraiseTags = [], _usedPraiseFrags = [];
+function v2Praise(name, tagIds, lessonShown){
+  _usedPraiseTags = []; _usedPraiseFrags = [];
+  const posIds = tagIds.filter(id=>FRAG[id] && FRAG[id].pos === "+");
+  const byId = {};
+  let pool = posIds.map(id=>{ const f = pick(FRAG[id].core); byId[f] = id; return f; });
+  // 課程內容還沒介紹前，不能講「新句型／新單字」——家長還不知道是什麼
+  if(lessonShown === false){
+    const behavioral = pool.filter(f=>!refersToLesson(f));
+    if(behavioral.length) pool = behavioral;
+  }
+  const frags = pool;
   if(!frags.length){
     return pick([
       `${nm(name)}這堂課的狀況很穩定，跟著進度走沒有問題`,
@@ -2343,6 +2364,8 @@ function v2Praise(name, tagIds){
     // 真實語料有 45% 的段落完全沒有逗號；兩個都帶逗號會堆成三段式排比
     if(picked.length && f.includes("，") && picked[0].includes("，")) continue;
     picked.push(f);
+    if(byId[f]) _usedPraiseTags.push(byId[f]);
+    _usedPraiseFrags.push(f);
     if(picked.length >= 2) break;
   }
   // 片段本身已帶時間語（整堂課／今天）時就不再加，避免「這堂課整堂課」
@@ -2361,10 +2384,19 @@ function v2Praise(name, tagIds){
 
 // 需留意段落：承認 → 轉折 → 條件 → 預期
 // 第三個以後的亮點另起一段，讓訊息有層次而不是塞成長句
-function v2PraiseExtra(name, tagIds){
+function v2PraiseExtra(name, tagIds, lessonShown){
   const pos = tagIds.filter(id=>FRAG[id] && FRAG[id].pos === "+");
   if(pos.length < 3) return "";
-  const f = pick(FRAG[pos[2]].core);
+  // 主段落已用掉的標籤要跳過，否則會出現同一句講兩次
+  const remain = pos.filter(id=>!_usedPraiseTags.includes(id));
+  if(!remain.length) return "";
+  let cands = FRAG[remain[0]].core.filter(x=>!_usedPraiseFrags.includes(x));
+  if(!cands.length) return "";
+  if(lessonShown === false){
+    const b = cands.filter(x=>!refersToLesson(x));
+    if(b.length) cands = b;
+  }
+  const f = pick(cands);
   const lead = pick(["另外，", "另外老師也觀察到，", "還有一個地方老師覺得很不錯，"]);
   const subj = pick(["他", ""]);
   return lead + subj + f + softEnd(0.06) + endMark(0.25) + maybeEmoji(0.25);
@@ -2460,6 +2492,52 @@ function v2OwnNote(note){
   return (lead ? lead + "\n" : "") + body + maybeEmoji(0.3);
 }
 
+// ── 上下文連貫 ────────────────────────────────────────────
+// 段落順序可以變，但語意必須說得通：
+//   ① 指涉限制：提到「新句型／新單字」的亮點，不能排在課程內容之前
+//   ② 科目一致：課堂活動的描述要跟這週選的科目相符
+//   ③ 段落銜接：相鄰段落之間補上轉折語，而不是各說各話
+
+// 片段是否指涉「這週教的內容」（需先介紹過才能提）
+function refersToLesson(frag){
+  return /新句型|新單字|句型|單字|字彙|拼字|課文|朗讀/.test(String(frag));
+}
+
+// 各科適用的課堂活動描述
+const ACTIVITY_BY_COURSE = {
+  vocsen: ["課堂上採用問答的方式逐句帶讀，讓孩子先聽熟再開口",
+           "這週的流程是先聽音檔、再帶讀，最後讓孩子自行造句練習",
+           "教學上先從孩子已熟悉的內容切入，再逐步帶入這週的新句型",
+           "課堂上讓孩子輪流回答，確保每個人都有開口的機會"],
+  grammar: ["課堂上先用例句帶出規則，再讓孩子自己判斷與練習",
+            "這週搭配課本的練習題，讓孩子在課堂上就完成一輪演練",
+            "教學上先講解觀念，再透過大量的句子替換讓孩子熟悉",
+            "課堂中會請孩子說明為什麼這樣填，確認觀念真的建立起來"],
+  phonics: ["課堂上先示範口型，再讓孩子跟著唸並即時修正",
+            "這週搭配聽力練習，讓孩子先分辨聲音再進到拼讀",
+            "課堂中反覆帶讀並個別聽音，確保每個孩子的發音都到位",
+            "教學上會把相近的音放在一起對比，孩子比較容易抓到差別"],
+  reading: ["課堂上先帶孩子理解文意，再進到細節的閱讀理解練習",
+            "這週先處理生字，再讓孩子自己讀過一遍並回答問題",
+            "教學上會先討論主題背景，讓孩子讀的時候比較有畫面",
+            "課堂中會請孩子找出關鍵句，練習從文章裡抓重點"],
+  speaking: ["課堂上先示範對話，再讓孩子兩兩練習",
+             "這週安排小組問答，透過同儕互動提高孩子開口的意願",
+             "教學上先建立句型的熟悉度，再進到自由表達",
+             "課堂中會讓每個孩子都有上台或發表的機會"],
+};
+
+// 段落之間的轉折語：讓相鄰兩段產生關聯，而不是各自獨立
+const TRANSITION = {
+  "lesson>praise":   ["在這部分，", "這週的練習裡，", ""],
+  "activity>praise": ["在這樣的練習裡，", "這個過程中，", ""],
+  "praise>concern":  ["比較需要留意的是，", "另外，", ""],
+  "concern>teach":   ["所以", "因此", ""],
+  "praise>overall":  ["整體來說，", "整體看下來，", ""],
+  "concern>overall": ["整體來說，", ""],
+  "teach>close":     ["", ""],
+};
+
 // ── 訊息骨架輪替 ──────────────────────────────────────────
 // 同一位家長連續收到好幾週時，若段落順序永遠一樣就會看出是模板。
 // 定義多種合理的排列，並記住每位學生上次用哪一種，下次換一種。
@@ -2511,9 +2589,10 @@ function generateCommentV2(rawName, tags, ownNote){
     open:     ()=> v2Opening(name),
     intro:    ()=> Math.random() < 0.7  ? fill(pick(INTRO_LINE)) + endMark(0.25) + maybeEmoji(0.25) : "",
     lesson:   ()=> lesson ? lesson + endMark(0.3) + maybeEmoji(0.22) : "",
-    activity: ()=> Math.random() < 0.55 ? pick(CLASS_ACTIVITY) + endMark(0.25) + maybeEmoji(0.22) : "",
-    praise:   ()=> v2Praise(name, tags),
-    extra:    ()=> v2PraiseExtra(name, tags),
+    activity: ()=> Math.random() < 0.55
+                     ? pick(ACTIVITY_BY_COURSE[activeCourse] || CLASS_ACTIVITY) + endMark(0.25) + maybeEmoji(0.22) : "",
+    praise:   (ls)=> v2Praise(name, tags, ls),
+    extra:    (ls)=> v2PraiseExtra(name, tags, ls),
     concern:  ()=> concern,
     own:      ()=> own ? own.replace(/\$\{p\}/g, p) : "",
     teach:    ()=> Math.random() < (concern ? 0.68 : 0.4)
@@ -2526,8 +2605,34 @@ function generateCommentV2(rawName, tags, ownNote){
   };
 
   const shape = pickShape(name);
-  const paras = shape.map(k => block[k] ? block[k]() : "");
-  return paras.map(x=>String(x).trim()).filter(Boolean).join("\n\n");
+  // 依序組裝：邊走邊記錄「課程內容是否已出現」，並在相鄰段落間補轉折語
+  const out = [];
+  let lessonShown = false;
+  let prevKey = null, prevLead = null;
+  shape.forEach(k=>{
+    if(!block[k]) return;
+    const text = String(block[k](lessonShown) || "").trim();
+    if(!text) return;
+    if(k === "lesson") lessonShown = true;
+    // 轉折語：讓這一段承接上一段，而不是各說各話
+    let lead = "";
+    if(prevKey){
+      const t = TRANSITION[prevKey + ">" + k];
+      if(t) lead = pick(t);
+    }
+    // 段落本身已自帶引導語時，不再加轉折，避免疊兩層
+    if(lead && /^(另外|還有|比較|整體|想跟|有一個|老師這邊|因此|所以)/.test(text)) lead = "";
+    let full = lead ? lead + text : text;
+    // 相鄰兩段開頭用同一個引導詞會很明顯，換掉後者
+    const leadWord = (full.match(/^(另外|還有|整體|比較|有一個地方|想跟)/) || [])[0];
+    if(leadWord && prevLead && leadWord.slice(0,2) === prevLead.slice(0,2)){
+      full = full.replace(/^(另外老師想提醒的是|另外也跟[^，]{0,8}說一下|另外想跟[^，]{0,8}提一下|另外|還有一個地方老師覺得很不錯，|還有|整體來說|整體看下來|比較需要留意的是，|有一個地方想讓[^，]{0,8}知道，|想跟[^，]{0,8}分享一個需要留意的地方，)[，,]?\s*/, "");
+    }
+    prevLead = leadWord || null;
+    out.push(full);
+    prevKey = k;
+  });
+  return out.join("\n\n");
 }
 function generateComment(style, nameArg, tagsArg, noteArg){
   const rawName = (nameArg !== undefined) ? nameArg : document.getElementById("studentName").value;
