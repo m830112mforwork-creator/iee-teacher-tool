@@ -1999,6 +1999,9 @@ const INTRO_LINE = [
   "跟${p}分享${N}這週在課堂上的學習情形",
   "想讓${p}了解${N}這週在課堂上的表現",
   "跟${p}分享一下${N}這週的學習狀況",
+  "簡單跟${p}說一下${N}這週的課堂情況",
+  "這週的課上完了，跟${p}說說${N}的狀況",
+  "想跟${p}聊聊${N}這週在英文課的表現",
 ];
 
 // 課堂做了什麼（搭配當課內容，補在單字句型之後）
@@ -2008,6 +2011,11 @@ const CLASS_ACTIVITY = [
     "課堂中安排小組問答，透過同儕互動提高孩子開口的意願",
   "教學上先從孩子已熟悉的內容切入，再逐步帶入這週的新句型",
   "課堂中反覆帶讀並即時修正，讓孩子當下就建立正確的語感",
+  "這週先帶孩子理解句子的意思，再進到實際的口說練習",
+  "課堂上讓孩子輪流回答，確保每個人都有開口的機會",
+  "先做全班齊讀建立熟悉度，再請孩子個別練習",
+  "這週搭配課本的練習題，讓孩子在課堂上就完成一輪複習",
+  "課堂中用情境帶入句型，讓孩子知道什麼時候會用到",
 ];
 
 // 老師的教學說明（語料中很常見：解釋「我們是怎麼教的」）
@@ -2017,6 +2025,13 @@ const TEACHING_NOTE = [
   "這部分在後續課程會反覆複習到，${p}不需要擔心一次沒記熟",
   "語言的累積需要時間，只要持續接觸，進步是看得到的",
   "課程設計上會不斷回扣先前學過的內容，熟悉度會逐步累積",
+  "課堂上會讓孩子有足夠的練習機會，不會只停留在聽和看",
+  "這個年段我們比較重視願意開口，正確度可以慢慢調整",
+  "學過的內容之後還會再遇到，孩子是在反覆接觸中把它記牢的",
+  "老師會依孩子的吸收速度調整帶讀的節奏，不會硬趕進度",
+  "課堂上會即時修正發音與句型，孩子當下就能得到回饋",
+  "英文的進步不會是一次到位，而是一段時間之後回頭看才明顯",
+  "我們會讓孩子在有把握的內容上累積成就感，再往下一步推進",
 ];
 
 // 對孩子整體的評價（語料：「真的是一個很活潑、很可愛的孩子！」）
@@ -2026,11 +2041,18 @@ const OVERALL_IMPRESSION = {
     "在班上的學習狀態很讓人放心，這份積極很值得肯定",
     "願意嘗試、也願意開口，這對這個階段的孩子很重要",
     "在班上是很正向的影響，也帶動了其他同學",
+    "學習的主動性很好，這在同年齡的孩子裡不容易",
+    "課堂上的專注與投入都很穩定，是紮實在累積的狀態",
+    "對英文沒有排斥感，願意接觸就是最好的起點",
   ],
   "-": [
     "整體的學習態度是穩定的，只是在這部分需要多一點時間累積",
     "孩子本身的學習意願很好，這一點老師很肯定",
     "願意努力的態度是有的，接下來就是把熟悉度建立起來",
+    "課堂參與是沒有問題的，需要的是多一些反覆練習",
+    "學習的方向是對的，接下來把節奏穩住就會看到成效",
+    "孩子並不排斥，只是還在找到適合自己的方法",
+    "基礎正在建立中，這個階段本來就需要時間",
   ],
 };
 
@@ -2042,11 +2064,15 @@ const TEACHER_VIEW = {
     "老師覺得目前的學習節奏很適合他",
     "看到孩子這樣投入，老師也很替他開心",
     "這樣的表現，老師會持續給予肯定與鼓勵",
+    "老師這邊會把這份積極記下來，之後也會多給他發揮的機會",
+    "以目前的狀態，老師對他接下來的學習是有信心的",
   ],
   "-": [
     "接下來的課堂，老師會特別留意這個部分",
     "老師這邊會再多帶著他練習，慢慢把熟悉度建立起來",
     "老師會在課堂上多給他一些練習與回饋的機會",
+    "老師會把這部分放在心上，課堂中適時給他提醒",
+    "這一塊老師會持續追蹤，有變化會再跟您說",
   ],
 };
 // ② 句尾語氣詞（語料：～12、喔4、耶4、唷3、囉3、呦2）
@@ -2104,20 +2130,28 @@ function v2Opening(rawName){
   const name = safeName(rawName);
   const p = teacher.parent;
   const N = nm(name);
-  // 老師每週都在傳訊息，不會每次重新自我介紹——只有偶爾（約 1/4）才附上署名
-  const withIntro = teacher.name && Math.random() < 0.25;
-  if(withIntro){
+  // 老師每週都在傳訊息，不會每次重新自我介紹——只有偶爾才附上署名
+  if(teacher.name && Math.random() < 0.22){
     return pick([
       `${N}${p}好～我是 ${teacher.name}`,
       `Hello ${N}${p}👋🏻 我是 ${teacher.name}`,
+      `${N}${p}您好，我是 ${teacher.name}`,
+      `${p}好～我是 ${name} 的英文老師 ${teacher.name}`,
     ]);
   }
   return pick([
     `${N}${p}好～`,
     `${N}${p}好`,
     `${N}${p}您好`,
+    `${N}${p}您好～`,
     `${p}好～`,
+    `${p}好`,
+    `Hello ${N}${p}`,
+    `Hello ${N}${p}👋🏻`,
+    `${N}${p}早安～`,
+    `${N}${p}午安～`,
     "",                       // 有時直接進入正題
+    "",
   ]);
 }
 // 各科在評語裡怎麼描述「這週上了什麼」
@@ -2342,20 +2376,39 @@ function v2Concern(name, tagIds){
   const f = FRAG[ids[0]];
   // 這段不再重複姓名——前一段已經提過，真人會改用「他/她」或直接省略主詞
   const issue = pick(f.issue);
-  // 問題描述若已含該領域詞，開頭就不再重複（避免「作業這一塊，他作業有一部分沒交」）
-  const heads = issue.includes(f.area)
-    ? [`另外想跟${teacher.parent}提一下，`, ""]
-    : [`目前在${f.area}的部分，`, `${f.area}這一塊，`, `另外想跟${teacher.parent}提一下，`];
-  const head = pick(heads);
+  const p = teacher.parent;
+  // 引導語：問題描述已含領域詞時，不用會重複的那幾種
+  const generic = [
+    `另外想跟${p}提一下，`,
+    `另外也跟${p}說一下，`,
+    `有一個地方想讓${p}知道，`,
+    `想跟${p}分享一個需要留意的地方，`,
+    `老師這邊也觀察到，`,
+    `另外老師想提醒的是，`,
+    "",
+    "",
+  ];
+  const areaSpecific = [
+    `目前在${f.area}的部分，`,
+    `${f.area}這一塊，`,
+    `${f.area}的部分，`,
+    `在${f.area}上，`,
+    `目前${f.area}的狀況是，`,
+  ];
+  const head = pick(issue.includes(f.area) ? generic : generic.concat(areaSpecific));
   const subj = head ? pick(["他", "", ""]) : "他";
   let s = `${head}${subj}${issue}`;
-  s += pick(["，不過只要", "，但只要", "，不過只要"]) + pick(f.remedy);
-  s += pick(["，", "，相信"]) + pick(f.outlook);
+  s += pick(["，不過只要", "，但只要", "，不過只要", "，只要", "，不過只要持續"]).replace("持續", "") + pick(f.remedy);
+  s += pick(["，", "，相信", "，慢慢地", "，之後"]) + pick(f.outlook);
   s += endMark(0.2) + maybeEmoji(0.3);
   // 第二個待加強另起一段，避免同一段落變成缺點清單
   if(ids[1]){
     const g = FRAG[ids[1]];
-    s += `\n\n${pick(g.issue)}的部分，我們也會在課堂上多留意${maybeEmoji(0.28)}`;
+    s += "\n\n" + pick([
+      `${pick(g.issue)}的部分，我們也會在課堂上多留意`,
+      `另外，${pick(g.issue)}這點老師也會一起看著`,
+      `${pick(g.issue)}這部分，老師會在課堂上多給一些提醒`,
+    ]) + endMark(0.15) + maybeEmoji(0.28);
   }
   return s;
 }
@@ -2364,26 +2417,35 @@ function v2Concern(name, tagIds){
 function v2Closing(rawName){
   const name = safeName(rawName);
   const p = teacher.parent;
-  // 「有問題歡迎聯繫」這種客服語只保留少數比例，避免每則都像罐頭回覆
-  if(Math.random() < 0.18){
+  const N = nmIn(name);
+
+  // 「有問題歡迎聯繫」這種客服語只保留少數比例
+  if(Math.random() < 0.14){
     return pick([
       `之後有任何學習上的問題都可以跟老師說`,
       `有任何想了解的地方再跟老師說${maybeEmoji(0.35)}`,
+      `${p}若有想討論的地方，隨時跟老師聯繫`,
     ]);
   }
-  if(Math.random() < 0.22){
+  // 對家長的回應（謝謝／放心）
+  if(Math.random() < 0.2){
     return pick(TO_PARENT).replace(/\$\{p\}/g, p) + softEnd(0.06) + maybeEmoji(0.4);
   }
   return pick([
-    `期待接下來繼續陪著${nmIn(name)}一起學習與成長${maybeEmoji(0.45)}`,
-    `會持續帶著${nmIn(name)}在課堂上累積，也謝謝${p}的支持${maybeEmoji(0.4)}`,
+    `期待接下來繼續陪著${N}一起學習與成長${maybeEmoji(0.45)}`,
+    `會持續帶著${N}在課堂上累積，也謝謝${p}的支持${maybeEmoji(0.4)}`,
     `謝謝${p}一直以來的配合，我們一起陪著孩子往前${maybeEmoji(0.4)}`,
-    `接下來的課程也會持續留意${nmIn(name)}的學習狀況${maybeEmoji(0.35)}`,
+    `接下來的課程也會持續留意${N}的學習狀況${maybeEmoji(0.35)}`,
     `我們下週課堂上見${maybeEmoji(0.45)}`,
     `這週的狀況先跟${p}分享到這裡${maybeEmoji(0.35)}`,
+    `下週的課程會再接著往下帶，也會持續觀察${N}的狀態${maybeEmoji(0.35)}`,
+    `孩子的每一點進步老師都會看在眼裡，我們一起繼續加油${maybeEmoji(0.4)}`,
+    `後續有新的觀察，老師會再跟${p}分享${maybeEmoji(0.35)}`,
+    `這學期還有一段路要走，我們陪著孩子慢慢累積${maybeEmoji(0.4)}`,
+    `謝謝${p}撥空看完，我們下堂課再繼續${maybeEmoji(0.35)}`,
+    `老師會持續把${N}的狀況記錄下來，也會適時跟${p}更新${maybeEmoji(0.3)}`,
   ]);
 }
-
 // 把老師手寫的觀察接成自然的一段（不改寫內容，只補上引導語與標點）
 function v2OwnNote(note){
   const s = String(note || "").trim();
@@ -2398,49 +2460,75 @@ function v2OwnNote(note){
   return (lead ? lead + "\n" : "") + body + maybeEmoji(0.3);
 }
 
+// ── 訊息骨架輪替 ──────────────────────────────────────────
+// 同一位家長連續收到好幾週時，若段落順序永遠一樣就會看出是模板。
+// 定義多種合理的排列，並記住每位學生上次用哪一種，下次換一種。
+// 硬性限制：open 必為首、close 必為末、extra 緊接 praise、concern 不早於 praise。
+const MESSAGE_SHAPES = [
+  ["open","intro","lesson","activity","praise","extra","concern","own","teach","view","overall","close"],
+  ["open","intro","praise","extra","own","lesson","activity","concern","teach","overall","close"],
+  ["open","lesson","praise","extra","concern","teach","own","view","overall","close"],
+  ["open","intro","view","lesson","activity","praise","extra","concern","own","teach","close"],
+  ["open","praise","extra","lesson","activity","own","concern","teach","overall","view","close"],
+  ["open","intro","lesson","praise","extra","own","concern","view","teach","activity","overall","close"],
+];
+
+const SHAPE_KEY = "iee_shape_memory_v1";
+function lastShapeFor(name){
+  try{
+    const m = JSON.parse(localStorage.getItem(SHAPE_KEY) || "{}");
+    return typeof m[name] === "number" ? m[name] : -1;
+  }catch(e){ return -1; }
+}
+function rememberShape(name, idx){
+  try{
+    const m = JSON.parse(localStorage.getItem(SHAPE_KEY) || "{}");
+    m[name] = idx;
+    localStorage.setItem(SHAPE_KEY, JSON.stringify(m));
+  }catch(e){}
+}
+// 避開上一次用過的排列
+function pickShape(name){
+  const last = lastShapeFor(name);
+  const pool = MESSAGE_SHAPES.map((_,i)=>i).filter(i=>i !== last);
+  const idx = pick(pool.length ? pool : MESSAGE_SHAPES.map((_,i)=>i));
+  rememberShape(name, idx);
+  return MESSAGE_SHAPES[idx];
+}
+
 function generateCommentV2(rawName, tags, ownNote){
   const name = safeName(rawName);
   _usedEmoji = [];          // 每則訊息重置，避免同一則出現重複 emoji
-  const p = teacher.parent, N = nm(name);
+  const p = teacher.parent;
   const fill = s => String(s).replace(/\$\{p\}/g, p).replace(/\$\{N\}/g, nmIn(name));
-  const paras = [];
-
-  paras.push(v2Opening(name));
-  // 開場後說明要分享什麼（語料中幾乎每則都有）
-  if(Math.random() < 0.75) paras.push(fill(pick(INTRO_LINE)) + endMark(0.25) + maybeEmoji(0.25));
-
-  const lesson = v2Lesson();
-  if(lesson) paras.push(lesson + endMark(0.3) + maybeEmoji(0.22));
-  // 課堂實際怎麼進行的
-  if(Math.random() < 0.6) paras.push(pick(CLASS_ACTIVITY) + endMark(0.25) + maybeEmoji(0.22));
-
-  paras.push(v2Praise(name, tags));
-  // 亮點多於兩項時，第三項另起一段，不要塞進同一句
-  const extra = v2PraiseExtra(name, tags);
-  if(extra) paras.push(extra);
 
   const concern = v2Concern(name, tags);
-  if(concern) paras.push(concern);
-  // 老師手寫的個別觀察（語料中最生動的部分，無法自動生成）
-  const own = v2OwnNote(ownNote);
-  if(own) paras.push(own.replace(/\$\{p\}/g, p));
+  const lesson  = v2Lesson();
+  const own     = v2OwnNote(ownNote);
 
-  // 老師的教學說明——解釋「我們是怎麼帶的」，讓家長安心
-  if(Math.random() < (concern ? 0.72 : 0.42))
-    paras.push(fill(pick(TEACHING_NOTE)) + endMark(0.25) + maybeEmoji(0.22));
+  // 各段落先算好內容，再依骨架決定順序
+  const block = {
+    open:     ()=> v2Opening(name),
+    intro:    ()=> Math.random() < 0.7  ? fill(pick(INTRO_LINE)) + endMark(0.25) + maybeEmoji(0.25) : "",
+    lesson:   ()=> lesson ? lesson + endMark(0.3) + maybeEmoji(0.22) : "",
+    activity: ()=> Math.random() < 0.55 ? pick(CLASS_ACTIVITY) + endMark(0.25) + maybeEmoji(0.22) : "",
+    praise:   ()=> v2Praise(name, tags),
+    extra:    ()=> v2PraiseExtra(name, tags),
+    concern:  ()=> concern,
+    own:      ()=> own ? own.replace(/\$\{p\}/g, p) : "",
+    teach:    ()=> Math.random() < (concern ? 0.68 : 0.4)
+                     ? fill(pick(TEACHING_NOTE)) + endMark(0.25) + maybeEmoji(0.22) : "",
+    view:     ()=> Math.random() < 0.4
+                     ? pick(TEACHER_VIEW[concern ? "-" : "+"]) + softEnd(0.06) + maybeEmoji(0.28) : "",
+    overall:  ()=> Math.random() < 0.45
+                     ? pick(OVERALL_IMPRESSION[concern ? "-" : "+"]) + softEnd(0.06) + maybeEmoji(0.3) : "",
+    close:    ()=> v2Closing(name),
+  };
 
-  // 老師視角的一句話
-  if(Math.random() < 0.4)
-    paras.push(pick(TEACHER_VIEW[concern ? "-" : "+"]) + softEnd(0.06) + maybeEmoji(0.28));
-
-  // 對孩子整體的評價
-  if(Math.random() < 0.45)
-    paras.push(pick(OVERALL_IMPRESSION[concern ? "-" : "+"]) + softEnd(0.06) + maybeEmoji(0.3));
-
-  paras.push(v2Closing(name));
+  const shape = pickShape(name);
+  const paras = shape.map(k => block[k] ? block[k]() : "");
   return paras.map(x=>String(x).trim()).filter(Boolean).join("\n\n");
 }
-
 function generateComment(style, nameArg, tagsArg, noteArg){
   const rawName = (nameArg !== undefined) ? nameArg : document.getElementById("studentName").value;
   const name = (rawName || "這位同學").trim() || "這位同學";
